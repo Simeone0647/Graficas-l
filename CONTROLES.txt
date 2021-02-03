@@ -1,0 +1,11 @@
+A - Mover cámara a la izquierda
+D - Mover cámara a la derecha
+S - Mover cámara hacia abajo
+W - Mover cámara hacia arriba
+
+E - Mover cámara hacia atrás
+Q - Mover cámara hacia enfrente
+
+Tab - Cambiar entre cámara perspectiva y ortográfica.
+
+Click Izquierdo - Rotar cámara
