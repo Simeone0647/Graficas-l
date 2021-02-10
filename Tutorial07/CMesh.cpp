@@ -40,7 +40,7 @@ CMesh::~CMesh()
 	}
 }
 
-void CMesh::setVertex(CVertex* figura, int numofvertex)
+void CMesh::SetVertex(CVertex* figure, int numofvertex)
 {
 	if (m_Vertex != nullptr)
 	{
@@ -48,10 +48,10 @@ void CMesh::setVertex(CVertex* figura, int numofvertex)
 	}
 
 	m_Vertex = new CVertex[numofvertex];
-	memcpy(m_Vertex, figura, sizeof(figura[0]) * numofvertex);
+	memcpy(m_Vertex, figure, sizeof(figure[0]) * numofvertex);
 }
 
-void CMesh::setVertexIndex(unsigned short* vertexindexarr, int numofvertexindex)
+void CMesh::SetVertexIndex(unsigned short* vertexindexarr, int numofvertexindex)
 {
 	if (m_VertexIndex != nullptr)
 	{

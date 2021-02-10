@@ -7,12 +7,15 @@
 //--------------------------------------------------------------------------------------
 #pragma once
 #include <windows.h>
+#include <windowsx.h>
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3dcompiler.h>
 #include <xnamath.h>
 #include "CCamera.h"
 #include "CVector3.h"
+#include "CMesh.h"
+#include "CVertex.h"
 #include "resource.h"
 
 
@@ -39,11 +42,6 @@ struct CBChangesEveryFrame
 {
     XMMATRIX mWorld;
     XMFLOAT4 vMeshColor;
-};
-
-struct MyCamera
-{
-    CCamera mCamera;
 };
 
 //--------------------------------------------------------------------------------------
@@ -74,6 +72,21 @@ XMMATRIX                            g_View;
 XMMATRIX                            g_Projection;
 XMMATRIX                            g_Translation;
 XMFLOAT4                            g_vMeshColor( 0.7f, 0.7f, 0.7f, 1.0f );
+CCamera                             m_PerspectiveCamera;
+CCamera                             m_OrtographicCamera;
+CCamera*                            m_Camera;
+CVertex                             CubeVertex[24];
+CMesh                               FirstCube;
+CMesh                               SecondCube;
+CMesh                               ThirdCube;
+CMesh                               FourthCube;
+LPPOINT                             MouseInitPos = new POINT;
+LPPOINT                             MouseFinalPos = new POINT;
+LPPOINT                             MouseDirection = new POINT;
+unsigned short*                     CubeVertexIndex = new unsigned short[36];
+bool                                m_IsPerspectiveActive = true;
+bool                                m_IsFirstFrame = false;
+bool                                m_IsFirstPosStored = false;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -83,7 +96,7 @@ HRESULT InitDevice();
 void CleanupDevice();
 LRESULT CALLBACK    WndProc( HWND, UINT, WPARAM, LPARAM );
 void Render();
-
+void Update();
 
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
@@ -114,6 +127,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
         }
         else
         {
+            Update();
             Render();
         }
     }
@@ -355,85 +369,151 @@ HRESULT InitDevice()
         return hr;
 
     // Create vertex buffer
-    SimpleVertex vertices[] =
-    {
-        { XMFLOAT3( -1.0f, 1.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, 1.0f ), XMFLOAT2( 1.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, 1.0f, 1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
+    // SET ALL VERTEX PARAMS
+    CubeVertex[0].SetPosition(-1.0f, 1.0f, -1.0f);
+    CubeVertex[0].SetTexture(0.0f, 0.0f);
+	CubeVertex[1].SetPosition(1.0f, 1.0f, -1.0f);
+	CubeVertex[1].SetTexture(1.0f, 0.0f);
+	CubeVertex[2].SetPosition(1.0f, 1.0f, 1.0f);
+	CubeVertex[2].SetTexture(1.0f, 1.0f);
+	CubeVertex[3].SetPosition(-1.0f, 1.0f, 1.0f);
+	CubeVertex[3].SetTexture(0.0f, 1.0f);
+   
+	CubeVertex[4].SetPosition(-1.0f, -1.0f, -1.0f);
+	CubeVertex[4].SetTexture(0.0f, 0.0f);
+	CubeVertex[5].SetPosition(1.0f, -1.0f, -1.0f);
+	CubeVertex[5].SetTexture(1.0f, 0.0f);
+	CubeVertex[6].SetPosition(1.0f, -1.0f, 1.0f);
+	CubeVertex[6].SetTexture(1.0f, 1.0f);
+	CubeVertex[7].SetPosition(-1.0f, -1.0f, 1.0f);
+	CubeVertex[7].SetTexture(0.0f, 1.0f);
 
-        { XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, 1.0f ), XMFLOAT2( 1.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, -1.0f, 1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
+	CubeVertex[8].SetPosition(-1.0f, -1.0f, 1.0f);
+	CubeVertex[8].SetTexture(0.0f, 0.0f);
+	CubeVertex[9].SetPosition(-1.0f, -1.0f, -1.0f);
+	CubeVertex[9].SetTexture(1.0f, 0.0f);
+	CubeVertex[10].SetPosition(-1.0f, 1.0f, -1.0f);
+	CubeVertex[10].SetTexture(1.0f, 1.0f);
+	CubeVertex[11].SetPosition(-1.0f, 1.0f, 1.0f);
+	CubeVertex[11].SetTexture(0.0f, 1.0f);
 
-        { XMFLOAT3( -1.0f, -1.0f, 1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-        { XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-        { XMFLOAT3( -1.0f, 1.0f, -1.0f ), XMFLOAT2( 1.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, 1.0f, 1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
+	CubeVertex[12].SetPosition(1.0f, -1.0f, 1.0f);
+	CubeVertex[12].SetTexture(0.0f, 0.0f);
+	CubeVertex[13].SetPosition(1.0f, -1.0f, -1.0f);
+	CubeVertex[13].SetTexture(1.0f, 0.0f);
+	CubeVertex[14].SetPosition(1.0f, 1.0f, -1.0f);
+	CubeVertex[14].SetTexture(1.0f, 1.0f);
+	CubeVertex[15].SetPosition(1.0f, 1.0f, 1.0f);
+	CubeVertex[15].SetTexture(0.0f, 1.0f);
 
-        { XMFLOAT3( 1.0f, -1.0f, 1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, -1.0f ), XMFLOAT2( 1.0f, 1.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, 1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
+	CubeVertex[16].SetPosition(-1.0f, -1.0f, -1.0f);
+	CubeVertex[16].SetTexture(0.0f, 0.0f);
+	CubeVertex[17].SetPosition(1.0f, -1.0f, -1.0f);
+	CubeVertex[17].SetTexture(1.0f, 0.0f);
+	CubeVertex[18].SetPosition(1.0f, 1.0f, -1.0f);
+	CubeVertex[18].SetTexture(1.0f, 1.0f);
+	CubeVertex[19].SetPosition(-1.0f, 1.0f, -1.0f);
+	CubeVertex[19].SetTexture(0.0f, 1.0f);
 
-        { XMFLOAT3( -1.0f, -1.0f, -1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, -1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, -1.0f ), XMFLOAT2( 1.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, 1.0f, -1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
+	CubeVertex[20].SetPosition(-1.0f, -1.0f, 1.0f);
+	CubeVertex[20].SetTexture(0.0f, 0.0f);
+	CubeVertex[21].SetPosition(1.0f, -1.0f, 1.0f);
+	CubeVertex[21].SetTexture(1.0f, 0.0f);
+	CubeVertex[22].SetPosition(1.0f, 1.0f, 1.0f);
+	CubeVertex[22].SetTexture(1.0f, 1.0f);
+	CubeVertex[23].SetPosition(-1.0f, 1.0f, 1.0f);
+	CubeVertex[23].SetTexture(0.0f, 1.0f);
 
-        { XMFLOAT3( -1.0f, -1.0f, 1.0f ), XMFLOAT2( 0.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, -1.0f, 1.0f ), XMFLOAT2( 1.0f, 0.0f ) },
-        { XMFLOAT3( 1.0f, 1.0f, 1.0f ), XMFLOAT2( 1.0f, 1.0f ) },
-        { XMFLOAT3( -1.0f, 1.0f, 1.0f ), XMFLOAT2( 0.0f, 1.0f ) },
-    };
+    //SETTING THE CUBE VERTEX TO THE MESHES
+    FirstCube.SetVertex(CubeVertex, 24);
+    FirstCube.SetNumOfVertex(24);
+
+    SecondCube.SetVertex(CubeVertex, 24);
+    SecondCube.SetNumOfVertex(24);
+
+    ThirdCube.SetVertex(CubeVertex, 24);
+    ThirdCube.SetNumOfVertex(24);
+
+    FourthCube.SetVertex(CubeVertex, 24);
+    FourthCube.SetNumOfVertex(24);
 
     D3D11_BUFFER_DESC bd;
     ZeroMemory( &bd, sizeof(bd) );
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( SimpleVertex ) * 24;
+    bd.ByteWidth = CubeVertex->GetSize() * FirstCube.GetNumOfVertex();
+    //bd.ByteWidth = sizeof( SimpleVertex ) * 24;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.CPUAccessFlags = 0;
     D3D11_SUBRESOURCE_DATA InitData;
     ZeroMemory( &InitData, sizeof(InitData) );
-    InitData.pSysMem = vertices;
+    InitData.pSysMem = FirstCube.GetVertex();
+    //InitData.pSysMem = vertices;
     hr = g_pd3dDevice->CreateBuffer( &bd, &InitData, &g_pVertexBuffer );
     if( FAILED( hr ) )
         return hr;
 
     // Set vertex buffer
-    UINT stride = sizeof( SimpleVertex );
+    UINT stride = sizeof( CVertex );
     UINT offset = 0;
     g_pImmediateContext->IASetVertexBuffers( 0, 1, &g_pVertexBuffer, &stride, &offset );
 
-    // Create index buffer
-    // Create vertex buffer
-    WORD indices[] =
-    {
-        3,1,0,
-        2,1,3,
+    //SET VERTEX INDEX ARRAY
+    CubeVertexIndex[0] = 3;
+    CubeVertexIndex[1] = 1;
+    CubeVertexIndex[2] = 0;
+    CubeVertexIndex[3] = 2;
+    CubeVertexIndex[4] = 1;
+    CubeVertexIndex[5] = 3;
+    CubeVertexIndex[6] = 6;
+    CubeVertexIndex[7] = 4;
+    CubeVertexIndex[8] = 5;
+    CubeVertexIndex[9] = 7;
+    CubeVertexIndex[10] = 4;
+    CubeVertexIndex[11] = 6;
+    CubeVertexIndex[12] = 11;
+    CubeVertexIndex[13] = 9;
+    CubeVertexIndex[14] = 8;
+    CubeVertexIndex[15] = 10;
+    CubeVertexIndex[16] = 9;
+    CubeVertexIndex[17] = 11;
+    CubeVertexIndex[18] = 14;
+    CubeVertexIndex[19] = 12;
+    CubeVertexIndex[20] = 13;
+    CubeVertexIndex[21] = 15;
+    CubeVertexIndex[22] = 12;
+    CubeVertexIndex[23] = 14;
+    CubeVertexIndex[24] = 19;
+    CubeVertexIndex[25] = 17;
+    CubeVertexIndex[26] = 16;
+    CubeVertexIndex[27] = 18;
+    CubeVertexIndex[28] = 17;
+    CubeVertexIndex[29] = 19;
+    CubeVertexIndex[30] = 22;
+    CubeVertexIndex[31] = 20;
+    CubeVertexIndex[32] = 21;
+    CubeVertexIndex[33] = 23;
+    CubeVertexIndex[34] = 20;
+    CubeVertexIndex[35] = 22;
 
-        6,4,5,
-        7,4,6,
+    //SET ALL FOUR MESHES VERTEX INDEX
+    FirstCube.SetVertexIndex(CubeVertexIndex, 36);
+	SecondCube.SetVertexIndex(CubeVertexIndex, 36);
+    ThirdCube.SetVertexIndex(CubeVertexIndex, 36);
+    FourthCube.SetVertexIndex(CubeVertexIndex, 36);
 
-        11,9,8,
-        10,9,11,
-
-        14,12,13,
-        15,12,14,
-
-        19,17,16,
-        18,17,19,
-
-        22,20,21,
-        23,20,22
-    };
+	//SET NUM OF VERTEX INDEX
+	FirstCube.SetNumOfVertexIndex(36);
+	SecondCube.SetNumOfVertexIndex(36);
+	ThirdCube.SetNumOfVertexIndex(36);
+	FourthCube.SetNumOfVertexIndex(36);
 
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof( WORD ) * 36;
+    bd.ByteWidth = FirstCube.GetVertexIndexSize();
+  //bd.ByteWidth = sizeof( WORD ) * 36;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
-    InitData.pSysMem = indices;
+    InitData.pSysMem = FirstCube.GetVertexIndex();
+    //InitData.pSysMem = indices;
     hr = g_pd3dDevice->CreateBuffer( &bd, &InitData, &g_pIndexBuffer );
     if( FAILED( hr ) )
         return hr;
@@ -485,39 +565,35 @@ HRESULT InitDevice()
     // Initialize the world matrices
     g_World = XMMatrixIdentity();
 
-    MyCamera m_Camera;
-    m_Camera.mCamera.setEye(0.0f, 3.0f, -6.0f, 0.0f);
-    m_Camera.mCamera.setAt(0.0f, 0.0f, 0.0f, 0.0f);
-    m_Camera.mCamera.setUp(0.0f, 1.0f, 0.0f, 0.0f);
 
-   // XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
-   // XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-   // XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    m_PerspectiveCamera.SetAt(0.0f, 0.0f, 0.0f);
+    m_PerspectiveCamera.SetEye(0.0f, 3.0f, -6.0f);
+    m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
+    m_PerspectiveCamera.UpdateViewMatrix();
+    m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
 
-    //Initialize the view matrix
-   //  XMVECTOR Eye = XMVectorSet( m_Camera.mCamera.getEye().getX(), m_Camera.mCamera.getEye().getY(),
-   //                             m_Camera.mCamera.getEye().getZ(), m_Camera.mCamera.getEye().getA());
-   // XMVECTOR At = XMVectorSet( m_Camera.mCamera.getAt().getX(), m_Camera.mCamera.getAt().getY(),
-   //                             m_Camera.mCamera.getAt().getZ(), m_Camera.mCamera.getAt().getA());
-   // XMVECTOR Up = XMVectorSet( m_Camera.mCamera.getUp().getX(), m_Camera.mCamera.getUp().getY(),
-   //                          m_Camera.mCamera.getUp().getZ(),m_Camera.mCamera.getUp().getA());
-    g_View = m_Camera.mCamera.getViewMatrix();
+	m_OrtographicCamera.SetAt(0.0f, 0.0f, 0.0f);
+	m_OrtographicCamera.SetEye(0.0f, 3.0f, -6.0f);
+	m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
+    m_OrtographicCamera.UpdateViewMatrix();
+    m_OrtographicCamera.UpdateOrtographicProjectionMatrix(rc.left, rc.right, rc.bottom, rc.top, 0.01f, 100.0f);
 
-    //g_View = XMMatrixLookAtLH( Eye, At, Up );
+    m_Camera = &m_PerspectiveCamera;
+
+   // g_View = m_Camera->getViewMatrix();
+    //g_View = m_PerspectiveCamera.getViewMatrix();
 
     CBNeverChanges cbNeverChanges;
-    cbNeverChanges.mView = XMMatrixTranspose( g_View );
+    cbNeverChanges.mView = XMMatrixTranspose( m_Camera->GetViewMatrix() );
     g_pImmediateContext->UpdateSubresource( g_pCBNeverChanges, 0, NULL, &cbNeverChanges, 0, 0 );
 
     // Initialize the projection matrix
-    g_Projection = m_Camera.mCamera.getPerspectiveProjectionMatrix(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
-     //g_Projection = XMMatrixPerspectiveFovLH( XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f );
 
-    //g_Projection = m_Camera.mCamera.getOrtographicProjectionMatrix(rc.left, rc.right, rc.bottom, rc.top, 0.01f, 100.0f);
-    //g_Projection = XMMatrixOrthographicLH(width, height, 0.01f, 100.0f);
+   // g_Projection = m_Camera->getPerspectiveProjectionMatrix();
+    //g_Projection = m_Camera->getOrtographicProjectionMatrix();
 
     CBChangeOnResize cbChangesOnResize;
-    cbChangesOnResize.mProjection = XMMatrixTranspose( g_Projection );
+    cbChangesOnResize.mProjection = XMMatrixTranspose( m_Camera->GetPerspectiveProjectionMatrix() );
     g_pImmediateContext->UpdateSubresource( g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0 );
 
     return S_OK;
@@ -558,6 +634,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     PAINTSTRUCT ps;
     HDC hdc;
 
+    CVector3 cam_pos;
+
+
     switch( message )
     {
         case WM_PAINT:
@@ -569,6 +648,69 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
             PostQuitMessage( 0 );
             break;
 
+        case WM_KEYDOWN: 
+        {
+            if (LOWORD(wParam) == 'W')
+            {
+                cam_pos.SetValues(0.0f, 0.1f, 0.0f);
+                m_Camera->MoveCamera(cam_pos);
+                m_Camera->UpdateViewMatrix();
+            }
+            if (LOWORD(wParam) == 'A')
+            {
+				cam_pos.SetValues(-0.1f, 0.0f, 0.0f);
+				m_Camera->MoveCamera(cam_pos);
+                m_Camera->UpdateViewMatrix();
+            }
+			if (LOWORD(wParam) == 'S')
+			{
+				cam_pos.SetValues(0.0f, -0.1f, 0.0f);
+				m_Camera->MoveCamera(cam_pos);
+                m_Camera->UpdateViewMatrix();
+			}
+			if (LOWORD(wParam) == 'D')
+			{
+				cam_pos.SetValues(0.1f, 0.0f, 0.0f);
+				m_Camera->MoveCamera(cam_pos);
+                m_Camera->UpdateViewMatrix();
+			}
+			if (LOWORD(wParam) == 'Q')
+			{
+				cam_pos.SetValues(0.0f, 0.0f, 0.1f);
+				m_Camera->MoveCamera(cam_pos);
+                m_Camera->UpdateViewMatrix();
+			}
+			if (LOWORD(wParam) == 'E')
+			{
+				cam_pos.SetValues(0.0f, 0.0f, -0.1f);
+				m_Camera->MoveCamera(cam_pos);
+                m_Camera->UpdateViewMatrix();
+			}
+            if (wParam == VK_TAB)
+            {
+                if (m_IsPerspectiveActive)
+                {
+                    m_Camera = &m_OrtographicCamera;
+                    m_IsPerspectiveActive = false;
+                }
+                else
+                {
+                    m_Camera = &m_PerspectiveCamera;
+                    m_IsPerspectiveActive = true;
+                }
+            }
+            break;
+        }
+        
+        case WM_LBUTTONDOWN:
+        {
+            m_IsFirstFrame = true;
+            break;
+        }
+
+        case WM_LBUTTONUP:
+        m_IsFirstFrame = false;
+        break;
         default:
             return DefWindowProc( hWnd, message, wParam, lParam );
     }
@@ -576,60 +718,190 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
     return 0;
 }
 
+void Update()
+{
+	// Update our time
+	static float t = 0.0f;
+    int counter = 0;
 
+    if (m_IsFirstFrame)
+    {
+        if (!m_IsFirstPosStored)
+        {
+            GetCursorPos(MouseInitPos);
+            m_IsFirstPosStored = true;
+        }
+        else
+        {
+			GetCursorPos(MouseFinalPos);
+			LPPOINT Direction = new POINT;
+			Direction->x = MouseFinalPos->x - MouseInitPos->x;
+			Direction->y = MouseFinalPos->y - MouseInitPos->y;
+			m_Camera->RotateCamera(CVector3(Direction->x, Direction->y, 0.0f));
+			m_Camera->UpdateViewMatrix();
+            m_IsFirstPosStored = false;
+            if (Direction != nullptr)
+            {
+                delete Direction;
+            }
+        }
+    }
+
+	if (g_driverType == D3D_DRIVER_TYPE_REFERENCE)
+	{
+		t += (float)XM_PI * 0.0125f;
+	}
+	else
+	{
+		static DWORD dwTimeStart = 0;
+		DWORD dwTimeCur = GetTickCount();
+		if (dwTimeStart == 0)
+			dwTimeStart = dwTimeCur;
+		t = (dwTimeCur - dwTimeStart) / 1000.0f;
+	}
+
+	// Rotate cube around the origin
+	g_Translation.m[0][3] = 0;
+	g_Translation.m[1][3] = 0;
+	g_Translation.m[2][3] = 0;
+
+    //FIRST CUBE
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            FirstCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
+            counter++;
+        }
+    }
+    counter = 0;
+
+	g_World = g_Translation;
+	g_World = XMMatrixRotationY(t);
+    g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			FirstCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+
+    //SECOND CUBE
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			SecondCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+
+    g_World = XMMatrixTranslation(2.0f, 0.0f, 0.0f);
+    g_World = XMMatrixMultiply(XMMatrixRotationY(t), g_World);
+    g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			SecondCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+
+    //THIRD CUBE
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			ThirdCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+
+	g_World = XMMatrixTranslation(-2.0f, 0.0f, 0.0f);
+	g_World = XMMatrixMultiply(XMMatrixRotationY(t), g_World);
+	g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			ThirdCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+
+    //FOURTH CUBE
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			FourthCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+	g_World = XMMatrixTranslation(0.0f, 2.0f, 0.0f);
+	g_World = XMMatrixMultiply(XMMatrixRotationY(t), g_World);
+	g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			FourthCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
+			counter++;
+		}
+	}
+	counter = 0;
+
+	// Modify the color
+	g_vMeshColor.x = (sinf(t * 1.0f) + 1.0f) * 0.5f;
+	g_vMeshColor.y = (cosf(t * 3.0f) + 1.0f) * 0.5f;
+	g_vMeshColor.z = (sinf(t * 5.0f) + 1.0f) * 0.5f;
+
+	//
+	// Clear the back buffer
+	//
+	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
+	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+
+	//
+	// Clear the depth buffer to 1.0 (max depth)
+	//
+	g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
 //--------------------------------------------------------------------------------------
 // Render a frame
 //--------------------------------------------------------------------------------------
 void Render()
 {
-    // Update our time
-    static float t = 0.0f;
-    if( g_driverType == D3D_DRIVER_TYPE_REFERENCE )
+
+	CBNeverChanges cbNeverChanges;
+	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->GetViewMatrix());
+	g_pImmediateContext->UpdateSubresource(g_pCBNeverChanges, 0, NULL, &cbNeverChanges, 0, 0);
+
+    if (m_IsPerspectiveActive)
     {
-        t += ( float )XM_PI * 0.0125f;
+		CBChangeOnResize cbChangesOnResize;
+		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
+		g_pImmediateContext->UpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
     }
     else
     {
-        static DWORD dwTimeStart = 0;
-        DWORD dwTimeCur = GetTickCount();
-        if( dwTimeStart == 0 )
-            dwTimeStart = dwTimeCur;
-        t = ( dwTimeCur - dwTimeStart ) / 1000.0f;
+		CBChangeOnResize cbChangesOnResize;
+		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetOrtographicProjectionMatrix());
+		g_pImmediateContext->UpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
     }
-
-    // Rotate cube around the origin
-    g_Translation.m[0][3] = 0;
-    g_Translation.m[1][3] = 0;
-    g_Translation.m[2][3] = 0;
-
-    g_World = g_Translation;
-    g_World = XMMatrixRotationY(t);
-
-    g_World.m[3][2] = 3;
-    // Modify the color
-    g_vMeshColor.x = ( sinf( t * 1.0f ) + 1.0f ) * 0.5f;
-    g_vMeshColor.y = ( cosf( t * 3.0f ) + 1.0f ) * 0.5f;
-    g_vMeshColor.z = ( sinf( t * 5.0f ) + 1.0f ) * 0.5f;
-
-    //
-    // Clear the back buffer
-    //
-    float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-    g_pImmediateContext->ClearRenderTargetView( g_pRenderTargetView, ClearColor );
-
-    //
-    // Clear the depth buffer to 1.0 (max depth)
-    //
-    g_pImmediateContext->ClearDepthStencilView( g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-
-    //
-    // Update variables that change once per frame
-    //
-    CBChangesEveryFrame cb;
-    cb.mWorld = XMMatrixTranspose( g_World );
-    cb.vMeshColor = g_vMeshColor;
-    g_pImmediateContext->UpdateSubresource( g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0 );
-
     //
     // Render the cube
     //
@@ -641,8 +913,28 @@ void Render()
     g_pImmediateContext->PSSetConstantBuffers( 2, 1, &g_pCBChangesEveryFrame );
     g_pImmediateContext->PSSetShaderResources( 0, 1, &g_pTextureRV );
     g_pImmediateContext->PSSetSamplers( 0, 1, &g_pSamplerLinear );
-    g_pImmediateContext->DrawIndexed( 36, 0, 0 );
 
+
+	CBChangesEveryFrame cb;
+	cb.mWorld = XMMatrixTranspose(FirstCube.GetWorldMatrix());
+	cb.vMeshColor = g_vMeshColor;
+	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+    g_pImmediateContext->DrawIndexed(36, 0, 0);
+
+	cb.mWorld = XMMatrixTranspose(SecondCube.GetWorldMatrix());
+	cb.vMeshColor = g_vMeshColor;
+	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+	g_pImmediateContext->DrawIndexed(36, 0, 0);
+
+	cb.mWorld = XMMatrixTranspose(ThirdCube.GetWorldMatrix());
+	cb.vMeshColor = g_vMeshColor;
+	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+	g_pImmediateContext->DrawIndexed(36, 0, 0);
+
+	cb.mWorld = XMMatrixTranspose(FourthCube.GetWorldMatrix());
+	cb.vMeshColor = g_vMeshColor;
+	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+	g_pImmediateContext->DrawIndexed(36, 0, 0);
     //
     // Present our back buffer to our front buffer
     //
