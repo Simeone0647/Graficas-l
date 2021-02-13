@@ -18,6 +18,9 @@
     <ClInclude Include="CVector3.h" />
     <ClInclude Include="CMesh.h" />
     <ClInclude Include="CVertex.h" />
+    <ClInclude Include="CDevice.h" />
+    <ClInclude Include="CDeviceContext.h" />
+    <ClInclude Include="CSwapChain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tutorial07.cpp" />
@@ -25,6 +28,9 @@
     <ClCompile Include="CVector3.cpp" />
     <ClCompile Include="CMesh.cpp" />
     <ClCompile Include="CVertex.cpp" />
+    <ClCompile Include="CDevice.cpp" />
+    <ClCompile Include="CDeviceContext.cpp" />
+    <ClCompile Include="CSwapChain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Tutorial07.fx">

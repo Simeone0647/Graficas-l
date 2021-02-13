@@ -16,8 +16,10 @@
 #include "CVector3.h"
 #include "CMesh.h"
 #include "CVertex.h"
+#include "CDevice.h"
+#include "CDeviceContext.h"
+#include "CSwapChain.h"
 #include "resource.h"
-
 
 //--------------------------------------------------------------------------------------
 // Structures
@@ -51,9 +53,12 @@ HINSTANCE                           g_hInst = NULL;
 HWND                                g_hWnd = NULL;
 D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-ID3D11Device*                       g_pd3dDevice = NULL;
-ID3D11DeviceContext*                g_pImmediateContext = NULL;
-IDXGISwapChain*                     g_pSwapChain = NULL;
+//ID3D11Device*                       g_pd3dDevice = NULL;
+CDevice*                            g_SimeDevice = new CDevice;
+CDeviceContext*                     g_SimeDeviceContext = new CDeviceContext;
+//ID3D11DeviceContext*                g_pImmediateContext = NULL;
+//IDXGISwapChain*                     g_pSwapChain = NULL;
+CSwapChain*                         g_SimeSwapChain = new CSwapChain;
 ID3D11RenderTargetView*             g_pRenderTargetView = NULL;
 ID3D11Texture2D*                    g_pDepthStencil = NULL;
 ID3D11DepthStencilView*             g_pDepthStencilView = NULL;
@@ -83,6 +88,7 @@ CMesh                               FourthCube;
 LPPOINT                             MouseInitPos = new POINT;
 LPPOINT                             MouseFinalPos = new POINT;
 LPPOINT                             MouseDirection = new POINT;
+D3D11_VIEWPORT                      g_Viewport;
 unsigned short*                     CubeVertexIndex = new unsigned short[36];
 bool                                m_IsPerspectiveActive = true;
 bool                                m_IsFirstFrame = false;
@@ -230,7 +236,15 @@ HRESULT InitDevice()
         D3D_DRIVER_TYPE_WARP,
         D3D_DRIVER_TYPE_REFERENCE,
     };
-    UINT numDriverTypes = ARRAYSIZE( driverTypes );
+
+    //SIME1_DRIVER_TYPE driverTypes[] =
+    //{
+    //    SIME1_DRIVER_TYPE::SIME1_HARDWARE;
+    //    SIME1_DRIVER_TYPE::SIME1_WRAP;
+    //    SIME1_DRIVER_TYPE::SIME1_REFERENCE;
+    //};
+
+    UINT numDriverTypes = ARRAYSIZE( driverTypes ); 
 
     D3D_FEATURE_LEVEL featureLevels[] =
     {
@@ -238,6 +252,14 @@ HRESULT InitDevice()
         D3D_FEATURE_LEVEL_10_1,
         D3D_FEATURE_LEVEL_10_0,
     };
+
+    //SIME1_FEATURE_LEVEL featureLevels[] =
+    //{
+    //    SIME1_FEATURE_LEVEL::SIME1_FEATURE_LEVEL_11_0;
+    //    SIME1_FEATURE_LEVEL::SIME1_FEATURE_LEVEL_10_1,
+    //    SIME1_FEATURE_LEVEL::SIME1_FEATURE_LEVEL_10_0;
+    //};
+
     UINT numFeatureLevels = ARRAYSIZE( featureLevels );
 
     DXGI_SWAP_CHAIN_DESC sd;
@@ -258,7 +280,8 @@ HRESULT InitDevice()
     {
         g_driverType = driverTypes[driverTypeIndex];
         hr = D3D11CreateDeviceAndSwapChain( NULL, g_driverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
-                                            D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &g_featureLevel, &g_pImmediateContext );
+                                            D3D11_SDK_VERSION, &sd, g_SimeSwapChain->GetSwapChainAdress(), g_SimeDevice->GetDeviceAdress(),
+                                            &g_featureLevel, g_SimeDeviceContext->GetDeviceContextAdress());
         if( SUCCEEDED( hr ) )
             break;
     }
@@ -267,11 +290,11 @@ HRESULT InitDevice()
 
     // Create a render target view
     ID3D11Texture2D* pBackBuffer = NULL;
-    hr = g_pSwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBackBuffer );
+    hr = g_SimeSwapChain->CGetBuffer( 0, __uuidof( ID3D11Texture2D ), ( LPVOID* )&pBackBuffer );
     if( FAILED( hr ) )
         return hr;
 
-    hr = g_pd3dDevice->CreateRenderTargetView( pBackBuffer, NULL, &g_pRenderTargetView );
+    hr = g_SimeDevice->CCreateRenderTargetView( pBackBuffer, NULL, &g_pRenderTargetView );
     pBackBuffer->Release();
     if( FAILED( hr ) )
         return hr;
@@ -290,7 +313,7 @@ HRESULT InitDevice()
     descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     descDepth.CPUAccessFlags = 0;
     descDepth.MiscFlags = 0;
-    hr = g_pd3dDevice->CreateTexture2D( &descDepth, NULL, &g_pDepthStencil );
+    hr = g_SimeDevice->CCreateTexture2D( &descDepth, NULL, &g_pDepthStencil );
     if( FAILED( hr ) )
         return hr;
 
@@ -300,22 +323,22 @@ HRESULT InitDevice()
     descDSV.Format = descDepth.Format;
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
-    hr = g_pd3dDevice->CreateDepthStencilView( g_pDepthStencil, &descDSV, &g_pDepthStencilView );
+    hr = g_SimeDevice->CCreateDepthStencilView( g_pDepthStencil, &descDSV, &g_pDepthStencilView );
     if( FAILED( hr ) )
         return hr;
 
-    g_pImmediateContext->OMSetRenderTargets( 1, &g_pRenderTargetView, g_pDepthStencilView );
+
 
     // Setup the viewport
-    D3D11_VIEWPORT vp;
-    vp.Width = (FLOAT)width;
-    vp.Height = (FLOAT)height;
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0;
-    vp.TopLeftY = 0;
-    g_pImmediateContext->RSSetViewports( 1, &vp );
 
+    g_Viewport.Width = (FLOAT)width;
+    g_Viewport.Height = (FLOAT)height;
+    g_Viewport.MinDepth = 0.0f;
+    g_Viewport.MaxDepth = 1.0f;
+    g_Viewport.TopLeftX = 0;
+    g_Viewport.TopLeftY = 0;
+
+  
     // Compile the vertex shader
     ID3DBlob* pVSBlob = NULL;
     hr = CompileShaderFromFile( L"Tutorial07.fx", "VS", "vs_4_0", &pVSBlob );
@@ -327,7 +350,7 @@ HRESULT InitDevice()
     }
 
     // Create the vertex shader
-    hr = g_pd3dDevice->CreateVertexShader( pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader );
+    hr = g_SimeDevice->CCreateVertexShader( pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader );
     if( FAILED( hr ) )
     {    
         pVSBlob->Release();
@@ -343,14 +366,11 @@ HRESULT InitDevice()
     UINT numElements = ARRAYSIZE( layout );
 
     // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout( layout, numElements, pVSBlob->GetBufferPointer(),
+    hr = g_SimeDevice->CCreateInputLayout( layout, numElements, pVSBlob->GetBufferPointer(),
                                           pVSBlob->GetBufferSize(), &g_pVertexLayout );
     pVSBlob->Release();
     if( FAILED( hr ) )
         return hr;
-
-    // Set the input layout
-    g_pImmediateContext->IASetInputLayout( g_pVertexLayout );
 
     // Compile the pixel shader
     ID3DBlob* pPSBlob = NULL;
@@ -363,7 +383,7 @@ HRESULT InitDevice()
     }
 
     // Create the pixel shader
-    hr = g_pd3dDevice->CreatePixelShader( pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader );
+    hr = g_SimeDevice->CCreatePixelShader( pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader );
     pPSBlob->Release();
     if( FAILED( hr ) )
         return hr;
@@ -448,14 +468,9 @@ HRESULT InitDevice()
     ZeroMemory( &InitData, sizeof(InitData) );
     InitData.pSysMem = FirstCube.GetVertex();
     //InitData.pSysMem = vertices;
-    hr = g_pd3dDevice->CreateBuffer( &bd, &InitData, &g_pVertexBuffer );
+    hr = g_SimeDevice->CCreateBuffer( &bd, &InitData, &g_pVertexBuffer );
     if( FAILED( hr ) )
         return hr;
-
-    // Set vertex buffer
-    UINT stride = sizeof( CVertex );
-    UINT offset = 0;
-    g_pImmediateContext->IASetVertexBuffers( 0, 1, &g_pVertexBuffer, &stride, &offset );
 
     //SET VERTEX INDEX ARRAY
     CubeVertexIndex[0] = 3;
@@ -514,37 +529,31 @@ HRESULT InitDevice()
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = FirstCube.GetVertexIndex();
     //InitData.pSysMem = indices;
-    hr = g_pd3dDevice->CreateBuffer( &bd, &InitData, &g_pIndexBuffer );
+    hr = g_SimeDevice->CCreateBuffer( &bd, &InitData, &g_pIndexBuffer );
     if( FAILED( hr ) )
         return hr;
-
-    // Set index buffer
-    g_pImmediateContext->IASetIndexBuffer( g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0 );
-
-    // Set primitive topology
-    g_pImmediateContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
     // Create the constant buffers
     bd.Usage = D3D11_USAGE_DEFAULT;
     bd.ByteWidth = sizeof(CBNeverChanges);
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bd.CPUAccessFlags = 0;
-    hr = g_pd3dDevice->CreateBuffer( &bd, NULL, &g_pCBNeverChanges );
+    hr = g_SimeDevice->CCreateBuffer( &bd, NULL, &g_pCBNeverChanges );
     if( FAILED( hr ) )
         return hr;
     
     bd.ByteWidth = sizeof(CBChangeOnResize);
-    hr = g_pd3dDevice->CreateBuffer( &bd, NULL, &g_pCBChangeOnResize );
+    hr = g_SimeDevice->CCreateBuffer( &bd, NULL, &g_pCBChangeOnResize );
     if( FAILED( hr ) )
         return hr;
     
     bd.ByteWidth = sizeof(CBChangesEveryFrame);
-    hr = g_pd3dDevice->CreateBuffer( &bd, NULL, &g_pCBChangesEveryFrame );
+    hr = g_SimeDevice->CCreateBuffer( &bd, NULL, &g_pCBChangesEveryFrame );
     if( FAILED( hr ) )
         return hr;
 
     // Load the Texture
-    hr = D3DX11CreateShaderResourceViewFromFile( g_pd3dDevice, L"seafloor.dds", NULL, NULL, &g_pTextureRV, NULL );
+    hr = D3DX11CreateShaderResourceViewFromFile( g_SimeDevice->GetDevice(), L"seafloor.dds", NULL, NULL, &g_pTextureRV, NULL );
     if( FAILED( hr ) )
         return hr;
 
@@ -558,7 +567,7 @@ HRESULT InitDevice()
     sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    hr = g_pd3dDevice->CreateSamplerState( &sampDesc, &g_pSamplerLinear );
+    hr = g_SimeDevice->CCreateSamplerState( &sampDesc, &g_pSamplerLinear );
     if( FAILED( hr ) )
         return hr;
 
@@ -580,22 +589,6 @@ HRESULT InitDevice()
 
     m_Camera = &m_PerspectiveCamera;
 
-   // g_View = m_Camera->getViewMatrix();
-    //g_View = m_PerspectiveCamera.getViewMatrix();
-
-    CBNeverChanges cbNeverChanges;
-    cbNeverChanges.mView = XMMatrixTranspose( m_Camera->GetViewMatrix() );
-    g_pImmediateContext->UpdateSubresource( g_pCBNeverChanges, 0, NULL, &cbNeverChanges, 0, 0 );
-
-    // Initialize the projection matrix
-
-   // g_Projection = m_Camera->getPerspectiveProjectionMatrix();
-    //g_Projection = m_Camera->getOrtographicProjectionMatrix();
-
-    CBChangeOnResize cbChangesOnResize;
-    cbChangesOnResize.mProjection = XMMatrixTranspose( m_Camera->GetPerspectiveProjectionMatrix() );
-    g_pImmediateContext->UpdateSubresource( g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0 );
-
     return S_OK;
 }
 
@@ -605,7 +598,7 @@ HRESULT InitDevice()
 //--------------------------------------------------------------------------------------
 void CleanupDevice()
 {
-    if( g_pImmediateContext ) g_pImmediateContext->ClearState();
+    if( g_SimeDeviceContext ) g_SimeDeviceContext->GetDeviceContext()->ClearState();
 
     if( g_pSamplerLinear ) g_pSamplerLinear->Release();
     if( g_pTextureRV ) g_pTextureRV->Release();
@@ -620,9 +613,9 @@ void CleanupDevice()
     if( g_pDepthStencil ) g_pDepthStencil->Release();
     if( g_pDepthStencilView ) g_pDepthStencilView->Release();
     if( g_pRenderTargetView ) g_pRenderTargetView->Release();
-    if( g_pSwapChain ) g_pSwapChain->Release();
-    if( g_pImmediateContext ) g_pImmediateContext->Release();
-    if( g_pd3dDevice ) g_pd3dDevice->Release();
+    if( g_SimeSwapChain ) g_SimeSwapChain->GetSwapChain()->Release();
+    if( g_SimeDeviceContext ) g_SimeDeviceContext->GetDeviceContext()->Release();
+    if( g_SimeDevice->GetDevice() ) g_SimeDevice->GetDevice()->Release();
 }
 
 
@@ -873,70 +866,86 @@ void Update()
 	// Clear the back buffer
 	//
 	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-	g_pImmediateContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+	g_SimeDeviceContext->CClearRenderTargetView(g_pRenderTargetView, ClearColor);
 
 	//
 	// Clear the depth buffer to 1.0 (max depth)
 	//
-	g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	g_SimeDeviceContext->CClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+
+	CBNeverChanges cbNeverChanges;
+	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->GetViewMatrix());
+	g_SimeDeviceContext->CUpdateSubresource(g_pCBNeverChanges, 0, NULL, &cbNeverChanges, 0, 0);
+
+	CBChangeOnResize cbChangesOnResize;
+	cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
+	g_SimeDeviceContext->CUpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
+
+	if (m_IsPerspectiveActive)
+	{
+		CBChangeOnResize cbChangesOnResize;
+		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
+		g_SimeDeviceContext->CUpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
+	}
+	else
+	{
+		CBChangeOnResize cbChangesOnResize;
+		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetOrtographicProjectionMatrix());
+		g_SimeDeviceContext->CUpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
+	}
 }
 //--------------------------------------------------------------------------------------
 // Render a frame
 //--------------------------------------------------------------------------------------
 void Render()
 {
+	UINT stride = sizeof(CVertex);
+	UINT offset = 0;
 
-	CBNeverChanges cbNeverChanges;
-	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->GetViewMatrix());
-	g_pImmediateContext->UpdateSubresource(g_pCBNeverChanges, 0, NULL, &cbNeverChanges, 0, 0);
+	g_SimeDeviceContext->COMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+	g_SimeDeviceContext->CRSSetViewports(1, &g_Viewport);
+    g_SimeDeviceContext->CIASetInputLayout(g_pVertexLayout);
 
-    if (m_IsPerspectiveActive)
-    {
-		CBChangeOnResize cbChangesOnResize;
-		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
-		g_pImmediateContext->UpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
-    }
-    else
-    {
-		CBChangeOnResize cbChangesOnResize;
-		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetOrtographicProjectionMatrix());
-		g_pImmediateContext->UpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
-    }
+	g_SimeDeviceContext->CIASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+	g_SimeDeviceContext->CIASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	g_SimeDeviceContext->CIASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
     //
     // Render the cube
     //
-    g_pImmediateContext->VSSetShader( g_pVertexShader, NULL, 0 );
-    g_pImmediateContext->VSSetConstantBuffers( 0, 1, &g_pCBNeverChanges );
-    g_pImmediateContext->VSSetConstantBuffers( 1, 1, &g_pCBChangeOnResize );
-    g_pImmediateContext->VSSetConstantBuffers( 2, 1, &g_pCBChangesEveryFrame );
-    g_pImmediateContext->PSSetShader( g_pPixelShader, NULL, 0 );
-    g_pImmediateContext->PSSetConstantBuffers( 2, 1, &g_pCBChangesEveryFrame );
-    g_pImmediateContext->PSSetShaderResources( 0, 1, &g_pTextureRV );
-    g_pImmediateContext->PSSetSamplers( 0, 1, &g_pSamplerLinear );
+    g_SimeDeviceContext->CVSSetShader( g_pVertexShader, NULL, 0 );
+    g_SimeDeviceContext->CVSSetConstantBuffers( 0, 1, &g_pCBNeverChanges );
+    g_SimeDeviceContext->CVSSetConstantBuffers( 1, 1, &g_pCBChangeOnResize );
+    g_SimeDeviceContext->CVSSetConstantBuffers( 2, 1, &g_pCBChangesEveryFrame );
+    g_SimeDeviceContext->CPSSetShader( g_pPixelShader, NULL, 0 );
+    g_SimeDeviceContext->CPSSetConstantBuffers( 2, 1, &g_pCBChangesEveryFrame );
+    g_SimeDeviceContext->CPSSetShaderResources( 0, 1, &g_pTextureRV );
+    g_SimeDeviceContext->CPSSetSamplers( 0, 1, &g_pSamplerLinear );
 
 
 	CBChangesEveryFrame cb;
 	cb.mWorld = XMMatrixTranspose(FirstCube.GetWorldMatrix());
 	cb.vMeshColor = g_vMeshColor;
-	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
-    g_pImmediateContext->DrawIndexed(36, 0, 0);
+	g_SimeDeviceContext->CUpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+    g_SimeDeviceContext->CDrawIndexed(36, 0, 0);
 
 	cb.mWorld = XMMatrixTranspose(SecondCube.GetWorldMatrix());
 	cb.vMeshColor = g_vMeshColor;
-	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
-	g_pImmediateContext->DrawIndexed(36, 0, 0);
+	g_SimeDeviceContext->CUpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+	g_SimeDeviceContext->CDrawIndexed(36, 0, 0);
 
 	cb.mWorld = XMMatrixTranspose(ThirdCube.GetWorldMatrix());
 	cb.vMeshColor = g_vMeshColor;
-	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
-	g_pImmediateContext->DrawIndexed(36, 0, 0);
+	g_SimeDeviceContext->CUpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+	g_SimeDeviceContext->CDrawIndexed(36, 0, 0);
 
 	cb.mWorld = XMMatrixTranspose(FourthCube.GetWorldMatrix());
 	cb.vMeshColor = g_vMeshColor;
-	g_pImmediateContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
-	g_pImmediateContext->DrawIndexed(36, 0, 0);
+	g_SimeDeviceContext->CUpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
+	g_SimeDeviceContext->CDrawIndexed(36, 0, 0);
     //
     // Present our back buffer to our front buffer
     //
-    g_pSwapChain->Present( 0, 0 );
+    g_SimeSwapChain->CPresent( 0, 0 );
 }

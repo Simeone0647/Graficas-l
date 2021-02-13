@@ -374,7 +374,10 @@
   <ItemGroup />
   <ItemGroup>
     <ClCompile Include="CCamera.cpp" />
+    <ClCompile Include="CDevice.cpp" />
+    <ClCompile Include="CDeviceContext.cpp" />
     <ClCompile Include="CMesh.cpp" />
+    <ClCompile Include="CSwapChain.cpp" />
     <ClCompile Include="CVector3.cpp" />
     <ClCompile Include="CVertex.cpp" />
     <ClCompile Include="Tutorial07.cpp" />
@@ -384,7 +387,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CCamera.h" />
+    <ClInclude Include="CDevice.h" />
+    <ClInclude Include="CDeviceContext.h" />
     <ClInclude Include="CMesh.h" />
+    <ClInclude Include="CSwapChain.h" />
     <ClInclude Include="CVector3.h" />
     <ClInclude Include="CVertex.h" />
     <CLInclude Include="resource.h" />
