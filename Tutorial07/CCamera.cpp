@@ -103,10 +103,10 @@ void CCamera::UpdatePerspectiveProjectionMatrix(float angle_y, float ratio, floa
 
 }
 
-void CCamera::UpdateOrtographicProjectionMatrix(float left, float right, float bottom, float top, float nearp, float farp)
+void CCamera::UpdateOrtographicProjectionMatrix(float width, float height, float nearp, float farp)
 {
-	float x = 2.0f / ((right - left) / 100);
-	float y = 2.0f / ((bottom - top) / 100);
+	float x = 2.0f / (width / 100);
+	float y = 2.0f / (height / 100);
 	float z = 1.0f / (farp - nearp);
 
 	float zz = -z * nearp;

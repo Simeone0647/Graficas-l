@@ -18,3 +18,13 @@ void CSwapChain::CPresent(UINT SyncInterval, UINT Flags)
 {
 	m_SwapChain->Present(SyncInterval, Flags);
 }
+
+void CSwapChain::ResizeWindowPerspective(CCamera* camera, float angle, float ratio, float nearp, float farp)
+{
+	camera->UpdatePerspectiveProjectionMatrix(angle, ratio, nearp, farp);
+}
+
+void CSwapChain::ResizeWindowOrtographic(CCamera* camera, float width, float height, float nearp, float farp)
+{
+	camera->UpdateOrtographicProjectionMatrix(width, height, nearp, farp);
+}

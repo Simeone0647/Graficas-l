@@ -119,7 +119,7 @@ public:
 		* @param...#float: Camera's far plane.
 		* @bug.....No known bugs.
 	*/
-	void UpdateOrtographicProjectionMatrix(float left, float right, float bottom, float top, float nearp, float farp);
+	void UpdateOrtographicProjectionMatrix(float width, float height, float nearp, float farp);
 
 	/*
 		* @Function Name: MoveCamera

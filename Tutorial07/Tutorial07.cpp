@@ -585,7 +585,7 @@ HRESULT InitDevice()
 	m_OrtographicCamera.SetEye(0.0f, 3.0f, -6.0f);
 	m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
     m_OrtographicCamera.UpdateViewMatrix();
-    m_OrtographicCamera.UpdateOrtographicProjectionMatrix(rc.left, rc.right, rc.bottom, rc.top, 0.01f, 100.0f);
+    m_OrtographicCamera.UpdateOrtographicProjectionMatrix(width, height, 0.01f, 100.0f);
 
     m_Camera = &m_PerspectiveCamera;
 
@@ -626,10 +626,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 {
     PAINTSTRUCT ps;
     HDC hdc;
-
     CVector3 cam_pos;
 
-
+    
     switch( message )
     {
         case WM_PAINT:
@@ -641,6 +640,23 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
             PostQuitMessage( 0 );
             break;
 
+        case WM_SIZE:
+            if (m_Camera != NULL)
+            {
+                if (m_IsPerspectiveActive)
+                { 
+                    float width = LOWORD(lParam);
+                    float height = HIWORD(lParam);
+                    g_SimeSwapChain->ResizeWindowPerspective(m_Camera, XM_PIDIV4, width/height, 0.01f, 100.0f );
+                }
+                else
+                {
+					float width = LOWORD(lParam);
+					float height = HIWORD(lParam);
+					g_SimeSwapChain->ResizeWindowOrtographic(m_Camera, width, height, 0.01f, 100.0f);
+                }
+            }
+            break;
         case WM_KEYDOWN: 
         {
             if (LOWORD(wParam) == 'W')
