@@ -643,6 +643,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
         case WM_SIZE:
             if (m_Camera != NULL)
             {
+            /* WORKING
                 if (m_IsPerspectiveActive)
                 { 
                     float width = LOWORD(lParam);
@@ -655,6 +656,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam 
 					float height = HIWORD(lParam);
 					g_SimeSwapChain->ResizeWindowOrtographic(m_Camera, width, height, 0.01f, 100.0f);
                 }
+            */
+            
             }
             break;
         case WM_KEYDOWN: 
