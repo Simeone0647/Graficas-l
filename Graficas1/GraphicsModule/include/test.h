@@ -1,6 +1,12 @@
 #pragma once
 
 #include <windows.h>
+#include "Buffer.h"
+#include "VertexBuffer.h"
+#include "ConstantBuffer.h"
+#include "IndexBuffer.h"
+#include "Viewport.h"
+#include "Texture2D.h"
 #if defined(DX11)
 #include <d3d11.h>
 #include <d3dx11.h>
@@ -45,6 +51,13 @@ namespace GraphicsModule
 	class test
 	{
 	public:
+		VertexBuffer						g_SimeVertexBuffer;
+		IndexBuffer							g_SimeIndexBuffer;
+		ConstantBuffer						g_SimeCBNeverChanges;
+		ConstantBuffer						g_SimeCBChangeOnResize;
+		ConstantBuffer						g_SimeCBChangesEveryFrame;
+		Viewport							g_SimeViewport;
+		Texture2D							g_SimeDepthStencil;
 	#if defined(DX11)
 		HINSTANCE                           g_hInst = NULL;
 		HWND                                g_hWnd = NULL;
@@ -54,17 +67,12 @@ namespace GraphicsModule
 		ID3D11DeviceContext*				g_pImmediateContext = NULL;
 		IDXGISwapChain*						g_pSwapChain = NULL;
 		ID3D11RenderTargetView*				g_pRenderTargetView = NULL;
-		ID3D11Texture2D*					g_pDepthStencil = NULL;
+		//ID3D11Texture2D*					g_pDepthStencil = NULL;
 		ID3D11DepthStencilView*				g_pDepthStencilView = NULL;
 		ID3D11ShaderResourceView*			g_pDepthStencilSRV = NULL;
 		ID3D11VertexShader*					g_pVertexShader = NULL;
 		ID3D11PixelShader*					g_pPixelShader = NULL;
 		ID3D11InputLayout*					g_pVertexLayout = NULL;
-		ID3D11Buffer*						g_pVertexBuffer = NULL;
-		ID3D11Buffer*						g_pIndexBuffer = NULL;
-		ID3D11Buffer*						g_pCBNeverChanges = NULL;
-		ID3D11Buffer*						g_pCBChangeOnResize = NULL;
-		ID3D11Buffer*						g_pCBChangesEveryFrame = NULL;
 		ID3D11ShaderResourceView*			g_pTextureRV = NULL;
 		ID3D11SamplerState*					g_pSamplerLinear = NULL;
 		XMMATRIX                            g_World;
@@ -72,13 +80,7 @@ namespace GraphicsModule
 		XMMATRIX                            g_Projection;
 		XMMATRIX                            g_Translation;
 		XMFLOAT4                            g_vMeshColor;
-		ID3D11Buffer*						g_pVertexBuffer2 = NULL;
-		ID3D11Buffer*						g_pIndexBuffer2 = NULL;
-		ID3D11VertexShader*					g_pVertexShader2 = NULL;
-		ID3D11PixelShader*					g_pPixelShader2 = NULL;
 		ID3D11RasterizerState*				g_Rasterizer = NULL;
-		ID3D11RasterizerState*				g_Rasterizer2 = NULL;
-		ID3D11InputLayout*					g_pVertexLayout2 = NULL;
 	#endif
 
 	#if defined(DX11)
@@ -89,7 +91,6 @@ namespace GraphicsModule
 		void Render();
 	
 		void CleanupDevice();
-
 
 		HWND m_hwnd;
 	};

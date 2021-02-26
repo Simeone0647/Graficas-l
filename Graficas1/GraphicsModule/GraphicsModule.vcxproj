@@ -357,11 +357,23 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Buffer.h" />
+    <ClInclude Include="include\ConstantBuffer.h" />
     <ClInclude Include="include\GraphicModule.h" />
+    <ClInclude Include="include\IndexBuffer.h" />
     <ClInclude Include="include\test.h" />
+    <ClInclude Include="include\Texture2D.h" />
+    <ClInclude Include="include\VertexBuffer.h" />
+    <ClInclude Include="include\Viewport.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Buffer.cpp" />
+    <ClCompile Include="src\ConstantBuffer.cpp" />
+    <ClCompile Include="src\IndexBuffer.cpp" />
     <ClCompile Include="src\test.cpp" />
+    <ClCompile Include="src\Texture2D.cpp" />
+    <ClCompile Include="src\VertexBuffer.cpp" />
+    <ClCompile Include="src\Viewport.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
