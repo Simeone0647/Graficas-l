@@ -359,8 +359,11 @@
   <ItemGroup>
     <ClInclude Include="include\Buffer.h" />
     <ClInclude Include="include\ConstantBuffer.h" />
+    <ClInclude Include="include\DepthStencilView.h" />
     <ClInclude Include="include\GraphicModule.h" />
     <ClInclude Include="include\IndexBuffer.h" />
+    <ClInclude Include="include\Manager.h" />
+    <ClInclude Include="include\RenderTargetView.h" />
     <ClInclude Include="include\test.h" />
     <ClInclude Include="include\Texture2D.h" />
     <ClInclude Include="include\VertexBuffer.h" />
@@ -369,7 +372,10 @@
   <ItemGroup>
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
+    <ClCompile Include="src\DepthStencilView.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\Manager.cpp" />
+    <ClCompile Include="src\RenderTargetView.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />

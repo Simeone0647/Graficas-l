@@ -115,7 +115,8 @@ HRESULT InitImgUI()
 	// Setup Platform/Renderer back ends
 	ImGui_ImplWin32_Init(g_hwnd);
 #if defined(DX11)
-	ImGui_ImplDX11_Init(m_Obj.g_pd3dDevice, m_Obj.g_pImmediateContext);
+	ImGui_ImplDX11_Init(GraphicsModule::GetManagerObj(g_hwnd).GetDevice(), GraphicsModule::GetManagerObj(g_hwnd).GetDeviceContext());
+	
 #endif
 	return S_OK;
 }
@@ -150,7 +151,7 @@ void Render()
 	m_Obj.Render();
 #if defined(DX11)
 	UIRender();
-	m_Obj.g_pSwapChain->Present(0, 0);
+	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain()->Present(0, 0);
 #endif
 }
 
