@@ -10,6 +10,11 @@
 #include "DepthStencilView.h"
 #include "Manager.h"
 #include "RenderTargetView.h"
+#include "Camera.h"
+#include "Mesh.h"
+#include "Vertex.h"
+
+
 //#include "Manager.h"
 #if defined(DX11)
 #include <d3d11.h>
@@ -94,17 +99,26 @@ namespace GraphicsModule
 		CreateDevAndSCDesc					g_DeviceAndSwapChainDesc;
 		DepthStencilView					g_SimeDepthStencilView;
 		RenderTargetView					g_SimeRenderTargetView;
+		Camera                              m_PerspectiveCamera;
+		Camera                              m_OrtographicCamera;
+		Camera*								m_Camera;
+		Vertex                              CubeVertex[24];
+		Mesh                                FirstCube;
+		Mesh                                SecondCube;
+		Mesh                                ThirdCube;
+		Mesh                                FourthCube;
+		LPPOINT                             MouseInitPos = new POINT;
+		LPPOINT                             MouseFinalPos = new POINT;
+		LPPOINT                             MouseDirection = new POINT;
+		unsigned short* CubeVertexIndex =   new unsigned short[36];
+		bool                                m_IsPerspectiveActive = true;
+		bool                                m_IsFirstFrame = false;
+		bool                                m_IsFirstPosStored = false;
 	#if defined(DX11)
 		HINSTANCE                           g_hInst = NULL;
 		HWND                                g_hWnd = NULL;
 		D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 		D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-		//ID3D11Device*						g_pd3dDevice = NULL;
-		//ID3D11DeviceContext*				g_pImmediateContext = NULL;
-		//IDXGISwapChain*						g_pSwapChain = NULL;
-		//ID3D11RenderTargetView*				g_pRenderTargetView = NULL;
-		//ID3D11Texture2D*					g_pDepthStencil = NULL;
-		//ID3D11DepthStencilView*			g_pDepthStencilView = NULL;
 		ID3D11ShaderResourceView*			g_pDepthStencilSRV = NULL;
 		ID3D11VertexShader*					g_pVertexShader = NULL;
 		ID3D11PixelShader*					g_pPixelShader = NULL;
@@ -117,6 +131,7 @@ namespace GraphicsModule
 		XMMATRIX                            g_Translation;
 		XMFLOAT4                            g_vMeshColor;
 		ID3D11RasterizerState*				g_Rasterizer = NULL;
+
 	#endif
 
 	#if defined(DX11)
@@ -127,6 +142,8 @@ namespace GraphicsModule
 	
 		void Render();
 	
+		void Update();
+		
 		void CleanupDevice();
 
 		HWND m_hwnd;

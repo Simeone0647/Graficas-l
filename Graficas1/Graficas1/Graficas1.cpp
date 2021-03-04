@@ -27,6 +27,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND _hwnd, UINT _m
 
 LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 {
+	Vector3 cam_pos;
 	// Handle UI inputs
 	if (ImGui_ImplWin32_WndProcHandler(_hwnd, _msg, _wParam, _lParam))
 		return 1;
@@ -51,7 +52,70 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_KEYDOWN:
+	{
+		if (LOWORD(_wParam) == 'W')
+		{
+			
+			cam_pos.SetValues(0.0f, 0.1f, 0.0f);
+			m_Obj.m_Camera->MoveCamera(cam_pos);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (LOWORD(_wParam) == 'A')
+		{
+			cam_pos.SetValues(-0.1f, 0.0f, 0.0f);
+			m_Obj.m_Camera->MoveCamera(cam_pos);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (LOWORD(_wParam) == 'S')
+		{
+			cam_pos.SetValues(0.0f, -0.1f, 0.0f);
+			m_Obj.m_Camera->MoveCamera(cam_pos);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (LOWORD(_wParam) == 'D')
+		{
+			cam_pos.SetValues(0.1f, 0.0f, 0.0f);
+			m_Obj.m_Camera->MoveCamera(cam_pos);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (LOWORD(_wParam) == 'Q')
+		{
+			cam_pos.SetValues(0.0f, 0.0f, 0.1f);
+			m_Obj.m_Camera->MoveCamera(cam_pos);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (LOWORD(_wParam) == 'E')
+		{
+			cam_pos.SetValues(0.0f, 0.0f, -0.1f);
+			m_Obj.m_Camera->MoveCamera(cam_pos);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (_wParam == VK_TAB)
+		{
+			if (m_Obj.m_IsPerspectiveActive)
+			{
+				m_Obj.m_Camera = &m_Obj.m_OrtographicCamera;
+				m_Obj.m_IsPerspectiveActive = false;
+			}
+			else
+			{
+				m_Obj.m_Camera = &m_Obj.m_PerspectiveCamera;
+				m_Obj.m_IsPerspectiveActive = true;
+			}
+		}
+		break;
+	}
 
+	case WM_LBUTTONDOWN:
+	{
+		m_Obj.m_IsFirstFrame = true;
+		break;
+	}
+
+	case WM_LBUTTONUP:
+		m_Obj.m_IsFirstFrame = false;
+		break;
 	}
 	return ::DefWindowProc(_hwnd, _msg, _wParam, _lParam);
 }
@@ -115,7 +179,7 @@ HRESULT InitImgUI()
 	// Setup Platform/Renderer back ends
 	ImGui_ImplWin32_Init(g_hwnd);
 #if defined(DX11)
-	ImGui_ImplDX11_Init(GraphicsModule::GetManagerObj(g_hwnd).GetDevice(), GraphicsModule::GetManagerObj(g_hwnd).GetDeviceContext());
+	ImGui_ImplDX11_Init(GraphicsModule::GetManagerObj(g_hwnd).GetDevice().GetDXDevice(), GraphicsModule::GetManagerObj(g_hwnd).GetDeviceContext().GetDXDC());
 	
 #endif
 	return S_OK;
@@ -145,13 +209,17 @@ void UIRender()
 #endif
 }
 
+void Update()
+{
+	m_Obj.Update();
+}
 
 void Render()
 {
 	m_Obj.Render();
 #if defined(DX11)
 	UIRender();
-	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain()->Present(0, 0);
+	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain().CPresent(0, 0);
 #endif
 }
 
@@ -190,6 +258,7 @@ int main()
 		}
 		else
 		{
+			Update();
 			Render();
 		}
 	}

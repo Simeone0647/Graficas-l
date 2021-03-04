@@ -358,26 +358,40 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\Buffer.h" />
+    <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ConstantBuffer.h" />
     <ClInclude Include="include\DepthStencilView.h" />
+    <ClInclude Include="include\Device.h" />
+    <ClInclude Include="include\DeviceContext.h" />
     <ClInclude Include="include\GraphicModule.h" />
     <ClInclude Include="include\IndexBuffer.h" />
     <ClInclude Include="include\Manager.h" />
+    <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\RenderTargetView.h" />
+    <ClInclude Include="include\SwapChain.h" />
     <ClInclude Include="include\test.h" />
     <ClInclude Include="include\Texture2D.h" />
+    <ClInclude Include="include\Vector3.h" />
+    <ClInclude Include="include\Vertex.h" />
     <ClInclude Include="include\VertexBuffer.h" />
     <ClInclude Include="include\Viewport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Buffer.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
     <ClCompile Include="src\DepthStencilView.cpp" />
+    <ClCompile Include="src\Device.cpp" />
+    <ClCompile Include="src\DeviceContext.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
     <ClCompile Include="src\Manager.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\RenderTargetView.cpp" />
+    <ClCompile Include="src\SwapChain.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
+    <ClCompile Include="src\Vector3.cpp" />
+    <ClCompile Include="src\Vertex.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
     <ClCompile Include="src\Viewport.cpp" />
   </ItemGroup>

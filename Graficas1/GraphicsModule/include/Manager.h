@@ -1,4 +1,7 @@
 #pragma once
+#include "SwapChain.h"
+#include "Device.h"
+#include "DeviceContext.h"
 #if defined(DX11)
 #include <d3d11.h>
 #include <d3dx11.h>
@@ -32,23 +35,17 @@ namespace GraphicsModule
 		Manager();
 		~Manager();
 	
+		inline Device GetDevice() { return m_Device; }
+		inline DeviceContext GetDeviceContext() { return m_DeviceContext; }
+		inline SwapChain GetSwapChain() { return m_SwapChain; }
+
 	#if defined(DX11)
-		ID3D11Device* GetDevice() { return m_pd3dDevice; }
-		ID3D11Device** GetDeviceAdress() { return &m_pd3dDevice; }
-	
-		ID3D11DeviceContext* GetDeviceContext() { return m_pImmediateContext; }
-		ID3D11DeviceContext** GetDeviceContextAdress() { return &m_pImmediateContext; }
-	
-		IDXGISwapChain* GetSwapChain() { return m_pSwapChain; }
-		IDXGISwapChain** GetSwapChainAdress() { return &m_pSwapChain; }
 		HRESULT CreateDeviceAndSwapChain(CreateDevAndSCDesc deviceandswapchaindesc);
 	#endif
 		
 	private:
-	#if defined(DX11)
-		ID3D11Device* m_pd3dDevice;
-		ID3D11DeviceContext* m_pImmediateContext;
-		IDXGISwapChain* m_pSwapChain;
-	#endif
+		Device m_Device;
+		DeviceContext m_DeviceContext;
+		SwapChain m_SwapChain;
 	};
 }
