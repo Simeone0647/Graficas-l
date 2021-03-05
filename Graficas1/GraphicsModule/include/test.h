@@ -81,10 +81,12 @@ namespace GraphicsModule
 		Texture2D							g_SimeDepthStencil;
 		Texture2D							g_TextureRenderTarget;
 		Texture2D							g_TextureRenderTarget2;
+		Texture2D							g_TextureRenderTarget3;
 		CreateDevAndSCDesc					g_DeviceAndSwapChainDesc;
 		DepthStencilView					g_SimeDepthStencilView;
 		RenderTargetView					g_SimeRenderTargetView;
 		RenderTargetView					g_SecondSimeRenderTargetView;
+		RenderTargetView					g_ThirdSimeRenderTargetView;
 		RenderTargetView					g_SimeSecondCubeRTV;
 		Camera                              m_PerspectiveCamera;
 		Camera                              m_OrtographicCamera;
@@ -117,6 +119,7 @@ namespace GraphicsModule
 		ID3D11ShaderResourceView*			g_pTextureRVViejoSabroso = NULL;
 		ID3D11ShaderResourceView*			g_pViewRT2 = NULL;
 		ID3D11ShaderResourceView*			g_pViewRT3 = NULL;
+		ID3D11ShaderResourceView*			g_pViewRT4 = NULL;
 		ID3D11SamplerState*					g_pSamplerLinear = NULL;
 		XMMATRIX                            g_World;
 		XMMATRIX                            g_View;

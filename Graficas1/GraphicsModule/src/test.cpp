@@ -122,7 +122,6 @@ HRESULT test::InitDevice(HWND hwnd)
 
 		// Setup the viewport
 		g_SimeViewport.InitViewport((FLOAT)width, (FLOAT)height, 0.0f, 1.0f, 0.0f, 0.0f);
-		//GetManagerObj(hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAdress());
 
 		// Compile the vertex shader
 		ID3DBlob* pVSBlob = NULL;
@@ -374,13 +373,15 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 			return hr;
 
-
+		/* FIRST RENDER TARGET TEXTURE
+			CREATE TEXTURE*/
 		g_TextureRenderTarget;
 		g_TextureRenderTarget.SetDescRT(width, height, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(g_TextureRenderTarget.GetDescDepthAdress(), NULL, g_TextureRenderTarget.GetTextureAdress());
 		if (FAILED(hr))
 			return hr;
 
+		/*CREATE SHADER RESOURCE VIEW DESCRIPTOR FOR RENDER TARGET TEXTURE*/
 		D3D11_SHADER_RESOURCE_VIEW_DESC descViewRT;
 		ZeroMemory(&descViewRT, sizeof(descViewRT));
 		descViewRT.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -390,8 +391,52 @@ HRESULT test::InitDevice(HWND hwnd)
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(g_TextureRenderTarget.GetTexture(), &descViewRT, &g_pViewRT2);
 		if (FAILED(hr))
 			return hr;
-
+		/*CREATE RENDER TARGET*/
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(g_TextureRenderTarget.GetTexture(), NULL, g_SimeSecondCubeRTV.GetRTVAdress());
+		if (FAILED(hr))
+			return hr;
+
+
+
+		g_TextureRenderTarget2;
+		g_TextureRenderTarget2.SetDescRT(width, height, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(g_TextureRenderTarget2.GetDescDepthAdress(), NULL, g_TextureRenderTarget2.GetTextureAdress());
+		if (FAILED(hr))
+			return hr;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC descViewRT2;
+		ZeroMemory(&descViewRT2, sizeof(descViewRT2));
+		descViewRT2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		descViewRT2.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		descViewRT2.Texture2D.MostDetailedMip = 0;
+		descViewRT2.Texture2D.MipLevels = 1;
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(g_TextureRenderTarget2.GetTexture(), &descViewRT2, &g_pViewRT3);
+		if (FAILED(hr))
+			return hr;
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(g_TextureRenderTarget2.GetTexture(), NULL, g_SecondSimeRenderTargetView.GetRTVAdress());
+		if (FAILED(hr))
+			return hr;
+
+
+
+		g_TextureRenderTarget3;
+		g_TextureRenderTarget3.SetDescRT(width, height, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(g_TextureRenderTarget3.GetDescDepthAdress(), NULL, g_TextureRenderTarget3.GetTextureAdress());
+		if (FAILED(hr))
+			return hr;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC descViewRT3;
+		ZeroMemory(&descViewRT3, sizeof(descViewRT3));
+		descViewRT3.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		descViewRT3.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		descViewRT3.Texture2D.MostDetailedMip = 0;
+		descViewRT3.Texture2D.MipLevels = 1;
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(g_TextureRenderTarget3.GetTexture(), &descViewRT3, &g_pViewRT4);
+		if (FAILED(hr))
+			return hr;
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(g_TextureRenderTarget3.GetTexture(), NULL, g_ThirdSimeRenderTargetView.GetRTVAdress());
 		if (FAILED(hr))
 			return hr;
 #endif
@@ -556,10 +601,10 @@ void test::Update()
 	// Clear the back buffer
 	//
 	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-	//GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SecondSimeRenderTargetView.GetRTV(), ClearColor);
 	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SimeRenderTargetView.GetRTV(), ClearColor);
 	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SimeSecondCubeRTV.GetRTV(), ClearColor);
-
+	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SecondSimeRenderTargetView.GetRTV(), ClearColor);
+	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_ThirdSimeRenderTargetView.GetRTV(), ClearColor);
 	//
 	// Clear the depth buffer to 1.0 (max depth)
 	//
@@ -620,7 +665,6 @@ void test::Render()
 		GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, &g_pTextureRVViejoSabroso);
 		GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, &g_pSamplerLinear);
 		GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeSecondCubeRTV.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
-		//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 
 		CBChangesEveryFrame cb;
 		cb.mWorld = XMMatrixTranspose(FirstCube.GetWorldMatrix());
@@ -649,17 +693,59 @@ void test::Render()
 		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
 
 		/*TWO CUBES IN THE THIRD CUBE*/
-		//GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SecondSimeRenderTargetView.GetRTV(), g_ClearColor);
-		//GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(g_SimeDepthStencilView.GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0.0f);
-		//cb.mWorld = XMMatrixTranspose(ThirdCube.GetWorldMatrix());
-		//cb.vMeshColor = g_vMeshColor;
-		//GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
-		//GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
-		//
-		//cb.mWorld = XMMatrixTranspose(FourthCube.GetWorldMatrix());
-		//cb.vMeshColor = g_vMeshColor;
-		//GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
-		//GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SecondSimeRenderTargetView.GetRTV(), g_ClearColor);
+		GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(g_SimeDepthStencilView.GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0.0f);
+		
+		GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SecondSimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
+		GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, &g_pTextureRVViejoSabroso);
+		
+		cb.mWorld = XMMatrixTranspose(FirstCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+		
+		cb.mWorld = XMMatrixTranspose(SecondCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+
+		GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
+		GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, &g_pViewRT3);
+
+		cb.mWorld = XMMatrixTranspose(ThirdCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+
+		/*THREE CUBES IN THE FOURTH CUBE*/
+		GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_ThirdSimeRenderTargetView.GetRTV(), g_ClearColor);
+		GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(g_SimeDepthStencilView.GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0.0f);
+
+		GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_ThirdSimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
+		GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, &g_pTextureRVViejoSabroso);
+
+		cb.mWorld = XMMatrixTranspose(FirstCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+
+		cb.mWorld = XMMatrixTranspose(SecondCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+
+		cb.mWorld = XMMatrixTranspose(ThirdCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
+
+		GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
+		GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, &g_pViewRT4);
+
+		cb.mWorld = XMMatrixTranspose(FourthCube.GetWorldMatrix());
+		cb.vMeshColor = g_vMeshColor;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame(), 0, NULL, &cb, 0, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CDrawIndexed(36, 0, 0);
 #endif
 }
 
@@ -681,7 +767,6 @@ void test::Render()
 		if (g_pPixelShader) g_pPixelShader->Release();
 		if (g_SimeDepthStencil.GetTexture()) g_SimeDepthStencil.GetTexture()->Release();
 		if (g_SimeDepthStencilView.GetDSV()) g_SimeDepthStencilView.GetDSV()->Release();
-		//if (g_SimeSecondCubeRTV.GetRTV()) g_SimeSecondCubeRTV.GetRTV()->Release();
 		if (g_SimeRenderTargetView.GetRTV()) g_SimeRenderTargetView.GetRTV()->Release();
 		if (GetManagerObj(m_hwnd).GetSwapChain().GetDXSC()) GetManagerObj(m_hwnd).GetSwapChain().GetDXSC()->Release();
 		if (GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()) GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()->Release();

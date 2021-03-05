@@ -9,21 +9,6 @@
 #include <xnamath.h>
 #endif
 
-//using namespace std;
-//struct CreateDevAndSCDesc;
-//{
-//#if defined(DX11)
-//	D3D_DRIVER_TYPE driverType;
-//	UINT CreateDeviceFlags;
-//	D3D_FEATURE_LEVEL FeatureLevels[3];
-//	UINT NumFeatureLevels;
-//	UINT SDKVersion;
-//	DXGI_SWAP_CHAIN_DESC sd;
-//	D3D_FEATURE_LEVEL FeatureLevel;
-//#endif
-//};
-//struct GraphicsModule::CreateDevAndSCDesc;
-//namespace GraphicsModule { struct CreateDevAndSCDesc; }
 namespace GraphicsModule
 {
 	struct CreateDevAndSCDesc;
