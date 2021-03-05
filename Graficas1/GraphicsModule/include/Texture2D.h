@@ -26,6 +26,8 @@ public:
 
 #if defined(DX11)
 	void SetDescDepth(UINT width, UINT height, UINT miplevels, UINT arraysize, DXGI_FORMAT format, UINT count, UINT quality, D3D11_USAGE usage, UINT cpuaccessflags, UINT miscflags);
+	void SetDescRT(UINT width, UINT height, UINT miplevels, UINT arraysize, DXGI_FORMAT format, UINT count, UINT quality, D3D11_USAGE usage, UINT cpuaccessflags, UINT miscflags);
+
 	inline D3D11_TEXTURE2D_DESC* GetDescDepthAdress() { return &m_descDepth; }
 
 	inline ID3D11Texture2D* GetTexture() { return m_pTexture; }

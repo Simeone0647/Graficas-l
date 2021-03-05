@@ -69,23 +69,6 @@ namespace GraphicsModule
 	#endif
 	};
 
-	//struct CreateSDDesc
-	//{
-	//#if defined(DX11)
-	//UINT BufferCount;
-	//UINT BufferDescWidth;
-	//UINT BufferDescHeight;
-	//UINT BufferDescFormat;
-	//UINT BufferDescNumerator;
-	//UINT BufferDescDenominator;
-	//UINT BufferUsage;
-	//HWND OutputWindow;
-	//UINT Count;
-	//UINT Quality;
-	//BOOL Windowed;
-	//#endif
-	//};
-
 	class test
 	{
 	public:
@@ -96,9 +79,13 @@ namespace GraphicsModule
 		ConstantBuffer						g_SimeCBChangesEveryFrame;
 		Viewport							g_SimeViewport;
 		Texture2D							g_SimeDepthStencil;
+		Texture2D							g_TextureRenderTarget;
+		Texture2D							g_TextureRenderTarget2;
 		CreateDevAndSCDesc					g_DeviceAndSwapChainDesc;
 		DepthStencilView					g_SimeDepthStencilView;
 		RenderTargetView					g_SimeRenderTargetView;
+		RenderTargetView					g_SecondSimeRenderTargetView;
+		RenderTargetView					g_SimeSecondCubeRTV;
 		Camera                              m_PerspectiveCamera;
 		Camera                              m_OrtographicCamera;
 		Camera*								m_Camera;
@@ -114,6 +101,9 @@ namespace GraphicsModule
 		bool                                m_IsPerspectiveActive = true;
 		bool                                m_IsFirstFrame = false;
 		bool                                m_IsFirstPosStored = false;
+		UINT								g_width;
+		UINT								g_height;
+		float g_ClearColor[4]				= { 0.0f, 0.125f, 0.3f, 1.0f };
 	#if defined(DX11)
 		HINSTANCE                           g_hInst = NULL;
 		HWND                                g_hWnd = NULL;
@@ -124,6 +114,9 @@ namespace GraphicsModule
 		ID3D11PixelShader*					g_pPixelShader = NULL;
 		ID3D11InputLayout*					g_pVertexLayout = NULL;
 		ID3D11ShaderResourceView*			g_pTextureRV = NULL;
+		ID3D11ShaderResourceView*			g_pTextureRVViejoSabroso = NULL;
+		ID3D11ShaderResourceView*			g_pViewRT2 = NULL;
+		ID3D11ShaderResourceView*			g_pViewRT3 = NULL;
 		ID3D11SamplerState*					g_pSamplerLinear = NULL;
 		XMMATRIX                            g_World;
 		XMMATRIX                            g_View;

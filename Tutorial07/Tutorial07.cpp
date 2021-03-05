@@ -88,11 +88,12 @@ CMesh                               FourthCube;
 LPPOINT                             MouseInitPos = new POINT;
 LPPOINT                             MouseFinalPos = new POINT;
 LPPOINT                             MouseDirection = new POINT;
-D3D11_VIEWPORT                      g_Viewport;
 unsigned short*                     CubeVertexIndex = new unsigned short[36];
 bool                                m_IsPerspectiveActive = true;
 bool                                m_IsFirstFrame = false;
 bool                                m_IsFirstPosStored = false;
+D3D11_VIEWPORT                      g_Viewport;
+
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
