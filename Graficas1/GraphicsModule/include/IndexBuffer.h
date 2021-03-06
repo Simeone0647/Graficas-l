@@ -7,20 +7,78 @@ public:
 	~IndexBuffer();
 
 #if defined(DX11)
-	inline ID3D11Buffer** GetIndexBufferAdress() { return &m_pIndexBuffer; }
+	/*
+		* @Function Name: GetIndexBufferAddress
+		* @brief...This function will return the DX11 IndexBuffer's Address.
+		* @bug.....No known bugs.
+		* @return..#ID3D11Buffer**: IndexBuffer's Address.
+	*/
+	inline ID3D11Buffer** GetIndexBufferAddress() { return &m_pIndexBuffer; }
+
+	/*
+		* @Function Name: GetIndexBuffer
+		* @brief...This function will return the DX11 IndexBuffer object.
+		* @bug.....No known bugs.
+		* @return..#ID3D11Buffer*: IndexBuffer's Object.
+	*/
 	inline ID3D11Buffer* GetIndexBuffer() { return m_pIndexBuffer; }
 
-	void UpdateBd(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT miscflags, UINT structurebytestride);
-	inline D3D11_BUFFER_DESC* GetBdAdress() { return &m_bd; }
+	/*
+		* @Function Name: UpdateBD
+		* @brief...This function will update the BufferDescriptor.
+		* @param...#D3D11_USAGE: How the buffer will be used.
+		* @param...#UINT: Size in bytes.
+		* @param...#UINT: Bind flags
+		* @param...#UINT: CPU access flags.
+		* @param...#UINT: Micellaneous flags.
+		* @param...#UINT:
+	*/
+	void UpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT miscflags, UINT structurebytestride);
 
+	/*
+		* @Function Name: GetBDAddress
+		* @brief...This function will return the BD's address
+		* @bug.....No known bugs.
+		* @return..#D3D11_BUFFER_DESC*: BD's address.
+	*/
+	inline D3D11_BUFFER_DESC* GetBDAddress() { return &m_BD; }
+
+	/*
+		* @Function Name: UpdateInitData
+		* @brief...This function will update Init Data.
+		* @bug.....No known bugs.
+	*/
 	void UpdateInitData(unsigned short* index);
+
+	/*
+		* @Function Name: GetInitDataAddress
+		* @brief...This function will return the InitData's address.
+		* @bug.....No known bugs.
+		* @return..#D3D11_SUBRESOURCE_DATA*: InitData's address.
+	*/
 	inline D3D11_SUBRESOURCE_DATA* GetInitDataAdress() { return &m_InitData; }
 #endif
 private:
 #if defined(DX11)
+	/*
+		* @Variable Name: m_pIndexBuffer;
+		* @Type....#ID3D11Buffer*
+		* @brief...DX11 IndexBuffer
+	*/
 	ID3D11Buffer* m_pIndexBuffer;
 
-	D3D11_BUFFER_DESC m_bd;
+	/*
+		* @Variable Name: m_BD
+		* @Type....#D3D11_BUFFER_DESC
+		* @brief...IndexBuffer's descriptor
+	*/
+	D3D11_BUFFER_DESC m_BD;
+
+	/*
+		* @Variable Name: m_InitData
+		* @Type....#D3D11_SUBRESOURCE_DATA
+		* @brief...IndexBuffer's InitData
+	*/
 	D3D11_SUBRESOURCE_DATA m_InitData;
 #endif
 };

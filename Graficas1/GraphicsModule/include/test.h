@@ -103,9 +103,7 @@ namespace GraphicsModule
 		bool                                m_IsPerspectiveActive = true;
 		bool                                m_IsFirstFrame = false;
 		bool                                m_IsFirstPosStored = false;
-		UINT								g_width;
-		UINT								g_height;
-		float g_ClearColor[4]				= { 0.0f, 0.125f, 0.3f, 1.0f };
+
 	#if defined(DX11)
 		HINSTANCE                           g_hInst = NULL;
 		HWND                                g_hWnd = NULL;

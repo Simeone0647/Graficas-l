@@ -14,17 +14,54 @@ public:
 	~DepthStencilView();
 
 #if defined(DX11)
+	/*
+		* @Function Name: SetDescDSV
+		* @brief...This function will set the DSV's descriptor.
+		* @param...#DXGI_FORMAT: Descriptor format.
+		* @param...#D3D11_DSV_DIMENSION: The texture dimension
+		* @param...#UINT: 
+		* @bug.....No known bugs.
+	*/
 	void SetDescDSV(DXGI_FORMAT format, D3D11_DSV_DIMENSION viewdimension, UINT mipslice);
 
-	inline D3D11_DEPTH_STENCIL_VIEW_DESC* GetDescDSVAdress() { return &m_descDSV; }
+	/*
+		* @Function Name: GetDescDSVAddress
+		* @brief...This function will return the DSVDescriptor Address.
+		* @bug.....No known bugs.
+		* @return..#D3D11_DEPTH_STENCIL_VIEW_DESC*: DSVDescriptor's adress.
+	*/
+	inline D3D11_DEPTH_STENCIL_VIEW_DESC* GetDescDSVAddress() { return &m_descDSV; }
 
+	/*
+		* @Function Name: GetDSV
+		* @brief...This function will return the DSV object.
+		* @bug.....No known bugs.
+		* @return..#ID3D11DepthStencilView*: DSV object.
+	*/
 	inline ID3D11DepthStencilView* GetDSV() { return m_pDepthStencilView; }
-	inline ID3D11DepthStencilView** GetDSVAdress() { return &m_pDepthStencilView; }
 
+	/*
+		* @Function Name: GetDSVAddress
+		* @brief...This function will return the DSV Address.
+		* @bug.....No known bugs.
+		* @return..#ID3D11DepthStencilView**: DSV's address.
+	*/
+	inline ID3D11DepthStencilView** GetDSVAddress() { return &m_pDepthStencilView; }
 #endif
 private:
 #if defined(DX11)
+	/*
+		* @Variable Name: m_pDepthStencilView
+		* @Type....#ID3D11DepthStencilView*
+		* @brief...DX11 DepthStencilView.
+	*/
 	ID3D11DepthStencilView* m_pDepthStencilView;
+
+	/*
+		* @Variable Name: m_descDSV
+		* @Type....#D3D11_DEPTH_STENCIL_VIEW_DESC
+		* @brief...DSV Descriptor.
+	*/
 	D3D11_DEPTH_STENCIL_VIEW_DESC m_descDSV;
 #endif
 };

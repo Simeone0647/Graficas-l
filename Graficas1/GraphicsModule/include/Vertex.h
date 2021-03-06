@@ -33,8 +33,18 @@ public:
 	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture); }
 
 private:
-	
+	/*
+		* @Variable Name: m_Position
+		* @Type....#float
+		* @brief...The x, y, and z values that represent the vertex position.
+	*/
 	float m_Position[3];
+
+	/*
+		* @Variable Name: m_Texture
+		* @Type....#float
+		* @brief...The x and y values that represent the vertex texture.
+	*/
 	float m_Texture[2];
 };
 

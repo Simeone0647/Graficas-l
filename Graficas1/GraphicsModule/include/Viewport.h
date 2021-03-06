@@ -11,15 +11,44 @@ public:
 	Viewport();
 	~Viewport();
 
+	/*
+		* @Function Name: InitViewport
+		* @brief...This function will init the viewport.
+		* @param...#float: Screen width.
+		* @param...#float: Screen height.
+		* @param...#float: Screen minimum depth.
+		* @param...#float: Screen maximum depth.
+		* @param...#float: Screen top left X.
+		* @param...#float: Screen top left y.
+		* @bug.....No known bugs.
+	*/
 	void InitViewport(float width, float height, float mindepth, float maxdepth, float topleftx, float toplefty);
 
 #if defined(DX11)
-	inline D3D11_VIEWPORT* GetViewportAdress() { return &m_vp; }
-	inline D3D11_VIEWPORT GetViewport() { return m_vp; }
+	/*
+		* @Function Name: GetViewportAddress
+		* @brief...This function will return the Viewport's address.
+		* @bug.....No known bugs.
+		* @return..#D3D11_VIEWPORT*: Viewport's address
+	*/
+	inline D3D11_VIEWPORT* GetViewportAddress() { return &m_VP; }
+
+	/*
+		* @Function Name: GetViewport
+		* @brief...This function will return the Viewport object.
+		* @bug.....No known bugs.
+		* @return..#D3D11_VIEWPORT: Viewport object
+	*/
+	inline D3D11_VIEWPORT GetViewport() { return m_VP; }
 #endif
 private:
 #if defined(DX11)
-	D3D11_VIEWPORT m_vp;
+	/*
+		* @Variable Name: m_VP
+		* @Type....#D3D11_VIEWPORT
+		* @brief...The DX11 Viewport object.
+	*/
+	D3D11_VIEWPORT m_VP;
 #endif
 };
 

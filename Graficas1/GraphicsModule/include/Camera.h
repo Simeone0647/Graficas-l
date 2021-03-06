@@ -111,10 +111,8 @@ public:
 	/*
 		* @Function Name: UpdateOrtographicProjectionMatrix
 		* @brief...This function will update the ortographic projection matrix with new values.
-		* @param...#float: Screen left size.
-		* @param...#float: Screen right size.
-		* @param...#float: Screen bottom size.
-		* @param...#float: Screen top size.
+		* @param...#float: Screen width.
+		* @param...#float: Screen height.
 		* @param...#float: Camera's near plane.
 		* @param...#float: Camera's far plane.
 		* @bug.....No known bugs.

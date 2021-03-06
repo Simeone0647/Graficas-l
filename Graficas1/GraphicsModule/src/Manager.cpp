@@ -16,9 +16,8 @@ namespace GraphicsModule
 	{
 	
 		return D3D11CreateDeviceAndSwapChain(NULL, deviceandswapchaindesc.driverType, NULL, deviceandswapchaindesc.CreateDeviceFlags, deviceandswapchaindesc.FeatureLevels,
-									  deviceandswapchaindesc.NumFeatureLevels, D3D11_SDK_VERSION, &deviceandswapchaindesc.sd, m_SwapChain.GetDXSCAdress(), m_Device.GetDXDeviceAdress(),
-									  &deviceandswapchaindesc.FeatureLevel, m_DeviceContext.GetDXDCAdress());
-
+									  deviceandswapchaindesc.NumFeatureLevels, D3D11_SDK_VERSION, &deviceandswapchaindesc.sd, m_SwapChain.GetDXSCAddress(), m_Device.GetDXDeviceAddress(),
+									  &deviceandswapchaindesc.FeatureLevel, m_DeviceContext.GetDXDCAddress());
 	}
 #endif
 }
