@@ -52,6 +52,7 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	#if defined(DX11)
 	case WM_KEYDOWN:
 	{
 		if (LOWORD(_wParam) == 'W')
@@ -116,7 +117,9 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	case WM_LBUTTONUP:
 		m_Obj.m_IsFirstFrame = false;
 		break;
+#endif
 	}
+	
 	return ::DefWindowProc(_hwnd, _msg, _wParam, _lParam);
 }
 
@@ -198,7 +201,13 @@ void UIRender()
 	// example window
 	if (ImGui::Begin("Another Window", nullptr))
 	{
-		ImGui::Text("Hello from another window!");
+		static float dir[3]{};
+		if (ImGui::DragFloat3("Direccion de la luz", dir, 0.001f, -1.0f, 1.0f))
+		{
+			#if defined(DX11)
+			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(dir[0], dir[1], dir[2], 0.0f);
+			#endif
+		}
 	}
 	ImGui::End();
 

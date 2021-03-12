@@ -16,6 +16,16 @@ public:
 	inline void SetPosition(float x, float y, float z) { m_Position[0] = x; m_Position[1] = y; m_Position[2] = z; }
 
 	/*
+		* @Function Name: SetNormal
+		* @brief...This function will set the vertex normal.
+		* @param...#float: X normal value.
+		* @param...#float: Y normal value.
+		* @param...#float: Z normal value.
+		* @bug.....No known bugs.
+	*/
+	inline void SetNormal(float x, float y, float z) { m_Normal[0] = x; m_Normal[1] = y; m_Normal[2] = z; }
+
+	/*
 		* @Function Name: SetTexture
 		* @brief...This function will set the vertex texture.
 		* @param...#float:X texture value.
@@ -30,7 +40,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#int: The class size in bytes
 	*/
-	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture); }
+	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture) + sizeof(m_Normal); }
 
 private:
 	/*
@@ -46,5 +56,12 @@ private:
 		* @brief...The x and y values that represent the vertex texture.
 	*/
 	float m_Texture[2];
+
+	/*
+		* @Variable Name: m_Normals
+		* @Type....#float
+		* @brief...The x, y and z values that represent the vertex normals.
+	*/
+	float m_Normal[3];
 };
 

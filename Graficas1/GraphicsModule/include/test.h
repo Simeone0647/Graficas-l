@@ -31,6 +31,14 @@ namespace GraphicsModule
 	#if defined(DX11)
 		XMFLOAT3 Pos;
 		XMFLOAT2 Tex;
+		XMFLOAT3 Normal;
+	#endif
+	};
+
+	struct DirLight
+	{
+	#if defined(DX11)
+		XMFLOAT4 Dir;
 	#endif
 	};
 
@@ -72,6 +80,8 @@ namespace GraphicsModule
 	class test
 	{
 	public:
+		DirLight							g_DirLightBufferDesc;
+		Buffer								g_DirLightBuffer;
 		VertexBuffer						g_SimeVertexBuffer;
 		IndexBuffer							g_SimeIndexBuffer;
 		ConstantBuffer						g_SimeCBNeverChanges;

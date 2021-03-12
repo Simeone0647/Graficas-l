@@ -42,7 +42,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#D3D11_BUFFER_DESC*: BD address
 	*/
-	inline D3D11_BUFFER_DESC* GetBdAddress() { return &m_BD; }
+	inline D3D11_BUFFER_DESC* GetBDAddress() { return &m_BD; }
 
 	/*
 		* @Function Name: UpdateInitData
