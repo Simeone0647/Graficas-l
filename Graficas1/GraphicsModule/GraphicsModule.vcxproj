@@ -365,15 +365,18 @@
     <ClInclude Include="include\DeviceContext.h" />
     <ClInclude Include="include\GraphicModule.h" />
     <ClInclude Include="include\IndexBuffer.h" />
+    <ClInclude Include="include\InputLayout.h" />
     <ClInclude Include="include\Manager.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\RenderTargetView.h" />
+    <ClInclude Include="include\ShaderReflection.h" />
     <ClInclude Include="include\SwapChain.h" />
     <ClInclude Include="include\test.h" />
     <ClInclude Include="include\Texture2D.h" />
     <ClInclude Include="include\Vector3.h" />
     <ClInclude Include="include\Vertex.h" />
     <ClInclude Include="include\VertexBuffer.h" />
+    <ClInclude Include="include\VertexShader.h" />
     <ClInclude Include="include\Viewport.h" />
   </ItemGroup>
   <ItemGroup>
@@ -384,15 +387,18 @@
     <ClCompile Include="src\Device.cpp" />
     <ClCompile Include="src\DeviceContext.cpp" />
     <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\InputLayout.cpp" />
     <ClCompile Include="src\Manager.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\RenderTargetView.cpp" />
+    <ClCompile Include="src\ShaderReflection.cpp" />
     <ClCompile Include="src\SwapChain.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />
     <ClCompile Include="src\Vector3.cpp" />
     <ClCompile Include="src\Vertex.cpp" />
     <ClCompile Include="src\VertexBuffer.cpp" />
+    <ClCompile Include="src\VertexShader.cpp" />
     <ClCompile Include="src\Viewport.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

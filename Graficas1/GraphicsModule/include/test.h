@@ -12,8 +12,10 @@
 #include "RenderTargetView.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "VertexShader.h"
 #include "Vertex.h"
-
+#include "InputLayout.h"
+#include "ShaderReflection.h"
 
 //#include "Manager.h"
 #if defined(DX11)
@@ -80,6 +82,9 @@ namespace GraphicsModule
 	class test
 	{
 	public:
+		ShaderReflection					g_SimeVertexShaderReflection;
+		InputLayout							g_SimeInputLayout;
+		VertexShader						g_SimeVertexShader;
 		DirLight							g_DirLightBufferDesc;
 		Buffer								g_DirLightBuffer;
 		VertexBuffer						g_SimeVertexBuffer;
@@ -120,9 +125,7 @@ namespace GraphicsModule
 		D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 		D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 		ID3D11ShaderResourceView*			g_pDepthStencilSRV = NULL;
-		ID3D11VertexShader*					g_pVertexShader = NULL;
 		ID3D11PixelShader*					g_pPixelShader = NULL;
-		ID3D11InputLayout*					g_pVertexLayout = NULL;
 		ID3D11ShaderResourceView*			g_pTextureRV = NULL;
 		ID3D11ShaderResourceView*			g_pTextureRVViejoSabroso = NULL;
 		ID3D11ShaderResourceView*			g_pViewRT2 = NULL;
@@ -135,7 +138,6 @@ namespace GraphicsModule
 		XMMATRIX                            g_Translation;
 		XMFLOAT4                            g_vMeshColor;
 		ID3D11RasterizerState*				g_Rasterizer = NULL;
-
 	#endif
 
 	#if defined(DX11)

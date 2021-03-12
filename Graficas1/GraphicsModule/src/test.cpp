@@ -132,28 +132,34 @@ HRESULT test::InitDevice(HWND hwnd)
 		}
 
 		// Create the vertex shader
-		hr = GetManagerObj(hwnd).GetDevice().CCreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, g_SimeVertexShader.GetDXVertexShaderAddress());
 		if (FAILED(hr))
 		{
 			pVSBlob->Release();
 			return hr;
 		}
 
-		// Define the input layout
-		D3D11_INPUT_ELEMENT_DESC layout[] =
+		hr = g_SimeVertexShaderReflection.DoReflect(pVSBlob);
+		if (FAILED(hr))
 		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		};
-		UINT numElements = ARRAYSIZE(layout);
+			pVSBlob->Release();
+			return hr;
+		}
 
-		// Create the input layout
-		hr = GetManagerObj(hwnd).GetDevice().CCreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-			pVSBlob->GetBufferSize(), &g_pVertexLayout);
+		//CREATE INPUT LAYOUT WITH REFLECTION
+		g_SimeVertexShaderReflection.GetDesc();
+		g_SimeInputLayout.DefineInputLayout(g_SimeVertexShaderReflection.GetDXShaderReflectionDesc(), g_SimeVertexShaderReflection.GetDXShaderReflection());
+		hr = GetManagerObj(hwnd).GetDevice().CCreateInputLayout(g_SimeInputLayout.GetDXInputLayoutDescAddress() , g_SimeInputLayout.GetDXInputLayoutDescSize(), pVSBlob->GetBufferPointer(),
+																 pVSBlob->GetBufferSize(), g_SimeInputLayout.GetDXInputLayoutAddress());
 		pVSBlob->Release();
 		if (FAILED(hr))
+		{ 
 			return hr;
+		}
+
+		//Free allocation shader reflection memory
+		g_SimeVertexShaderReflection.GetDXShaderReflection()->Release();
+
 
 		// Compile the pixel shader
 		ID3DBlob* pPSBlob = NULL;
@@ -327,9 +333,6 @@ HRESULT test::InitDevice(HWND hwnd)
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeIndexBuffer.GetBDAddress(), g_SimeIndexBuffer.GetInitDataAdress(), g_SimeIndexBuffer.GetIndexBufferAddress());
 		if (FAILED(hr))
 			return hr;
-
-		// Set primitive topology
-		//GetManagerObj(hwnd).GetDeviceContext().CIASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		g_SimeCBNeverChanges.UpdateBD(D3D11_USAGE_DEFAULT, sizeof(CBNeverChanges), D3D11_BIND_CONSTANT_BUFFER, 0, 0, 0);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBNeverChanges.GetBDAddress(), NULL, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
@@ -675,7 +678,7 @@ void test::Render()
 		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_DirLightBuffer.BGetBuffer(), 0, NULL, &g_DirLightBufferDesc, 0, 0);
 
 		GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
-		GetManagerObj(m_hwnd).GetDeviceContext().CIASetInputLayout(g_pVertexLayout);
+		GetManagerObj(m_hwnd).GetDeviceContext().CIASetInputLayout(g_SimeInputLayout.GetDXInputLayout());
 
 		GetManagerObj(m_hwnd).GetDeviceContext().CIASetVertexBuffers(0, 1, g_SimeVertexBuffer.GetVertexBufferAddress(), &stride, &offset);
 		GetManagerObj(m_hwnd).GetDeviceContext().CIASetIndexBuffer(g_SimeIndexBuffer.GetIndexBuffer(), DXGI_FORMAT_R16_UINT, 0);
@@ -687,7 +690,7 @@ void test::Render()
 		// Set the input layout
 
 		GetManagerObj(m_hwnd).GetDeviceContext().CRSSetState(g_Rasterizer);
-		GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_pVertexShader, NULL, 0);
+		GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
 		GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(0, 1, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
 		GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(1, 1, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());
 		GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
@@ -803,8 +806,8 @@ void test::Render()
 		if (g_DirLightBuffer.BGetBuffer()) g_DirLightBuffer.BGetBuffer()->Release();
 		if (g_SimeVertexBuffer.GetVertexBuffer()) g_SimeVertexBuffer.GetVertexBuffer()->Release();
 		if (g_SimeIndexBuffer.GetIndexBuffer()) g_SimeIndexBuffer.GetIndexBuffer()->Release();
-		if (g_pVertexLayout) g_pVertexLayout->Release();
-		if (g_pVertexShader) g_pVertexShader->Release();
+		if (g_SimeInputLayout.GetDXInputLayout()) g_SimeInputLayout.GetDXInputLayout()->Release();
+		if (g_SimeVertexShader.GetDXVertexShader()) g_SimeVertexShader.GetDXVertexShader()->Release();
 		if (g_pPixelShader) g_pPixelShader->Release();
 		if (g_SimeDepthStencil.GetTexture()) g_SimeDepthStencil.GetTexture()->Release();
 		if (g_SimeDepthStencilView.GetDSV()) g_SimeDepthStencilView.GetDSV()->Release();
