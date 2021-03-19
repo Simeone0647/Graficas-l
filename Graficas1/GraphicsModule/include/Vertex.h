@@ -3,6 +3,7 @@ class Vertex
 {
 public:
 	Vertex();
+	Vertex(float posx, float posy, float posz, float normalx, float normaly, float normalz, float texturex, float texturey);
 	~Vertex();
 
 	/*
@@ -40,6 +41,8 @@ public:
 		* @bug.....No known bugs.
 		* @return..#int: The class size in bytes
 	*/
+
+	//inline void SetUV(float x, float y, float z) {m_UV[0] = x; m_UV[1] = y; m_UV[2] = z; }
 	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture) + sizeof(m_Normal); }
 
 private:
@@ -63,5 +66,7 @@ private:
 		* @brief...The x, y and z values that represent the vertex normals.
 	*/
 	float m_Normal[3];
+
+	//float m_UV[3];
 };
 

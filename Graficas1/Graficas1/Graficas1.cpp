@@ -1,9 +1,13 @@
+#pragma comment(lib, "ComDlg32.lib")
 #include <iostream>
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+#include <vector>
 #include "GraphicModule.h"
-
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
@@ -199,7 +203,7 @@ void UIRender()
 	ImGui::NewFrame();
 
 	// example window
-	if (ImGui::Begin("Another Window", nullptr))
+	if (ImGui::Begin("Model Configuration", nullptr))
 	{
 		static float dir[3]{};
 		if (ImGui::DragFloat3("Direccion de la luz", dir, 0.001f, -1.0f, 1.0f))
@@ -207,6 +211,87 @@ void UIRender()
 			#if defined(DX11)
 			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(dir[0], dir[1], dir[2], 0.0f);
 			#endif
+		}
+
+		if (ImGui::Button("Open File"))
+		{
+			std::string wideStringBuffer = "";
+			wideStringBuffer.resize(MAX_PATH);
+			
+			OPENFILENAME ofn;
+			ZeroMemory(&ofn, sizeof(ofn));
+			ofn.lStructSize = sizeof(ofn);
+			ofn.hwndOwner = NULL;
+			ofn.lpstrFilter = " Obj Files\0*.obj\0 Stl Files\0*.stl\0 3DS Files\0*.3ds\0 FBX Files\0*.fbx\0 All files\0*.*\0";
+			ofn.lpstrFile = &wideStringBuffer[0];
+			ofn.nMaxFile = MAX_PATH;
+			ofn.lpstrTitle = "Select a model file";
+			ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+			if (GetOpenFileName(&ofn))
+			{
+				std::cout << "Filename to load: " << wideStringBuffer << std::endl;
+			}
+			Assimp::Importer importer;
+			const aiScene* scene = importer.ReadFile(wideStringBuffer, NULL);
+			if (!scene)
+			{
+				std::cout << "Error importing the model" << std::endl;
+			}
+			else
+			{
+				std::cout << "Archivo importado correctamente" << std::endl;
+			}
+
+			Mesh EnteringMesh;
+
+			int TotalNumOfVertex = scene->mMeshes[0]->mNumVertices + scene->mMeshes[1]->mNumVertices + scene->mMeshes[2]->mNumVertices;
+			std::vector <Vertex> VectorEnteringVertexArray;
+
+			int VertexArrayPosition = 0;
+
+			int NumMeshes = scene->mNumMeshes;
+
+			for (int i = 0; i < NumMeshes; ++i)
+			{
+				int NumOfVertex = scene->mMeshes[i]->mNumVertices;
+				for (int j = 0; j < NumOfVertex; ++j)
+				{ 
+					VectorEnteringVertexArray.push_back(Vertex(scene->mMeshes[i]->mVertices[j].x, scene->mMeshes[i]->mVertices[j].y, scene->mMeshes[i]->mVertices[j].z,
+															   scene->mMeshes[i]->mNormals[j].x, scene->mMeshes[i]->mNormals[j].y, scene->mMeshes[i]->mNormals[j].z,
+															   scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - scene->mMeshes[i]->mTextureCoords[0][j].y));
+				}
+			}
+
+			unsigned int* VertexIndex = new unsigned int[TotalNumOfVertex];
+	
+			for (int i = 0; i < TotalNumOfVertex; ++i)
+			{
+				VertexIndex[i] = i;
+			}
+
+			EnteringMesh.SetVertex(VectorEnteringVertexArray.data(), TotalNumOfVertex);
+			EnteringMesh.SetNumOfVertex(TotalNumOfVertex);
+			EnteringMesh.SetVertexIndex(VertexIndex, TotalNumOfVertex);
+			EnteringMesh.SetNumOfVertexIndex(TotalNumOfVertex);
+
+			m_Obj.UpdateModel(sizeof(Vertex) * EnteringMesh.GetNumOfVertex(), EnteringMesh.GetVertex(), EnteringMesh.GetVertexIndexSize(), EnteringMesh.GetVertexIndex(), EnteringMesh.GetNumOfVertexIndex());
+	
+			m_Obj.m_ShowingTexture = true;
+
+			delete[] VertexIndex;
+			VertexIndex = nullptr;
+		}
+		if (m_Obj.m_ShowingTexture)
+		{
+			float TextureWidth = 256;
+			float TextureHeight = 256;
+			ImTextureID TextureID = m_Obj.g_pTextureRV;
+			ImVec2 Position = ImGui::GetCursorScreenPos();
+			ImVec2 UVMin = ImVec2(0.0f, 0.0f);
+			ImVec2 UVMax = ImVec2(1.0f, 1.0f);
+			ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+			ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
 		}
 	}
 	ImGui::End();

@@ -13,11 +13,12 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "VertexShader.h"
+#include "PixelShader.h"
 #include "Vertex.h"
 #include "InputLayout.h"
 #include "ShaderReflection.h"
+#include "SamplerState.h"
 
-//#include "Manager.h"
 #if defined(DX11)
 #include <d3d11.h>
 #include <d3dx11.h>
@@ -82,6 +83,8 @@ namespace GraphicsModule
 	class test
 	{
 	public:
+		SamplerState						g_SimeSamplerState;
+		PixelShader							g_SimePixelShader;
 		ShaderReflection					g_SimeVertexShaderReflection;
 		InputLayout							g_SimeInputLayout;
 		VertexShader						g_SimeVertexShader;
@@ -106,18 +109,20 @@ namespace GraphicsModule
 		Camera                              m_PerspectiveCamera;
 		Camera                              m_OrtographicCamera;
 		Camera*								m_Camera;
-		Vertex                              CubeVertex[24];
+		//Vertex                              CubeVertex[24];
 		Mesh                                FirstCube;
-		Mesh                                SecondCube;
-		Mesh                                ThirdCube;
-		Mesh                                FourthCube;
+		//Mesh                                SecondCube;
+		//Mesh                                ThirdCube;
+		//Mesh                                FourthCube;
 		LPPOINT                             MouseInitPos = new POINT;
 		LPPOINT                             MouseFinalPos = new POINT;
 		LPPOINT                             MouseDirection = new POINT;
-		unsigned short* CubeVertexIndex =   new unsigned short[36];
+		unsigned int* CubeVertexIndex =   new unsigned int[36];
 		bool                                m_IsPerspectiveActive = true;
 		bool                                m_IsFirstFrame = false;
 		bool                                m_IsFirstPosStored = false;
+		UINT								m_IndexNum;
+		bool								m_ShowingTexture = false;
 
 	#if defined(DX11)
 		HINSTANCE                           g_hInst = NULL;
@@ -125,23 +130,21 @@ namespace GraphicsModule
 		D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 		D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 		ID3D11ShaderResourceView*			g_pDepthStencilSRV = NULL;
-		ID3D11PixelShader*					g_pPixelShader = NULL;
 		ID3D11ShaderResourceView*			g_pTextureRV = NULL;
 		ID3D11ShaderResourceView*			g_pTextureRVViejoSabroso = NULL;
 		ID3D11ShaderResourceView*			g_pViewRT2 = NULL;
 		ID3D11ShaderResourceView*			g_pViewRT3 = NULL;
 		ID3D11ShaderResourceView*			g_pViewRT4 = NULL;
-		ID3D11SamplerState*					g_pSamplerLinear = NULL;
 		XMMATRIX                            g_World;
 		XMMATRIX                            g_View;
 		XMMATRIX                            g_Projection;
 		XMMATRIX                            g_Translation;
 		XMFLOAT4                            g_vMeshColor;
-		ID3D11RasterizerState*				g_Rasterizer = NULL;
 	#endif
 
 	#if defined(DX11)
 		HRESULT CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+		bool UpdateModel(UINT bytewidthvertex, void* vertex, UINT bytewidthvertexindex, unsigned int* vertexindex, UINT vertexindexnum);
 	#endif
 	public:
 		HRESULT InitDevice(HWND hdwn);

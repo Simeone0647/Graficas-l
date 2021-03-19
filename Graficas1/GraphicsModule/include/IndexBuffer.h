@@ -48,7 +48,7 @@ public:
 		* @brief...This function will update Init Data.
 		* @bug.....No known bugs.
 	*/
-	void UpdateInitData(unsigned short* index);
+	void UpdateInitData(unsigned int* index);
 
 	/*
 		* @Function Name: GetInitDataAddress

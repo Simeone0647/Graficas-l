@@ -50,7 +50,7 @@ public:
 		* @param...#int: Passed array size.
 		* @bug.....No known bugs.
 	*/
-	void SetVertexIndex(unsigned short* vertexindexarr, int numofvertexindex);
+	void SetVertexIndex(unsigned int* vertexindexarr, int numofvertexindex);
 
 	/*
 		* @Function Name: GetVertexIndex
@@ -58,7 +58,7 @@ public:
 		* @bug.....No known bugs.
 		* @return #unsigned_short_pointer: Pointer to the vertex index array.
 	*/
-	inline unsigned short* GetVertexIndex() {return m_VertexIndex;}
+	inline unsigned int* GetVertexIndex() {return m_VertexIndex;}
 
 	/*
 		* @Function Name: SetNumOfVertexIndex
@@ -92,7 +92,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#int: Vertex index array size in bytes.
 	*/
-	inline int GetVertexIndexSize() { return sizeof(unsigned short) * m_NumOfVertexIndex; }
+	inline int GetVertexIndexSize() { return sizeof(unsigned int) * m_NumOfVertexIndex; }
 
 	/*
 		* @Function Name: SetWorldMatrixValue
@@ -132,7 +132,7 @@ private:
 		* @Type: #unsigned_short_pointer.
 		* @brief.Mesh vertex index array.
 	*/
-	unsigned short* m_VertexIndex;
+	unsigned int* m_VertexIndex;
 
 	/*
 		* @Variable Name: m_NumOfVertexIndex.

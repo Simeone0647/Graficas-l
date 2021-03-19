@@ -21,7 +21,7 @@ void IndexBuffer::UpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UI
 	m_BD.CPUAccessFlags = cpuaccessflags;
 }
 
-void IndexBuffer::UpdateInitData(unsigned short* index)
+void IndexBuffer::UpdateInitData(unsigned int* index)
 {
 	ZeroMemory(&m_InitData, sizeof(m_InitData));
 	m_InitData.pSysMem = index;

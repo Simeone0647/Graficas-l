@@ -51,13 +51,13 @@ void Mesh::SetVertex(Vertex* figure, int numofvertex)
 	memcpy(m_Vertex, figure, sizeof(figure[0]) * numofvertex);
 }
 
-void Mesh::SetVertexIndex(unsigned short* vertexindexarr, int numofvertexindex)
+void Mesh::SetVertexIndex(unsigned int* vertexindexarr, int numofvertexindex)
 {
 	if (m_VertexIndex != nullptr)
 	{
 		delete[] m_VertexIndex;
 	}
 	
-	m_VertexIndex = new unsigned short[numofvertexindex];
+	m_VertexIndex = new unsigned int[numofvertexindex];
 	memcpy(m_VertexIndex, vertexindexarr, sizeof(vertexindexarr[0]) * numofvertexindex);
 }
