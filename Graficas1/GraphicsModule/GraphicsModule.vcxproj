@@ -367,11 +367,13 @@
     <ClInclude Include="include\IndexBuffer.h" />
     <ClInclude Include="include\InputLayout.h" />
     <ClInclude Include="include\Manager.h" />
+    <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Mesh.h" />
     <ClInclude Include="include\PixelShader.h" />
     <ClInclude Include="include\RenderTargetView.h" />
     <ClInclude Include="include\SamplerState.h" />
     <ClInclude Include="include\ShaderReflection.h" />
+    <ClInclude Include="include\ShaderResourceView.h" />
     <ClInclude Include="include\SwapChain.h" />
     <ClInclude Include="include\test.h" />
     <ClInclude Include="include\Texture2D.h" />
@@ -391,11 +393,13 @@
     <ClCompile Include="src\IndexBuffer.cpp" />
     <ClCompile Include="src\InputLayout.cpp" />
     <ClCompile Include="src\Manager.cpp" />
+    <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\PixelShader.cpp" />
     <ClCompile Include="src\RenderTargetView.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\ShaderReflection.cpp" />
+    <ClCompile Include="src\ShaderResourceView.cpp" />
     <ClCompile Include="src\SwapChain.cpp" />
     <ClCompile Include="src\test.cpp" />
     <ClCompile Include="src\Texture2D.cpp" />

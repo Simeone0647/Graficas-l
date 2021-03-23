@@ -15,3 +15,4 @@
 #include "DepthStencilView.h"
 #include "Manager.h"
 #include "SwapChain.h"
+#include "Material.h"

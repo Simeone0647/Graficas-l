@@ -13,7 +13,8 @@
 //--------------------------------------------------------------------------------------
 HWND g_hwnd;
 GraphicsModule::test m_Obj;
-
+std::vector<Mesh> m_vModels;
+int m_ModelsNum = 0;
 //-----------------------------------------------------------------------------------------
 
 /**
@@ -192,6 +193,51 @@ HRESULT InitImgUI()
 	return S_OK;
 }
 
+void LoadMesh(const aiScene* _scene)
+{
+	m_vModels.push_back(Mesh());
+	//std::vector<Material> vMaterials;
+
+	int TotalNumOfVertex = _scene->mMeshes[0]->mNumVertices + _scene->mMeshes[1]->mNumVertices + _scene->mMeshes[2]->mNumVertices;
+	std::vector <Vertex> VectorEnteringVertexArray;
+
+	int VertexArrayPosition = 0;
+
+	int NumMeshes = _scene->mNumMeshes;
+
+	int NumMaterials = _scene->mNumMaterials;
+
+	for (int i = 0; i < NumMeshes; ++i)
+	{
+		//vMaterials.push_back(Material());
+		//vMaterials[i].SetID(_scene->mMeshes[i]->mMaterialIndex);
+		int NumOfVertex = _scene->mMeshes[i]->mNumVertices;
+		for (int j = 0; j < NumOfVertex; ++j)
+		{
+			VectorEnteringVertexArray.push_back(Vertex(_scene->mMeshes[i]->mVertices[j].x, _scene->mMeshes[i]->mVertices[j].y, _scene->mMeshes[i]->mVertices[j].z,
+				_scene->mMeshes[i]->mNormals[j].x, _scene->mMeshes[i]->mNormals[j].y, _scene->mMeshes[i]->mNormals[j].z,
+				_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y));
+		}
+	}
+
+	unsigned int* VertexIndex = new unsigned int[TotalNumOfVertex];
+
+	for (int i = 0; i < TotalNumOfVertex; ++i)
+	{
+		VertexIndex[i] = i;
+	}
+
+	m_vModels[m_ModelsNum].SetVertex(VectorEnteringVertexArray.data(), TotalNumOfVertex);
+	m_vModels[m_ModelsNum].SetNumOfVertex(TotalNumOfVertex);
+	m_vModels[m_ModelsNum].SetVertexIndex(VertexIndex, TotalNumOfVertex);
+	m_vModels[m_ModelsNum].SetNumOfVertexIndex(TotalNumOfVertex);
+
+	delete[] VertexIndex;
+	VertexIndex = nullptr;
+
+	m_vModels[m_ModelsNum].UpdateVertexAndIndexBuffer(m_Obj, g_hwnd);
+	m_ModelsNum++;
+}
 
 void UIRender()
 {
@@ -231,6 +277,7 @@ void UIRender()
 			{
 				std::cout << "Filename to load: " << wideStringBuffer << std::endl;
 			}
+
 			Assimp::Importer importer;
 			const aiScene* scene = importer.ReadFile(wideStringBuffer, NULL);
 			if (!scene)
@@ -240,52 +287,17 @@ void UIRender()
 			else
 			{
 				std::cout << "Archivo importado correctamente" << std::endl;
+
+				LoadMesh(scene);
 			}
-
-			Mesh EnteringMesh;
-
-			int TotalNumOfVertex = scene->mMeshes[0]->mNumVertices + scene->mMeshes[1]->mNumVertices + scene->mMeshes[2]->mNumVertices;
-			std::vector <Vertex> VectorEnteringVertexArray;
-
-			int VertexArrayPosition = 0;
-
-			int NumMeshes = scene->mNumMeshes;
-
-			for (int i = 0; i < NumMeshes; ++i)
-			{
-				int NumOfVertex = scene->mMeshes[i]->mNumVertices;
-				for (int j = 0; j < NumOfVertex; ++j)
-				{ 
-					VectorEnteringVertexArray.push_back(Vertex(scene->mMeshes[i]->mVertices[j].x, scene->mMeshes[i]->mVertices[j].y, scene->mMeshes[i]->mVertices[j].z,
-															   scene->mMeshes[i]->mNormals[j].x, scene->mMeshes[i]->mNormals[j].y, scene->mMeshes[i]->mNormals[j].z,
-															   scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - scene->mMeshes[i]->mTextureCoords[0][j].y));
-				}
-			}
-
-			unsigned int* VertexIndex = new unsigned int[TotalNumOfVertex];
-	
-			for (int i = 0; i < TotalNumOfVertex; ++i)
-			{
-				VertexIndex[i] = i;
-			}
-
-			EnteringMesh.SetVertex(VectorEnteringVertexArray.data(), TotalNumOfVertex);
-			EnteringMesh.SetNumOfVertex(TotalNumOfVertex);
-			EnteringMesh.SetVertexIndex(VertexIndex, TotalNumOfVertex);
-			EnteringMesh.SetNumOfVertexIndex(TotalNumOfVertex);
-
-			m_Obj.UpdateModel(sizeof(Vertex) * EnteringMesh.GetNumOfVertex(), EnteringMesh.GetVertex(), EnteringMesh.GetVertexIndexSize(), EnteringMesh.GetVertexIndex(), EnteringMesh.GetNumOfVertexIndex());
-	
 			m_Obj.m_ShowingTexture = true;
-
-			delete[] VertexIndex;
-			VertexIndex = nullptr;
 		}
+
 		if (m_Obj.m_ShowingTexture)
 		{
 			float TextureWidth = 256;
 			float TextureHeight = 256;
-			ImTextureID TextureID = m_Obj.g_pTextureRV;
+			ImTextureID TextureID = m_Obj.g_SimeTextureRV.GetDXSRV();
 			ImVec2 Position = ImGui::GetCursorScreenPos();
 			ImVec2 UVMin = ImVec2(0.0f, 0.0f);
 			ImVec2 UVMax = ImVec2(1.0f, 1.0f);
@@ -305,17 +317,27 @@ void UIRender()
 
 void Update()
 {
+	for (int i = 0; i < m_vModels.size(); ++i)
+	{
+		m_vModels[i].Update(m_Obj, g_hwnd);
+	}
 	m_Obj.Update();
 }
 
 void Render()
 {
+	for (int i = 0; i < m_vModels.size(); ++i)
+	{
+		m_vModels[i].Render(m_Obj, g_hwnd);
+	}
 	m_Obj.Render();
 #if defined(DX11)
 	UIRender();
 	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain().CPresent(0, 0);
 #endif
 }
+
+
 
 int main()
 {

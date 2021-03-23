@@ -2,6 +2,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "Vertex.h"
+#include "Material.h"
+#include "test.h"
+#include <iostream>
+
+struct CBChangesEveryFrame
+{
+	float mWorld[16];
+	float vMeshColor[4];
+};
 
 class Mesh
 {
@@ -111,6 +120,13 @@ public:
 	*/
 	inline float* GetWorldMatrix() { return m_WorldMatrix; }
 
+
+	void Update(GraphicsModule::test& _obj, HWND _hwnd);
+
+	void Render(GraphicsModule::test& _obj, HWND _hwnd);
+
+	void UpdateVertexAndIndexBuffer(GraphicsModule::test& _obj, HWND _hwnd);
+
 private:
 
 	/*
@@ -147,5 +163,12 @@ private:
 		* @brief.Pointer to an array of 16 floats, represent the mesh world matrix.
 	*/
 	float* m_WorldMatrix;
+
+	CBChangesEveryFrame cb;
+
+	Material* m_Material;
+
+	float m_MeshColor[3];
+	//topologia 
 };
 
