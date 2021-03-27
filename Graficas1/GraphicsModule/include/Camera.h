@@ -5,6 +5,11 @@
 
 using namespace std;
 
+namespace GraphicsModule
+{
+	struct UpdateProjectionMatrixStruct;
+}
+
 class Camera
 {
 public:
@@ -98,7 +103,7 @@ public:
 		* @param...#float: Camera's far plane.
 		* @bug.....No known bugs.
 	*/
-	void UpdatePerspectiveProjectionMatrix(float angle_y, float ratio, float nearp, float farp);
+	void UpdatePerspectiveProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct);
 
 	/*
 		* @Function Name: GetOrtographicProjectionMatrix
@@ -117,7 +122,7 @@ public:
 		* @param...#float: Camera's far plane.
 		* @bug.....No known bugs.
 	*/
-	void UpdateOrtographicProjectionMatrix(float width, float height, float nearp, float farp);
+	void UpdateOrtographicProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct);
 
 	/*
 		* @Function Name: MoveCamera

@@ -1,4 +1,5 @@
 #include "VertexBuffer.h"
+#include "test.h"
 
 VertexBuffer::VertexBuffer()
 {
@@ -13,13 +14,13 @@ VertexBuffer::~VertexBuffer()
 }
 
 #if defined(DX11)
-void VertexBuffer::UpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT MiscFlags, UINT StructureByteStride)
+void VertexBuffer::UpdateBD(GraphicsModule::UpdateBDStruct _UpdateBDStruct)
 {
 	ZeroMemory(&m_BD, sizeof(m_BD));
-	m_BD.Usage = usage;
-	m_BD.ByteWidth = bytewidth;
-	m_BD.BindFlags = bindflags;
-	m_BD.CPUAccessFlags = cpuaccessflags;
+	m_BD.Usage = (D3D11_USAGE)_UpdateBDStruct.Usage;
+	m_BD.ByteWidth = _UpdateBDStruct.ByteWidth;
+	m_BD.BindFlags = _UpdateBDStruct.BindFlags;
+	m_BD.CPUAccessFlags = _UpdateBDStruct.CPUAccessFlags;
 }
 
 void VertexBuffer::UpdateInitData(void* vertex)

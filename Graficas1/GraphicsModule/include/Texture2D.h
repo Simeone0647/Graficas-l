@@ -6,6 +6,14 @@
 #include <xnamath.h>
 #endif
 
+namespace GraphicsModule
+{
+	struct CreateDepthDesc;
+	struct SetRTDescStruct;
+	enum SIME_FORMAT;
+	enum SIME_USAGE;
+}
+
 class Texture2D
 {
 public:
@@ -28,7 +36,7 @@ public:
 		* @param...#UINT: Miscellaneous flags.
 		* @bug.....No known bugs.
 	*/
-	void SetDescDepth(UINT width, UINT height, UINT miplevels, UINT arraysize, DXGI_FORMAT format, UINT count, UINT quality, D3D11_USAGE usage, UINT cpuaccessflags, UINT miscflags);
+	void SetDescDepth(GraphicsModule::CreateDepthDesc _DepthDesc);
 	
 	/*
 		* @Function Name: SetDescRT
@@ -45,7 +53,7 @@ public:
 		* @param...#UINT: Miscellaneous flags.
 		* @bug.....No known bugs.
 	*/
-	void SetDescRT(UINT width, UINT height, UINT miplevels, UINT arraysize, DXGI_FORMAT format, UINT count, UINT quality, D3D11_USAGE usage, UINT cpuaccessflags, UINT miscflags);
+	void SetDescRT(GraphicsModule::SetRTDescStruct _RTDescStruct);
 
 	/*
 		* @Function Name: SetDescDepth

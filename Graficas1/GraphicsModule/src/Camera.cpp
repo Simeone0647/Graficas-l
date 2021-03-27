@@ -1,5 +1,6 @@
 #pragma once
 #include "Camera.h"
+#include "test.h"
 
 Camera::Camera()
 {
@@ -71,15 +72,15 @@ void Camera::UpdateViewMatrix()
 	//				 -CVector3::DotProduct(xaxis, m_eye), -CVector3::DotProduct(yaxis, m_eye), -CVector3::DotProduct(zaxis, m_eye),  1.0f };
 }
 
-void Camera::UpdatePerspectiveProjectionMatrix(float angle_y, float ratio, float nearp, float farp)
+void Camera::UpdatePerspectiveProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct)
 {
-	float halfangle = angle_y / 2;
+	float halfangle = _PMStruct.AngleY / 2;
 	float senhalfangle = sin(halfangle);
 	float coshalfangle = cos(halfangle);
 	float y = coshalfangle / senhalfangle;
-	float x = y / ratio;
-	float z = farp / (farp - nearp);
-	float zt = (-farp * nearp) / (farp - nearp);
+	float x = y / _PMStruct.Ratio;
+	float z = _PMStruct.FarPlane / (_PMStruct.FarPlane - _PMStruct.NearPlane);
+	float zt = (-_PMStruct.FarPlane * _PMStruct.NearPlane) / (_PMStruct.FarPlane - _PMStruct.NearPlane);
 
 	m_ProjectionMatrix[0] = x;
 	m_ProjectionMatrix[1] = 0.0f;
@@ -108,13 +109,13 @@ void Camera::UpdatePerspectiveProjectionMatrix(float angle_y, float ratio, float
 
 }
 
-void Camera::UpdateOrtographicProjectionMatrix(float width, float height, float nearp, float farp)
+void Camera::UpdateOrtographicProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct)
 {
-	float x = 2.0f / (width / 100);
-	float y = 2.0f / (height / 100);
-	float z = 1.0f / (farp - nearp);
+	float x = 2.0f / (_PMStruct.Width / 100);
+	float y = 2.0f / (_PMStruct.Height / 100);
+	float z = 1.0f / (_PMStruct.FarPlane - _PMStruct.NearPlane);
 
-	float zz = -z * nearp;
+	float zz = -z * _PMStruct.NearPlane;
 
 	m_ProjectionMatrix[0] = x;
 	m_ProjectionMatrix[1] = 0.0f;

@@ -7,6 +7,14 @@
 #include <xnamath.h>
 
 #endif
+
+namespace GraphicsModule
+{
+	enum SIME_USAGE;
+	enum SIME_BIND_FLAG;
+	struct UpdateBDStruct;
+}
+
 class Buffer
 {
 public:
@@ -41,7 +49,7 @@ public:
 	* @param...#UINT:
 	* @bug.....No known bugs.
 */
-	void BUpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT miscflags, UINT structurebytestride);
+	void BUpdateBD(GraphicsModule::UpdateBDStruct _BDStruct);
 
 	/*
 		* @Function Name: GetBDAddress

@@ -1,4 +1,5 @@
 #include "IndexBuffer.h"
+#include "test.h"
 
 IndexBuffer::IndexBuffer()
 {
@@ -12,13 +13,13 @@ IndexBuffer::~IndexBuffer()
 }
 
 #if defined(DX11)
-void IndexBuffer::UpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT miscflags, UINT structurebytestride)
+void IndexBuffer::UpdateBD(GraphicsModule::UpdateBDStruct _UpdateBDStruct)
 {
 	ZeroMemory(&m_BD, sizeof(m_BD));
-	m_BD.Usage = usage;
-	m_BD.ByteWidth = bytewidth;
-	m_BD.BindFlags = bindflags;
-	m_BD.CPUAccessFlags = cpuaccessflags;
+	m_BD.Usage = (D3D11_USAGE)_UpdateBDStruct.Usage;
+	m_BD.ByteWidth = _UpdateBDStruct.ByteWidth;
+	m_BD.BindFlags = _UpdateBDStruct.BindFlags;
+	m_BD.CPUAccessFlags = _UpdateBDStruct.CPUAccessFlags;
 }
 
 void IndexBuffer::UpdateInitData(unsigned int* index)

@@ -5,6 +5,12 @@
 #include <d3dcompiler.h>
 #include <xnamath.h>
 #endif
+
+namespace GraphicsModule
+{
+	struct InitViewportStruct;
+}
+
 class Viewport
 {
 public:
@@ -22,7 +28,7 @@ public:
 		* @param...#float: Screen top left y.
 		* @bug.....No known bugs.
 	*/
-	void InitViewport(float width, float height, float mindepth, float maxdepth, float topleftx, float toplefty);
+	void InitViewport(GraphicsModule::InitViewportStruct _InitVP);
 
 #if defined(DX11)
 	/*

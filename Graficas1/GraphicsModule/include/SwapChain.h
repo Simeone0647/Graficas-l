@@ -49,8 +49,6 @@ public:
 	inline IDXGISwapChain* GetDXSC() { return m_SwapChain; }
 
 #endif
-	void ResizeWindowPerspective(Camera* camera, float angle, float ratio, float nearp, float farp);
-	void ResizeWindowOrtographic(Camera* camera, float width, float height, float nearp, float farp);
 
 private:
 #if defined(DX11)

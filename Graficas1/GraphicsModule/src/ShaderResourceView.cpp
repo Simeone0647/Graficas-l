@@ -1,4 +1,5 @@
 #include "ShaderResourceView.h"
+#include "test.h"
 
 ShaderResourceView::ShaderResourceView()
 {
@@ -11,10 +12,10 @@ ShaderResourceView::~ShaderResourceView()
 {
 }
 
-void ShaderResourceView::SetDesc(DXGI_FORMAT _Format, D3D_SRV_DIMENSION _ViewDimension, UINT _Mips)
+void ShaderResourceView::SetDesc(GraphicsModule::SIME_FORMAT _Format, GraphicsModule::SIME_SRV_DIMENSION _ViewDimension, UINT _Mips)
 {
 	ZeroMemory(&m_SRVDesc, sizeof(m_SRVDesc));
-	m_SRVDesc.Format = _Format;
-	m_SRVDesc.ViewDimension = _ViewDimension;
+	m_SRVDesc.Format = (DXGI_FORMAT)_Format;
+	m_SRVDesc.ViewDimension = (D3D_SRV_DIMENSION)_ViewDimension;
 	m_SRVDesc.Texture2D.MipLevels = _Mips;
 }

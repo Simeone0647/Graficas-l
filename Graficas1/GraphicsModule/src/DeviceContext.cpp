@@ -1,4 +1,5 @@
 #include "DeviceContext.h"
+#include "test.h"
 
 DeviceContext::DeviceContext()
 {
@@ -16,16 +17,14 @@ void DeviceContext::CClearRenderTargetView(__in  ID3D11RenderTargetView* pRender
 	m_DeviceContext->ClearRenderTargetView(pRenderTargetView, ColorRGBA);
 }
 
-void DeviceContext::CClearDepthStencilView(__in  ID3D11DepthStencilView* pDepthStencilView, __in  UINT ClearFlags, __in  FLOAT Depth,
-											__in  UINT8 Stencil)
+void DeviceContext::CClearDepthStencilView(GraphicsModule::ClearDepthStencilViewStruct _ClearDSVStruct)
 {
-	m_DeviceContext->ClearDepthStencilView(pDepthStencilView, ClearFlags, Depth, Stencil);
+	m_DeviceContext->ClearDepthStencilView(_ClearDSVStruct.pDepthStencilView, _ClearDSVStruct.ClearFlags, _ClearDSVStruct.Depth, _ClearDSVStruct.Stencil);
 }
 
-void DeviceContext::CUpdateSubresource(__in  ID3D11Resource* pDstResource, __in  UINT DstSubresource, __in_opt  const D3D11_BOX* pDstBox,
-										__in  const void* pSrcData, __in  UINT SrcRowPitch, __in  UINT SrcDepthPitch)
+void DeviceContext::CUpdateSubresource(GraphicsModule::UpdateSubResourceStruct _USRStruct)
 {
-	m_DeviceContext->UpdateSubresource(pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
+	m_DeviceContext->UpdateSubresource(_USRStruct.pDstResource, _USRStruct.DstSubresource, _USRStruct.pDstBox, _USRStruct.pSrcData, _USRStruct.SrcRowPitch, _USRStruct.SrcDepthPitch);
 }
 
 void DeviceContext::COMSetRenderTargets(__in_range(0, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT)  UINT NumViews,
@@ -51,23 +50,19 @@ void DeviceContext::CIASetInputLayout(__in_opt  ID3D11InputLayout* pInputLayout)
 	m_DeviceContext->IASetInputLayout(pInputLayout);
 }
 
-void DeviceContext::CIASetVertexBuffers(__in_range(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - 1)  UINT StartSlot,
-										 __in_range(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT NumBuffers,
-										 __in_ecount(NumBuffers)  ID3D11Buffer* const* ppVertexBuffers,
-										 __in_ecount(NumBuffers)  const UINT* pStrides,
-										 __in_ecount(NumBuffers)  const UINT* pOffsets)
+void DeviceContext::CIASetVertexBuffers(GraphicsModule::SetVertexBufferStruct _SetVBStruct)
 {
-	m_DeviceContext->IASetVertexBuffers(StartSlot, NumBuffers, ppVertexBuffers, pStrides, pOffsets);
+	m_DeviceContext->IASetVertexBuffers(_SetVBStruct.StartSlot, _SetVBStruct.NumBuffers, _SetVBStruct.ppVertexBuffers, _SetVBStruct.pStrides, _SetVBStruct.pOffsets);
 }
 
-void DeviceContext::CIASetIndexBuffer(__in_opt  ID3D11Buffer* pIndexBuffer, __in  DXGI_FORMAT Format, __in  UINT Offset)
+void DeviceContext::CIASetIndexBuffer(__in_opt  ID3D11Buffer* pIndexBuffer, __in  GraphicsModule::SIME_FORMAT Format, __in  UINT Offset)
 {
-	m_DeviceContext->IASetIndexBuffer(pIndexBuffer, Format, Offset);
+	m_DeviceContext->IASetIndexBuffer(pIndexBuffer, (DXGI_FORMAT)Format, Offset);
 }
 
-void DeviceContext::CIASetPrimitiveTopology(__in  D3D11_PRIMITIVE_TOPOLOGY Topology)
+void DeviceContext::CIASetPrimitiveTopology(__in  GraphicsModule::SIME_PRIMITIVE_TOPOLOGY Topology)
 {
-	m_DeviceContext->IASetPrimitiveTopology(Topology);
+	m_DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)Topology);
 }
 
 void DeviceContext::CVSSetShader(__in_opt  ID3D11VertexShader* pVertexShader,

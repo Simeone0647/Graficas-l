@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "test.h"
 
 Device::Device()
 {
@@ -31,25 +32,19 @@ HRESULT Device::CCreateDepthStencilView(__in ID3D11Resource* pResource, __in_opt
 	return m_Device->CreateDepthStencilView(pResource, pDesc, ppDepthStencilView);
 }
 
-HRESULT Device::CCreateVertexShader(__in const void* pShaderBytecode, __in SIZE_T BytecodeLength, __in_opt ID3D11ClassLinkage* pClassLinkage,
-									 __out_opt ID3D11VertexShader** ppVertexShader)
+HRESULT Device::CCreateVertexShader(GraphicsModule::CreateVertexShaderStruct _VSStruct)
 {
-	return m_Device->CreateVertexShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppVertexShader);
+	return m_Device->CreateVertexShader(_VSStruct.pShaderBytecode, _VSStruct.BytecodeLength, _VSStruct.pClassLinkage, _VSStruct.ppVertexShader);
 }
 
-HRESULT Device::CCreateInputLayout(__in_ecount(NumElements)  const D3D11_INPUT_ELEMENT_DESC* pInputElementDescs,
-									__in_range(0, D3D11_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT)  UINT NumElements,
-									__in  const void* pShaderBytecodeWithInputSignature,
-									__in  SIZE_T BytecodeLength,
-									__out_opt  ID3D11InputLayout** ppInputLayout)
+HRESULT Device::CCreateInputLayout(GraphicsModule::CreateInputLayoutStruct _ILStruct)
 {
-	return m_Device->CreateInputLayout(pInputElementDescs, NumElements, pShaderBytecodeWithInputSignature, BytecodeLength, ppInputLayout);
+	return m_Device->CreateInputLayout(_ILStruct.pInputElementDescs, _ILStruct.NumElements, _ILStruct.pShaderBytecodeWithInputSignature, _ILStruct.BytecodeLength, _ILStruct.ppInputLayout);
 }
 
-HRESULT Device::CCreatePixelShader(__in  const void* pShaderBytecode, __in  SIZE_T BytecodeLength, __in_opt  ID3D11ClassLinkage* pClassLinkage,
-									__out_opt  ID3D11PixelShader** ppPixelShader)
+HRESULT Device::CCreatePixelShader(GraphicsModule::CreatePixelShaderStruct _PSStruct)
 {
-	return m_Device->CreatePixelShader(pShaderBytecode, BytecodeLength, pClassLinkage, ppPixelShader);
+	return m_Device->CreatePixelShader(_PSStruct.pShaderBytecode, _PSStruct.BytecodeLength, _PSStruct.pClassLinkage, _PSStruct.ppPixelShader);
 }
 
 HRESULT Device::CCreateBuffer(__in  const D3D11_BUFFER_DESC* pDesc, __in_opt  const D3D11_SUBRESOURCE_DATA* pInitialData,

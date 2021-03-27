@@ -3,25 +3,12 @@
 #include <d3d11.h>
 #endif
 
-enum class SIME1_DRIVER_TYPE
+namespace GraphicsModule
 {
-	SIME1_UNKNOWN = 0,
-	SIME1_HARDWARE = (SIME1_UNKNOWN + 1),
-	SIME1_REFERENCE = (SIME1_HARDWARE + 1),
-	SIME1_NULL = (SIME1_REFERENCE + 1),
-	SIME1_SOFTWARE = (SIME1_NULL + 1),
-	SIME1_WRAP = (SIME1_SOFTWARE + 1),
-};
-
-enum class SIME1_FEATURE_LEVEL
-{
-	SIME1_FEATURE_LEVEL_9_1 = 0x9100,
-	SIME1_FEATURE_LEVEL_9_2 = 0x9200,
-	SIME1_FEATURE_LEVEL_9_3 = 0x9300,
-	SIME1_FEATURE_LEVEL_10_0 = 0xa000,
-	SIME1_FEATURE_LEVEL_10_1 = 0xa100,
-	SIME1_FEATURE_LEVEL_11_0 = 0xb000
-};
+	struct CreateVertexShaderStruct;
+	struct CreateInputLayoutStruct;
+	struct CreatePixelShaderStruct;
+}
 
 class Device
 {
@@ -75,8 +62,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#HRESULT: Checks if the function was successfull.
 	*/
-	HRESULT CCreateVertexShader(__in  const void* pShaderBytecode, __in  SIZE_T BytecodeLength, __in_opt  ID3D11ClassLinkage* pClassLinkage,
-								__out_opt  ID3D11VertexShader** ppVertexShader);
+	HRESULT CCreateVertexShader(GraphicsModule::CreateVertexShaderStruct _VSStruct);
 
 	/*
 		* @Function Name: CCreateInputLayout
@@ -89,11 +75,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#HRESULT: Checks if the function was successfull.
 	*/
-	HRESULT CCreateInputLayout(__in_ecount(NumElements)  const D3D11_INPUT_ELEMENT_DESC* pInputElementDescs,
-							   __in_range(0, D3D11_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT)  UINT NumElements,
-							   __in  const void* pShaderBytecodeWithInputSignature,
-							   __in  SIZE_T BytecodeLength,
-							   __out_opt  ID3D11InputLayout** ppInputLayout);
+	HRESULT CCreateInputLayout(GraphicsModule::CreateInputLayoutStruct _ILStruct);
 
 	/*
 		* @Function Name: CCreatePixelShader
@@ -105,8 +87,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#HRESULT: Checks if the function was successfull.
 	*/
-	HRESULT CCreatePixelShader(__in  const void* pShaderBytecode, __in  SIZE_T BytecodeLength, __in_opt  ID3D11ClassLinkage* pClassLinkage,
-							   __out_opt  ID3D11PixelShader** ppPixelShader);
+	HRESULT CCreatePixelShader(GraphicsModule::CreatePixelShaderStruct _PSStruct);
 
 	/*
 		* @Function Name: CCreateBuffer

@@ -1,4 +1,5 @@
 #include "Texture2D.h"
+#include "test.h"
 
 Texture2D::Texture2D()
 {
@@ -12,37 +13,35 @@ Texture2D::~Texture2D()
 }
 
 #if defined(DX11)
-void Texture2D::SetDescDepth(UINT width, UINT height, UINT miplevels, UINT arraysize, DXGI_FORMAT format, UINT count, UINT quality, D3D11_USAGE usage, UINT cpuaccessflags, UINT miscflags)
+void Texture2D::SetDescDepth(GraphicsModule::CreateDepthDesc _DepthDesc)
 {
 	ZeroMemory(&m_descDepth, sizeof(m_descDepth));
-	m_descDepth.Width = width;
-	m_descDepth.Height = height;
-	m_descDepth.MipLevels = miplevels;
-	m_descDepth.ArraySize = arraysize;
-	m_descDepth.Format = format;
-	m_descDepth.SampleDesc.Count = count;
-	m_descDepth.SampleDesc.Quality = quality;
-	m_descDepth.Usage = usage;
-	//m_descDepth.BindFlags = TEXTURE_BIND_FLAG::kBIND_DEPTH_STENCIL | TEXTURE_BIND_FLAG::kBIND_SHADER_RESOURCE;
-	m_descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-	m_descDepth.CPUAccessFlags = cpuaccessflags;
-	m_descDepth.MiscFlags = miscflags;
+	m_descDepth.Width = _DepthDesc.Width;
+	m_descDepth.Height = _DepthDesc.Height;
+	m_descDepth.MipLevels = _DepthDesc.Mips;
+	m_descDepth.ArraySize = _DepthDesc.ArraySize;
+	m_descDepth.Format = (DXGI_FORMAT)_DepthDesc.Format;
+	m_descDepth.SampleDesc.Count = _DepthDesc.Count;
+	m_descDepth.SampleDesc.Quality = _DepthDesc.Quality;
+	m_descDepth.Usage = (D3D11_USAGE)_DepthDesc.Usage;
+	m_descDepth.BindFlags = _DepthDesc.BindFlags;
+	m_descDepth.CPUAccessFlags = _DepthDesc.CPUAccessFlags;
+	m_descDepth.MiscFlags = _DepthDesc.MiscFlags;
 }
 
-void Texture2D::SetDescRT(UINT width, UINT height, UINT miplevels, UINT arraysize, DXGI_FORMAT format, UINT count, UINT quality, D3D11_USAGE usage, UINT cpuaccessflags, UINT miscflags)
+void Texture2D::SetDescRT(GraphicsModule::SetRTDescStruct _RTDescStruct)
 {
 	ZeroMemory(&m_descDepth, sizeof(m_descDepth));
-	m_descDepth.Width = width;
-	m_descDepth.Height = height;
-	m_descDepth.MipLevels = miplevels;
-	m_descDepth.ArraySize = arraysize;
-	m_descDepth.Format = format;
-	m_descDepth.SampleDesc.Count = count;
-	m_descDepth.SampleDesc.Quality = quality;
-	m_descDepth.Usage = usage;
-	//m_descDepth.BindFlags = TEXTURE_BIND_FLAG::kBIND_DEPTH_STENCIL | TEXTURE_BIND_FLAG::kBIND_SHADER_RESOURCE;
-	m_descDepth.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	m_descDepth.CPUAccessFlags = cpuaccessflags;
-	m_descDepth.MiscFlags = miscflags;
+	m_descDepth.Width = _RTDescStruct.Width;
+	m_descDepth.Height = _RTDescStruct.Height;
+	m_descDepth.MipLevels = _RTDescStruct.MipLevels;
+	m_descDepth.ArraySize = _RTDescStruct.Arraysize;
+	m_descDepth.Format = (DXGI_FORMAT)_RTDescStruct.Format;
+	m_descDepth.SampleDesc.Count = _RTDescStruct.Count;
+	m_descDepth.SampleDesc.Quality = _RTDescStruct.Quality;
+	m_descDepth.Usage = (D3D11_USAGE)_RTDescStruct.Usage;
+	m_descDepth.BindFlags = _RTDescStruct.BindFlags;
+	m_descDepth.CPUAccessFlags = _RTDescStruct.CPUAccessFlags;
+	m_descDepth.MiscFlags = _RTDescStruct.MiscFlags;
 }
 #endif

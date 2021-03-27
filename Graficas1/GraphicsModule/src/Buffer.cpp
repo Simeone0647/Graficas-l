@@ -1,4 +1,5 @@
 #include "Buffer.h"
+#include "test.h"
 
 Buffer::Buffer()
 {
@@ -12,12 +13,12 @@ Buffer::~Buffer()
 }
 
 #if defined(DX11)
-void Buffer::BUpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT MiscFlags, UINT StructureByteStride)
+void Buffer::BUpdateBD(GraphicsModule::UpdateBDStruct _BDStruct)
 {
 	ZeroMemory(&m_BD, sizeof(m_BD));
-	m_BD.Usage = usage;
-	m_BD.ByteWidth = bytewidth;
-	m_BD.BindFlags = bindflags;
-	m_BD.CPUAccessFlags = cpuaccessflags;
+	m_BD.Usage = (D3D11_USAGE)_BDStruct.Usage;
+	m_BD.ByteWidth = _BDStruct.ByteWidth;
+	m_BD.BindFlags = _BDStruct.BindFlags;
+	m_BD.CPUAccessFlags = _BDStruct.CPUAccessFlags;
 }
 #endif

@@ -3,7 +3,6 @@
 #include <string.h>
 #include "Vertex.h"
 #include "Material.h"
-#include "test.h"
 #include <iostream>
 
 struct CBChangesEveryFrame
@@ -164,7 +163,7 @@ private:
 	*/
 	float* m_WorldMatrix;
 
-	CBChangesEveryFrame cb;
+	CBChangesEveryFrame m_cb;
 
 	Material* m_Material;
 

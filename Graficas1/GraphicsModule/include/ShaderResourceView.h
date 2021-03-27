@@ -5,6 +5,13 @@
 #include <d3dcompiler.h>
 #include <xnamath.h>
 #endif
+
+namespace GraphicsModule
+{
+	enum SIME_FORMAT;
+	enum SIME_SRV_DIMENSION;
+}
+
 class ShaderResourceView
 {
 public:
@@ -12,7 +19,7 @@ public:
 	~ShaderResourceView();
 
 #if defined(DX11)
-	void SetDesc(DXGI_FORMAT _Format, D3D_SRV_DIMENSION _ViewDimension, UINT _Mips);
+	void SetDesc(GraphicsModule::SIME_FORMAT _Format, GraphicsModule::SIME_SRV_DIMENSION _ViewDimension, UINT _Mips);
 
 	inline ID3D11ShaderResourceView* GetDXSRV() { return m_SRV; }
 	inline ID3D11ShaderResourceView** GetDXSRVAddress() { return &m_SRV; }

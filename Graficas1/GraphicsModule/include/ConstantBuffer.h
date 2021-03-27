@@ -60,7 +60,7 @@ public:
 		* @brief...This function will update the Buffer Descriptor.
 		* @bug.....No known bugs.
 	*/
-	void UpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT miscflags, UINT structurebytestride);
+	void UpdateBD(GraphicsModule::UpdateBDStruct _BDStruct);
 
 	/*
 		* @Function Name: GetBDAddress

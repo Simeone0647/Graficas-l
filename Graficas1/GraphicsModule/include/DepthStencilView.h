@@ -7,6 +7,12 @@
 #include <xnamath.h>
 #endif
 
+namespace GraphicsModule
+{ 
+	enum SIME_FORMAT;
+	enum SIME_DSV_DIMENSION;
+}
+
 class DepthStencilView : public Texture2D
 {
 public:
@@ -22,7 +28,7 @@ public:
 		* @param...#UINT: 
 		* @bug.....No known bugs.
 	*/
-	void SetDescDSV(DXGI_FORMAT format, D3D11_DSV_DIMENSION viewdimension, UINT mipslice);
+	void SetDescDSV(GraphicsModule::SIME_FORMAT _Format, GraphicsModule::SIME_DSV_DIMENSION _ViewDimension, UINT _Mipslice);
 
 	/*
 		* @Function Name: GetDescDSVAddress

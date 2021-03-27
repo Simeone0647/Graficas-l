@@ -7,14 +7,14 @@ namespace GraphicsModule
 {
 		HRESULT hr = S_OK;
 
-		DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+		DWORD dwShaderFlags = SIMECOMPILE_ENABLE_STRICTNESS;
 
 		#if defined( DEBUG ) || defined( _DEBUG )
 		// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
 		// Setting this flag improves the shader debugging experience, but still allows 
 		// the shaders to be optimized and to run exactly the way they will run in 
 		// the release configuration of this program.
-		dwShaderFlags |= D3DCOMPILE_DEBUG;
+		dwShaderFlags |= SIMECOMPILE_DEBUG;
 		#endif
 
 		ID3DBlob* pErrorBlob;
@@ -45,7 +45,7 @@ HRESULT test::InitDevice(HWND hwnd)
 		UINT height = rc.bottom - rc.top;
 		g_DeviceAndSwapChainDesc.CreateDeviceFlags = 0;
 #ifdef _DEBUG
-		g_DeviceAndSwapChainDesc.CreateDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+		g_DeviceAndSwapChainDesc.CreateDeviceFlags |= SIME_CREATE_DEVICE_DEBUG;
 #endif
 
 		SIME_DRIVER_TYPE driverTypes[] =
@@ -69,7 +69,7 @@ HRESULT test::InitDevice(HWND hwnd)
 		g_DeviceAndSwapChainDesc.sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		g_DeviceAndSwapChainDesc.sd.BufferDesc.RefreshRate.Numerator = 60;
 		g_DeviceAndSwapChainDesc.sd.BufferDesc.RefreshRate.Denominator = 1;
-		g_DeviceAndSwapChainDesc.sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		g_DeviceAndSwapChainDesc.sd.BufferUsage = SIME_USAGE_RENDER_TARGET_OUTPUT;
 		g_DeviceAndSwapChainDesc.sd.OutputWindow = m_hwnd;
 		g_DeviceAndSwapChainDesc.sd.SampleDesc.Count = 1;
 		g_DeviceAndSwapChainDesc.sd.SampleDesc.Quality = 0;
@@ -96,26 +96,44 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 			return hr;
 
+		g_DepthDesc.Width = width;
+		g_DepthDesc.Height = height;
+		g_DepthDesc.Mips = 1;
+		g_DepthDesc.ArraySize = 1;
+		g_DepthDesc.Format = SIME_FORMAT_R32_TYPELESS;
+		g_DepthDesc.Count = 1;
+		g_DepthDesc.Quality = 0;
+		g_DepthDesc.BindFlags = SIME_BIND_DEPTH_STENCIL | SIME_BIND_SHADER_RESOURCE;
+		g_DepthDesc.Usage = SIME_USAGE_DEFAULT;
+		g_DepthDesc.CPUAccessFlags = 0;
+		g_DepthDesc.MiscFlags = 0;
 
-		g_SimeDepthStencil.SetDescDepth(width, height, 1, 1, DXGI_FORMAT_R32_TYPELESS, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
+		g_SimeDepthStencil.SetDescDepth(g_DepthDesc);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateTexture2D(g_SimeDepthStencil.GetDescDepthAddress(), NULL, g_SimeDepthStencil.GetTextureAddress());
 		if (FAILED(hr))
 			return hr;
 
-		g_SimeDepthStencilView.SetDescDSV(DXGI_FORMAT_D32_FLOAT, D3D11_DSV_DIMENSION_TEXTURE2D, 0);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateDepthStencilView(g_SimeDepthStencil.GetTexture(), g_SimeDepthStencilView.GetDescDSVAddress(),
-																				   g_SimeDepthStencilView.GetDSVAddress());
+		g_SimeDepthStencilView.SetDescDSV(SIME_FORMAT_D32_FLOAT, SIME_DSV_DIMENSION_TEXTURE2D, 0);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateDepthStencilView(g_SimeDepthStencil.GetTexture(), g_SimeDepthStencilView.GetDescDSVAddress(),																   g_SimeDepthStencilView.GetDSVAddress());
 		if (FAILED(hr))
 			return hr;
 
-		g_SimeDepthStencilSRV.SetDesc(DXGI_FORMAT_R32_FLOAT, D3D11_SRV_DIMENSION_TEXTURE2D, 1);
+		g_SimeDepthStencilSRV.SetDesc(SIME_FORMAT_R32_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateShaderResourceView(g_SimeDepthStencil.GetTexture(), g_SimeDepthStencilSRV.GetDXSRVDescAddress(),
 																	   g_SimeDepthStencilSRV.GetDXSRVAddress());
 		if (FAILED(hr))
 			return hr;
 
 		// Setup the viewport
-		g_SimeViewport.InitViewport((FLOAT)width, (FLOAT)height, 0.0f, 1.0f, 0.0f, 0.0f);
+		InitViewportStruct InitVP;
+		InitVP.Width = (FLOAT)width;
+		InitVP.Height = (FLOAT)height;
+		InitVP.MinDepth = 0.0f;
+		InitVP.MaxDepth = 1.0f;
+		InitVP.TopLeftX = 0.0f;
+		InitVP.TopLeftY = 0.0f;
+
+		g_SimeViewport.InitViewport(InitVP);
 
 		// Compile the vertex shader
 		ID3DBlob* pVSBlob = NULL;
@@ -123,12 +141,18 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 		{
 			MessageBox(NULL,
-				"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+				"The FX file cannot be compiled. Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
 			return hr;
 		}
 
+		CreateVertexShaderStruct VSStruct;
+		VSStruct.pShaderBytecode = pVSBlob->GetBufferPointer();
+		VSStruct.BytecodeLength = pVSBlob->GetBufferSize();
+		VSStruct.pClassLinkage = NULL;
+		VSStruct.ppVertexShader = g_SimeVertexShader.GetDXVertexShaderAddress();
+
 		// Create the vertex shader
-		hr = GetManagerObj(hwnd).GetDevice().CCreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, g_SimeVertexShader.GetDXVertexShaderAddress());
+		hr = GetManagerObj(hwnd).GetDevice().CCreateVertexShader(VSStruct);
 		if (FAILED(hr))
 		{
 			pVSBlob->Release();
@@ -145,8 +169,15 @@ HRESULT test::InitDevice(HWND hwnd)
 		//CREATE INPUT LAYOUT WITH REFLECTION
 		g_SimeVertexShaderReflection.GetDesc();
 		g_SimeInputLayout.DefineInputLayout(g_SimeVertexShaderReflection.GetDXShaderReflectionDesc(), g_SimeVertexShaderReflection.GetDXShaderReflection());
-		hr = GetManagerObj(hwnd).GetDevice().CCreateInputLayout(g_SimeInputLayout.GetDXInputLayoutDescAddress() , g_SimeInputLayout.GetDXInputLayoutDescSize(), pVSBlob->GetBufferPointer(),
-																 pVSBlob->GetBufferSize(), g_SimeInputLayout.GetDXInputLayoutAddress());
+
+		CreateInputLayoutStruct ILStruct;
+		ILStruct.pInputElementDescs = g_SimeInputLayout.GetDXInputLayoutDescAddress();
+		ILStruct.NumElements = g_SimeInputLayout.GetDXInputLayoutDescSize();
+		ILStruct.pShaderBytecodeWithInputSignature = pVSBlob->GetBufferPointer();
+		ILStruct.BytecodeLength = pVSBlob->GetBufferSize();
+		ILStruct.ppInputLayout = g_SimeInputLayout.GetDXInputLayoutAddress();
+
+		hr = GetManagerObj(hwnd).GetDevice().CCreateInputLayout(ILStruct);
 		pVSBlob->Release();
 		if (FAILED(hr))
 		{
@@ -167,28 +198,45 @@ HRESULT test::InitDevice(HWND hwnd)
 			return hr;
 		}
 
+		CreatePixelShaderStruct PSStruct;
+		PSStruct.pShaderBytecode = pPSBlob->GetBufferPointer();
+		PSStruct.BytecodeLength = pPSBlob->GetBufferSize();
+		PSStruct.pClassLinkage = NULL;
+		PSStruct.ppPixelShader = g_SimePixelShader.GetDXPixelShaderAddress();
+
 		// Create the pixel shader
-		hr = GetManagerObj(hwnd).GetDevice().CCreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, g_SimePixelShader.GetDXPixelShaderAddress());
+		hr = GetManagerObj(hwnd).GetDevice().CCreatePixelShader(PSStruct);
 		pPSBlob->Release();
 		if (FAILED(hr))
 			return hr;
 
-		g_SimeCBNeverChanges.UpdateBD(D3D11_USAGE_DEFAULT, sizeof(CBNeverChanges), D3D11_BIND_CONSTANT_BUFFER, 0, 0, 0);
+		UpdateBDStruct BDStruct;
+		BDStruct.Usage = SIME_USAGE_DEFAULT;
+		BDStruct.ByteWidth = sizeof(CBNeverChanges);
+		BDStruct.BindFlags = SIME_BIND_CONSTANT_BUFFER;
+		BDStruct.CPUAccessFlags = 0;
+		BDStruct.StructureBytestride = 0;
+		BDStruct.MiscFlags = 0;
+
+		g_SimeCBNeverChanges.UpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBNeverChanges.GetBDAddress(), NULL, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
 		if (FAILED(hr))
 			return hr;
-
-		g_SimeCBChangeOnResize.UpdateBD(D3D11_USAGE_DEFAULT, sizeof(CBChangeOnResize), D3D11_BIND_CONSTANT_BUFFER, 0, 0, 0);
+		
+		BDStruct.ByteWidth = sizeof(CBChangeOnResize);
+		g_SimeCBChangeOnResize.UpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBChangeOnResize.GetBDAddress(), NULL, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());
 		if (FAILED(hr))
 			return hr;
 
-		g_SimeCBChangesEveryFrame.UpdateBD(D3D11_USAGE_DEFAULT, sizeof(CBChangesEveryFrame), D3D11_BIND_CONSTANT_BUFFER, 0, 0, 0);
+		BDStruct.ByteWidth = sizeof(CBChangesEveryFrame);
+		g_SimeCBChangesEveryFrame.UpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBChangesEveryFrame.GetBDAddress(), NULL, g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
 		if (FAILED(hr))
 			return hr;
 
-		g_DirLightBuffer.BUpdateBD(D3D11_USAGE_DEFAULT, sizeof(DirLight), D3D11_BIND_CONSTANT_BUFFER, 0, 0, 0);
+		BDStruct.ByteWidth = sizeof(DirLight);
+		g_DirLightBuffer.BUpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_DirLightBuffer.BGetBDAddress(), NULL, g_DirLightBuffer.BGetBufferAddress());
 
 		// Load the Texture
@@ -202,25 +250,44 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 			return hr;
 
+		UpdateProjectionMatrixStruct PMStruct;
+		PMStruct.AngleY = SIME_PIDIV4;
+		PMStruct.Ratio = width / (FLOAT)height;
+		PMStruct.NearPlane = 0.01f;
+		PMStruct.FarPlane = 1000.0f;
+		PMStruct.Width = width;
+		PMStruct.Height = height;
 
 		m_PerspectiveCamera.SetEye(0.0f, 3.0f, -6.0f);
 		m_PerspectiveCamera.SetAt(0.0f, 0.0f, 0.0f);
 		m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
 		m_PerspectiveCamera.UpdateViewMatrix();
-		m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(XM_PIDIV4, width / (FLOAT)height, 0.01f, 1000.0f);
+		m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
 
 		m_OrtographicCamera.SetEye(0.0f, 3.0f, -6.0f);
 		m_OrtographicCamera.SetAt(0.0f, 0.0f, 0.0f);
 		m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
 		m_OrtographicCamera.UpdateViewMatrix();
-		m_OrtographicCamera.UpdateOrtographicProjectionMatrix(width, height, 0.01f, 1000.0f);
+		m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
 
 		m_Camera = &m_PerspectiveCamera;
 
 		/* FIRST RENDER TARGET TEXTURE
 			CREATE TEXTURE*/
-		g_TextureRenderTarget;
-		g_TextureRenderTarget.SetDescRT(width, height, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
+		SetRTDescStruct RTDescStruct;
+		RTDescStruct.Width = width;
+		RTDescStruct.Height = height;
+		RTDescStruct.MipLevels = 1;
+		RTDescStruct.Arraysize = 1;
+		RTDescStruct.Format = SIME_FORMAT_R8G8B8A8_UNORM;
+		RTDescStruct.Count = 1;
+		RTDescStruct.Quality = 0;
+		RTDescStruct.Usage = SIME_USAGE_DEFAULT;
+		RTDescStruct.CPUAccessFlags = 0;
+		RTDescStruct.MiscFlags = 0;
+		RTDescStruct.BindFlags = SIME_BIND_SHADER_RESOURCE | SIME_BIND_RENDER_TARGET;
+
+		g_TextureRenderTarget.SetDescRT(RTDescStruct);
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(g_TextureRenderTarget.GetDescDepthAddress(), NULL, g_TextureRenderTarget.GetTextureAddress());
 		if (FAILED(hr))
 			return hr;
@@ -292,138 +359,52 @@ void test::Update()
 		t = (dwTimeCur - dwTimeStart) / 1000.0f;
 	}
 
-	// Rotate cube around the origin
-	//g_Translation.m[0][3] = 0;
-	//g_Translation.m[1][3] = 0;
-	//g_Translation.m[2][3] = 0;
-	//
-	////FIRST CUBE
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		FirstCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	//
-	//g_World = g_Translation;
-	//g_World = XMMatrixRotationY(t);
-	//g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
-	//
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		FirstCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	
-	////SECOND CUBE
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		SecondCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	//
-	//g_World = XMMatrixTranslation(2.0f, 0.0f, 0.0f);
-	//g_World = XMMatrixMultiply(XMMatrixRotationY(t), g_World);
-	//g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
-	//
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		SecondCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	//
-	////THIRD CUBE
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		ThirdCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	//
-	//g_World = XMMatrixTranslation(-2.0f, 0.0f, 0.0f);
-	//g_World = XMMatrixMultiply(XMMatrixRotationY(t), g_World);
-	//g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
-	//
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		ThirdCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	//
-	////FOURTH CUBE
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		FourthCube.SetWorldMatrixValue(counter, g_Translation.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-	//
-	//g_World = XMMatrixTranslation(0.0f, 2.0f, 0.0f);
-	//g_World = XMMatrixMultiply(XMMatrixRotationY(t), g_World);
-	//g_World = XMMatrixMultiply(XMMatrixScaling(0.5f, 0.5f, 0.5f), g_World);
-	//
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	for (int j = 0; j < 4; j++)
-	//	{
-	//		FourthCube.SetWorldMatrixValue(counter, g_World.m[i][j]);
-	//		counter++;
-	//	}
-	//}
-	//counter = 0;
-
 	//
 	// Clear the back buffer
 	//
 	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
 	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SimeRenderTargetView.GetRTV(), ClearColor);
 
-	GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(g_SimeDepthStencilView.GetDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	ClearDepthStencilViewStruct ClearDSVStruct;
+	ClearDSVStruct.pDepthStencilView = g_SimeDepthStencilView.GetDSV();
+	ClearDSVStruct.ClearFlags = SIME_CLEAR_DEPTH;
+	ClearDSVStruct.Depth = 1.0f;
+	ClearDSVStruct.Stencil = 0;
+
+	GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 
 	CBNeverChanges cbNeverChanges;
 	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->GetViewMatrix());
-	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBNeverChanges.GetCBNeverChanges(), 0, NULL, &cbNeverChanges, 0, 0);
+	UpdateSubResourceStruct UpdateSBStruct;
+	UpdateSBStruct.pDstResource = g_SimeCBNeverChanges.GetCBNeverChanges();
+	UpdateSBStruct.DstSubresource = 0;
+	UpdateSBStruct.pDstBox = NULL;
+	UpdateSBStruct.pSrcData = &cbNeverChanges;
+	UpdateSBStruct.SrcRowPitch = 0;
+	UpdateSBStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 
 	CBChangeOnResize cbChangesOnResize;
 	cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
-	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangeOnResize.GetCBChangesOnResize(), 0, NULL, &cbChangesOnResize, 0, 0);
+	UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
+	UpdateSBStruct.pSrcData = &cbChangesOnResize;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 
 	if (m_IsPerspectiveActive)
 	{
 		CBChangeOnResize cbChangesOnResize;
 		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
-		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangeOnResize.GetCBChangesOnResize(), 0, NULL, &cbChangesOnResize, 0, 0);
+		UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
+		UpdateSBStruct.pSrcData = &cbChangesOnResize;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 	}
 	else
 	{
 		CBChangeOnResize cbChangesOnResize;
 		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetOrtographicProjectionMatrix());
-		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(g_SimeCBChangeOnResize.GetCBChangesOnResize(), 0, NULL, &cbChangesOnResize, 0, 0);
+		UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
+		UpdateSBStruct.pSrcData = &cbChangesOnResize;
+		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 	}
 
 #endif
@@ -433,18 +414,16 @@ void test::Render()
 {
 #if defined(DX11)
 
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
 
-	GetManagerObj(m_hwnd).GetDeviceContext().CIASetVertexBuffers(0, 1, g_SimeVertexBuffer.GetVertexBufferAddress(), &stride, &offset);
-	GetManagerObj(m_hwnd).GetDeviceContext().CIASetIndexBuffer(g_SimeIndexBuffer.GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-	GetManagerObj(m_hwnd).GetDeviceContext().CIASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//MESH
 
 
+	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CIASetInputLayout(g_SimeInputLayout.GetDXInputLayout());
 
+	//LUEGO
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(0, 1, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(1, 1, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());

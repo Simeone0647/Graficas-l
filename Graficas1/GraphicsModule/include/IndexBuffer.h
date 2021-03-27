@@ -33,7 +33,7 @@ public:
 		* @param...#UINT: Micellaneous flags.
 		* @param...#UINT:
 	*/
-	void UpdateBD(D3D11_USAGE usage, UINT bytewidth, UINT bindflags, UINT cpuaccessflags, UINT miscflags, UINT structurebytestride);
+	void UpdateBD(GraphicsModule::UpdateBDStruct _UpdateBDStruct);
 
 	/*
 		* @Function Name: GetBDAddress

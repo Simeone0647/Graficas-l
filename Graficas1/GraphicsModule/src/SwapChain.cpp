@@ -21,14 +21,4 @@ void SwapChain::CPresent(UINT SyncInterval, UINT Flags)
 {
 	m_SwapChain->Present(SyncInterval, Flags);
 }
-
-void SwapChain::ResizeWindowPerspective(Camera* camera, float angle, float ratio, float nearp, float farp)
-{
-	camera->UpdatePerspectiveProjectionMatrix(angle, ratio, nearp, farp);
-}
-
-void SwapChain::ResizeWindowOrtographic(Camera* camera, float width, float height, float nearp, float farp)
-{
-	camera->UpdateOrtographicProjectionMatrix(width, height, nearp, farp);
-}
 #endif

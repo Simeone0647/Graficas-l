@@ -3,6 +3,15 @@
 #include <d3d11.h>
 #endif
 
+namespace GraphicsModule
+{
+	enum SIME_FORMAT;
+	enum SIME_PRIMITIVE_TOPOLOGY;
+	struct UpdateSubResourceStruct;
+	struct ClearDepthStencilViewStruct;
+	struct SetVertexBufferStruct;
+}
+
 class DeviceContext
 {
 public:
@@ -27,7 +36,7 @@ public:
 		* @param...#UINT8:
 		* @bug.....No known bugs.
 	*/
-	void CClearDepthStencilView(__in  ID3D11DepthStencilView* pDepthStencilView, __in  UINT ClearFlags, __in  FLOAT Depth, __in  UINT8 Stencil);
+	void CClearDepthStencilView(GraphicsModule::ClearDepthStencilViewStruct _ClearDSVStruct);
 
 
 	/*
@@ -58,11 +67,7 @@ public:
 		* @param...#UINT*:
 		* @bug.....No known bugs.
 	*/
-	void CIASetVertexBuffers(__in_range(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - 1)  UINT StartSlot,
-							 __in_range(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT NumBuffers,
-							 __in_ecount(NumBuffers)  ID3D11Buffer* const* ppVertexBuffers,
-							 __in_ecount(NumBuffers)  const UINT* pStrides,
-							 __in_ecount(NumBuffers)  const UINT* pOffsets);
+	void CIASetVertexBuffers(GraphicsModule::SetVertexBufferStruct _SetVBStruct);
 
 	/*
 		* @Function Name: CIASetIndexBuffer
@@ -72,7 +77,7 @@ public:
 		* @param...#UINT:
 		* @bug.....No known bugs.
 	*/
-	void CIASetIndexBuffer(__in_opt  ID3D11Buffer* pIndexBuffer, __in  DXGI_FORMAT Format, __in  UINT Offset);
+	void CIASetIndexBuffer(__in_opt  ID3D11Buffer* pIndexBuffer, __in  GraphicsModule::SIME_FORMAT Format, __in  UINT Offset);
 
 	/*
 		* @Function Name: CIASetPrimitiveTopology
@@ -80,7 +85,7 @@ public:
 		* @param...#D3D11_PRIMITIVE_TOPOLOGY: Topology to use
 		* @bug.....No known bugs.
 	*/
-	void CIASetPrimitiveTopology(__in  D3D11_PRIMITIVE_TOPOLOGY Topology);
+	void CIASetPrimitiveTopology(__in  GraphicsModule::SIME_PRIMITIVE_TOPOLOGY Topology);
 
 	/*
 		* @Function Name: CVSSetShader
@@ -164,8 +169,7 @@ public:
 		* @param...#UINT:
 		* @bug.....No known bugs.
 	*/
-	void CUpdateSubresource(__in  ID3D11Resource* pDstResource, __in  UINT DstSubresource, __in_opt  const D3D11_BOX* pDstBox,
-							__in  const void* pSrcData, __in  UINT SrcRowPitch, __in  UINT SrcDepthPitch);
+	void CUpdateSubresource(GraphicsModule::UpdateSubResourceStruct _USRStruct);
 
 	/*
 		* @Function Name: CDrawIndexed
