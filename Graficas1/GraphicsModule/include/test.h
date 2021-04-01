@@ -23,6 +23,17 @@
 #include "SamplerState.h"
 #include "ShaderResourceView.h"
 #include <string>
+#include <fstream>
+#include <sstream>
+#if defined(OGL)
+#include <glm.hpp>
+#include <glew.h>
+#include <glfw3.h>
+#include <gtx/transform.hpp>
+
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+#endif
 #if defined(DX11)
 #include <d3d11.h>
 #include <d3dx11.h>
@@ -431,27 +442,33 @@ namespace GraphicsModule
 
 	struct CreateVertexShaderStruct
 	{
+	#if defined(DX11)
 		const void* pShaderBytecode;
 		SIZE_T BytecodeLength;
 		ID3D11ClassLinkage* pClassLinkage;
 		ID3D11VertexShader** ppVertexShader;
+	#endif
 	};
 
 	struct CreateInputLayoutStruct
 	{
+	#if defined(DX11)
 		__in_ecount(NumElements) const D3D11_INPUT_ELEMENT_DESC* pInputElementDescs;
 		__in_range(0, D3D11_IA_VERTEX_INPUT_STRUCTURE_ELEMENT_COUNT) UINT NumElements;
 		__in const void* pShaderBytecodeWithInputSignature;
 		__in SIZE_T BytecodeLength;
 		__out_opt ID3D11InputLayout** ppInputLayout;
+	#endif
 	};
 
 	struct CreatePixelShaderStruct
 	{
+	#if defined(DX11)
 		__in  const void* pShaderBytecode;
 		__in  SIZE_T BytecodeLength;
 		__in_opt  ID3D11ClassLinkage* pClassLinkage;
 		__out_opt  ID3D11PixelShader** ppPixelShader;
+	#endif
 	};
 
 	struct UpdateBDStruct
@@ -491,34 +508,50 @@ namespace GraphicsModule
 
 	struct UpdateSubResourceStruct
 	{
+	#if defined(DX11)
 		__in  ID3D11Resource* pDstResource;
 		__in  UINT DstSubresource;
 		__in_opt  const D3D11_BOX* pDstBox;
 		__in  const void* pSrcData;
 		__in  UINT SrcRowPitch;
 		__in  UINT SrcDepthPitch;
+	#endif
 	};
 
 	struct ClearDepthStencilViewStruct
 	{
+	#if defined(DX11)
 		__in  ID3D11DepthStencilView* pDepthStencilView;
 		__in  UINT ClearFlags;
 		__in FLOAT Depth;
 		__in  UINT8 Stencil;
+	#endif
 	};
 
 	struct SetVertexBufferStruct
 	{
+	#if defined(DX11)
 		__in_range(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - 1)  UINT StartSlot;
 		__in_range(0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT NumBuffers;
 		__in_ecount(NumBuffers)  ID3D11Buffer* const* ppVertexBuffers;
 		__in_ecount(NumBuffers)  const UINT* pStrides;
 		__in_ecount(NumBuffers)  const UINT* pOffsets;
+	#endif
 	};
 
 	class test
 	{
 	public:
+		GLuint vertexbuffer;
+		GLuint colorbuffer;
+		GLuint indexbuffer;
+		GLint uniform_mvp;
+		GLuint programID;
+		glm::mat4 mvp;
+		glm::mat4 view;
+		glm::mat4 model;
+		glm::mat4 projection;
+		glm::mat4 anim;
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;
@@ -559,6 +592,10 @@ namespace GraphicsModule
 	#if defined(DX11)
 		HRESULT CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	#endif
+
+	#if defined(OGL)
+		GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path);
+	#endif
 	public:
 		HRESULT InitDevice(HWND hdwn);
 	
@@ -566,6 +603,9 @@ namespace GraphicsModule
 	
 		void Update();
 		
+	#if defined(OGL)
+		void UpdateOGL(GLFWwindow* _window);
+	#endif
 		void CleanupDevice();
 
 		HWND m_hwnd;

@@ -33,8 +33,200 @@ namespace GraphicsModule
 
 }
 #endif
-HRESULT test::InitDevice(HWND hwnd)
+#if defined(OGL)
+	GLuint test::LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
+	{
+		// Crear los shaders
+		GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+		GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+		// Leer el Vertex Shader desde archivo
+		std::string VertexShaderCode;
+		std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
+		if (VertexShaderStream.is_open()) {
+			std::stringstream sstr;
+			sstr << VertexShaderStream.rdbuf();
+			VertexShaderCode = sstr.str();
+			VertexShaderStream.close();
+		}
+		else {
+			printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
+			getchar();
+			return 0;
+		}
+
+		// Leer el Fragment Shader desde archivo
+		std::string FragmentShaderCode;
+		std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
+		if (FragmentShaderStream.is_open()) {
+			std::stringstream sstr;
+			sstr << FragmentShaderStream.rdbuf();
+			FragmentShaderCode = sstr.str();
+			FragmentShaderStream.close();
+		}
+
+		GLint Result = GL_FALSE;
+		int InfoLogLength;
+
+
+		// Compilar Vertex Shader
+		printf("Compiling shader : %s\n", vertex_file_path);
+		char const* VertexSourcePointer = VertexShaderCode.c_str();
+		glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
+		glCompileShader(VertexShaderID);
+
+		// Revisar Vertex Shader
+		glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		if (InfoLogLength > 0) {
+			std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
+			glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+			printf("%s\n", &VertexShaderErrorMessage[0]);
+		}
+
+
+
+		// Compilar Fragment Shader
+		printf("Compiling shader : %s\n", fragment_file_path);
+		char const* FragmentSourcePointer = FragmentShaderCode.c_str();
+		glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
+		glCompileShader(FragmentShaderID);
+
+		// Revisar Fragment Shader
+		glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+		glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		if (InfoLogLength > 0) {
+			std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
+			glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+			printf("%s\n", &FragmentShaderErrorMessage[0]);
+		}
+
+
+
+		// Vincular el programa por medio del ID
+		printf("Linking program\n");
+		GLuint ProgramID = glCreateProgram();
+		glAttachShader(ProgramID, VertexShaderID);
+		glAttachShader(ProgramID, FragmentShaderID);
+		glLinkProgram(ProgramID);
+
+		// Revisar el programa
+		glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+		glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+		if (InfoLogLength > 0) {
+			std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
+			glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+			printf("%s\n", &ProgramErrorMessage[0]);
+		}
+
+
+		glDetachShader(ProgramID, VertexShaderID);
+		glDetachShader(ProgramID, FragmentShaderID);
+
+		glDeleteShader(VertexShaderID);
+		glDeleteShader(FragmentShaderID);
+
+		return ProgramID;
+	}
+#endif
+
+	HRESULT test::InitDevice(HWND hwnd)
 {
+#if defined(OGL)
+
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	 programID = LoadShaders("SimpleVertexShader.txt", "SimpleFragmentShader.txt");
+
+	glUseProgram(programID);
+
+	static const GLfloat g_vertex_buffer_data[] = {
+		// front
+		-1.0, -1.0,  1.0,
+		 1.0, -1.0,  1.0,
+		 1.0,  1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		// back
+		-1.0, -1.0, -1.0,
+		 1.0, -1.0, -1.0,
+		 1.0,  1.0, -1.0,
+		-1.0,  1.0, -1.0
+	};
+	
+
+	// Generar un buffer, poner el resultado en el vertexbuffer que acabamos de crear
+	glGenBuffers(1, &vertexbuffer);
+	// Los siguientes comandos le darán características especiales al 'vertexbuffer' 
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	// Darle nuestros vértices a  OpenGL.
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+	static const GLfloat g_color_buffer_data[] = {
+	1.0, 0.0, 0.0,
+	0.0, 1.0, 0.0,
+	0.0, 0.0, 1.0,
+	1.0, 1.0, 1.0,
+	// back colors
+	1.0, 0.0, 0.0,
+	0.0, 1.0, 0.0,
+	0.0, 0.0, 1.0,
+	1.0, 1.0, 1.0
+	};
+
+
+	glGenBuffers(1, &colorbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+
+	GLushort index_cube_elements[] = {
+		// front
+		0, 1, 2,
+		2, 3, 0,
+		// right
+		1, 5, 6,
+		6, 2, 1,
+		// back
+		7, 6, 5,
+		5, 4, 7,
+		// left
+		4, 0, 3,
+		3, 7, 4,
+		// bottom
+		4, 5, 1,
+		1, 0, 4,
+		// top
+		3, 2, 6,
+		6, 7, 3
+	};
+	glGenBuffers(1, &indexbuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_cube_elements), index_cube_elements, GL_STATIC_DRAW);
+
+	glEnable(GL_DEPTH_TEST);
+
+	 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+
+	 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+
+	 projection = glm::perspective(0.7863f, 1024.0f/768.0f, 0.1f, 10.0f);
+
+	float angle = 60 / 1000.0 * 45;  // 45° per second
+	glm::vec3 axis_y(0, 1, 0);
+	anim = glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_y);
+
+	mvp = projection * view * model * anim;
+
+	const char* uniform_name;
+	uniform_name = "mvp";
+	uniform_mvp = glGetUniformLocation(programID, uniform_name);
+	if (uniform_mvp == -1) {
+		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+	}
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+#endif
+
 #if defined(DX11)
 		m_hwnd = hwnd;
 		HRESULT hr = S_OK;
@@ -406,12 +598,46 @@ void test::Update()
 		UpdateSBStruct.pSrcData = &cbChangesOnResize;
 		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 	}
+#endif
+#if defined(OGL)
 
 #endif
 }
 
 void test::Render()
 {
+#if defined(OGL)
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+
+	glVertexAttribPointer(
+		0,                  // atributo 0. No hay razón particular para el 0, pero debe corresponder en el shader.
+		3,                  // tamaño
+		GL_FLOAT,           // tipo
+		GL_FALSE,           // normalizado?
+		0,                    // Paso
+		(void*)0            // desfase del buffer
+	);
+
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+	glVertexAttribPointer(
+		1,                                // Atributo. No hay razón especial para el 1, pero debe corresponder al número en el shader.
+		3,                                // tamaño
+		GL_FLOAT,                         // tipo
+		GL_FALSE,                         // normalizado?
+		0,                                // corrimiento
+		(void*)0                          // corrimiento de buffer
+	);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
+	int size;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	glDrawElements(GL_TRIANGLES, size / sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+
+	glDisableVertexAttribArray(0);
+#endif
 #if defined(DX11)
 
 
@@ -432,7 +658,7 @@ void test::Render()
 #endif
 }
 
-	void test::CleanupDevice()
+void test::CleanupDevice()
 	{
 	#if defined(DX11)
 		if (GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()) GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()->ClearState();
@@ -456,6 +682,44 @@ void test::Render()
 		if (GetManagerObj(m_hwnd).GetDevice().GetDXDevice()) GetManagerObj(m_hwnd).GetDevice().GetDXDevice()->Release();
 	#endif
 	}
+
+#if defined(OGL)
+void test::UpdateOGL(GLFWwindow* _Window)
+{
+	static float t;
+	t += 10;
+	int display_w, display_h;
+
+
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+
+	//glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+	//
+	//glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+	//
+	//glm::mat4 projection = glm::perspective(0.7863f, 1024.0f / 768.0f, 0.1f, 10.0f);
+
+	float angle = t / 1000.0 * 45;  // 45° per second
+	glm::vec3 axis_y(0, 1, 0);
+	 anim = glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_y);
+
+	mvp = projection * view * model * anim;
+
+	const char* uniform_name;
+	uniform_name = "mvp";
+	uniform_mvp = glGetUniformLocation(programID, uniform_name);
+	if (uniform_mvp == -1) {
+		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+	}
+	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+
+	glfwGetFramebufferSize(_Window, &display_w, &display_h);
+	glViewport(0, 0, display_w, display_h);
+
+}
+#endif
 
 	extern Manager& GetManagerObj(HWND hwnd)
 	{

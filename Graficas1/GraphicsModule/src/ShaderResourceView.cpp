@@ -12,6 +12,7 @@ ShaderResourceView::~ShaderResourceView()
 {
 }
 
+#if defined(DX11)
 void ShaderResourceView::SetDesc(GraphicsModule::SIME_FORMAT _Format, GraphicsModule::SIME_SRV_DIMENSION _ViewDimension, UINT _Mips)
 {
 	ZeroMemory(&m_SRVDesc, sizeof(m_SRVDesc));
@@ -19,3 +20,4 @@ void ShaderResourceView::SetDesc(GraphicsModule::SIME_FORMAT _Format, GraphicsMo
 	m_SRVDesc.ViewDimension = (D3D_SRV_DIMENSION)_ViewDimension;
 	m_SRVDesc.Texture2D.MipLevels = _Mips;
 }
+#endif
