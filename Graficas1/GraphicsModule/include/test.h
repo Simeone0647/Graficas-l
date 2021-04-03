@@ -22,12 +22,13 @@
 #include "ShaderReflection.h"
 #include "SamplerState.h"
 #include "ShaderResourceView.h"
+#include "Matrix.h"
 #include <string>
 #include <fstream>
 #include <sstream>
 #if defined(OGL)
 #include <glm.hpp>
-#include <glew.h>
+#include <glad/glad.h>
 #include <glfw3.h>
 #include <gtx/transform.hpp>
 
@@ -548,10 +549,11 @@ namespace GraphicsModule
 		GLint uniform_mvp;
 		GLuint programID;
 		glm::mat4 mvp;
-		glm::mat4 view;
-		glm::mat4 model;
-		glm::mat4 projection;
-		glm::mat4 anim;
+		//float mvp[16];
+		float modelmatrix[16];
+		float* ekisde = new float[16];
+		float* truematrix = new float[16];
+
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;

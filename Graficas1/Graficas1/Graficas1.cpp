@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 #if defined(OGL)
-#include <glew.h>
+#include <glad/glad.h>
 #include <glfw3.h>
 #endif
 
@@ -33,6 +33,12 @@ GLFWwindow* m_OGLWindow; // (En el código que viene aqui, está variable es globa
 #endif
 //-----------------------------------------------------------------------------------------
 
+#if defined(OGL)
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	glViewport(0, 0, width, height);
+}
+#endif
 /**
 	 * @brief   Forward declare message handler from imgui_impl_win32.cpp
 	 * @param   #HWND: A handle to the window.
@@ -369,8 +375,8 @@ void Render()
 	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain().CPresent(0, 0);
 #endif
 #if defined(OGL)
-	UIRender();
 	m_Obj.Render();
+	UIRender();
 	glfwSwapBuffers(m_OGLWindow);
 	glfwPollEvents();
 #endif
@@ -440,7 +446,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //No queremos el viejo OpenGL 
 
 	//Crear una ventana y su contexto OpenGL
-	m_OGLWindow = glfwCreateWindow(1024, 768, "Tutorial 01", NULL, NULL);
+	m_OGLWindow = glfwCreateWindow(1024, 768, "GRAFICAS SIME1", NULL, NULL);
 	if (m_OGLWindow == NULL) {
 		fprintf(stderr, "Falla al abrir una ventana GLFW. Si usted tiene una GPU Intel, está no es compatible con 3.3. Intente con la versión 2.1 de los tutoriales.\n");
 		glfwTerminate();
@@ -448,9 +454,9 @@ int main()
 	}
 
 	glfwMakeContextCurrent(m_OGLWindow); // Inicializar GLEW
-	glewExperimental = true; // Se necesita en el perfil de base.
-	if (glewInit() != GLEW_OK) {
-		fprintf(stderr, "Falló al inicializar GLEW\n");
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 
@@ -471,6 +477,8 @@ int main()
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
+	glViewport(0, 0, 1024, 768);
+	glfwSetFramebufferSizeCallback(m_OGLWindow, framebuffer_size_callback);
 	do 
 	{
 		Update();
@@ -482,5 +490,6 @@ int main()
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+	glfwTerminate();
 #endif
 }

@@ -206,18 +206,59 @@ namespace GraphicsModule
 
 	glEnable(GL_DEPTH_TEST);
 
-	 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
 
-	 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
 
-	 projection = glm::perspective(0.7863f, 1024.0f/768.0f, 0.1f, 10.0f);
+	 //model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+	 modelmatrix[0] = 1.0f;
+	 modelmatrix[1] = 0.0f;
+	 modelmatrix[2] = 0.0f;
+	 modelmatrix[3] = 0.0f;
 
-	float angle = 60 / 1000.0 * 45;  // 45° per second
-	glm::vec3 axis_y(0, 1, 0);
-	anim = glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_y);
+	 modelmatrix[4] = 0.0f;
+	 modelmatrix[5] = 1.0f;
+	 modelmatrix[6] = 0.0f;
+	 modelmatrix[7] = 0.0f;
 
-	mvp = projection * view * model * anim;
+	 modelmatrix[8] = 0.0f;
+	 modelmatrix[9] = 0.0f;
+	 modelmatrix[10] = 1.0f;
+	 modelmatrix[11] = 0.0f;
 
+	 modelmatrix[12] = 0.0f;
+	 modelmatrix[13] = 0.0f;
+	 modelmatrix[14] = -4.0f;
+	 modelmatrix[15] = 1.0f;
+	 //view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+	 //
+	 //projection = glm::perspective(0.7863f, 1024.0f/768.0f, 0.1f, 10.0f);
+
+	 UpdateProjectionMatrixStruct PMStruct;
+	 PMStruct.AngleY = SIME_PIDIV4;
+	 PMStruct.Ratio = 1024 / (FLOAT)768;
+	 PMStruct.NearPlane = 0.01f;
+	 PMStruct.FarPlane = 1000.0f;
+	 PMStruct.Width = 1024;
+	 PMStruct.Height = 768;
+
+	 m_PerspectiveCamera.SetEye(0.0f, 2.0f, 0.0f);
+	 m_PerspectiveCamera.SetAt(0.0f, 0.0f, -4.0f);
+	 m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
+	 m_PerspectiveCamera.UpdateViewMatrix();
+	 m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
+
+	 m_OrtographicCamera.SetEye(0.0f, 2.0f, 0.0f);
+	 m_OrtographicCamera.SetAt(0.0f, 0.0f, -4.0f);
+	 m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
+	 m_OrtographicCamera.UpdateViewMatrix();
+	 m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
+
+	 m_Camera = &m_PerspectiveCamera;
+	
+	 ekisde = Matrix::MatrixMultiplication(m_Camera->GetPerspectiveProjectionMatrix(), m_Camera->GetViewMatrix());
+	 truematrix = Matrix::MatrixMultiplication(ekisde, modelmatrix);
+
+	 //mvp = glm::make_mat4(m_Camera->GetPerspectiveProjectionMatrix()) * glm::make_mat4(m_Camera->GetViewMatrix()) * glm::make_mat4(modelmatrix);
+	 mvp = glm::make_mat4(truematrix);
 	const char* uniform_name;
 	uniform_name = "mvp";
 	uniform_mvp = glGetUniformLocation(programID, uniform_name);
@@ -701,22 +742,19 @@ void test::UpdateOGL(GLFWwindow* _Window)
 	//
 	//glm::mat4 projection = glm::perspective(0.7863f, 1024.0f / 768.0f, 0.1f, 10.0f);
 
-	float angle = t / 1000.0 * 45;  // 45° per second
-	glm::vec3 axis_y(0, 1, 0);
-	 anim = glm::rotate(glm::mat4(1.0f), glm::radians(angle), axis_y);
+	//mvp = glm::make_mat4(m_Camera->GetPerspectiveProjectionMatrix()) * glm::make_mat4(m_Camera->GetViewMatrix()) * glm::make_mat4(modelmatrix);
+	//mvp = glm::make_mat4(truematrix);
 
-	mvp = projection * view * model * anim;
-
-	const char* uniform_name;
-	uniform_name = "mvp";
-	uniform_mvp = glGetUniformLocation(programID, uniform_name);
-	if (uniform_mvp == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
-	}
-	glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+	//const char* uniform_name;
+	//uniform_name = "mvp";
+	//uniform_mvp = glGetUniformLocation(programID, uniform_name);
+	//if (uniform_mvp == -1) {
+	//	fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+	//}
+	//glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
 	glfwGetFramebufferSize(_Window, &display_w, &display_h);
-	glViewport(0, 0, display_w, display_h);
+
 
 }
 #endif
