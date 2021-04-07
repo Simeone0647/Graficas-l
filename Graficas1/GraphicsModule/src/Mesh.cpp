@@ -68,6 +68,7 @@ void Mesh::SetVertexIndex(unsigned int* vertexindexarr, int numofvertexindex)
 
 void Mesh::Update(GraphicsModule::test& _obj, HWND _hwnd)
 {
+#if defined(DX11)
 	for (int i = 0; i < 16; ++i)
 	{
 		m_cb.mWorld[i] = m_WorldMatrix[i];
@@ -96,7 +97,66 @@ void Mesh::Update(GraphicsModule::test& _obj, HWND _hwnd)
 	m_cb.vMeshColor[0] = m_MeshColor[0];
 	m_cb.vMeshColor[1] = m_MeshColor[1];
 	m_cb.vMeshColor[2] = m_MeshColor[2];
+#endif
+#if defined(OGL)
+	static float t = 3.14f;
+	t += 0.01f;
+	float angle = t / 1000.0f * 45.0f;
+	float Rotation[16];
 
+	Rotation[0] = 1.0f;
+	Rotation[1] = 0.0f;
+	Rotation[2] = 0.0f;
+	Rotation[3] = 0.0f;
+
+	Rotation[4] = 0.0f;
+	Rotation[5] = 1.0f;
+	Rotation[6] = 0.0f;
+	Rotation[7] = 0.0f;
+
+	Rotation[8] = 0.0f;
+	Rotation[9] = 0.0f;
+	Rotation[10] = 1.0f;
+	Rotation[11] = 0.0f;
+
+	Rotation[12] = 0.0f;
+	Rotation[13] = 0.0f;
+	Rotation[14] = 0.0f;
+	Rotation[15] = 1.0f;
+
+	m_Rotation[0] = cos(t);
+	m_Rotation[1] = 0.0f;
+	m_Rotation[2] = sin(t);
+	m_Rotation[3] = 0.0f;
+
+	m_Rotation[4] = 0.0f;
+	m_Rotation[5] = 1.0f;
+	m_Rotation[6] = 0.0f;
+	m_Rotation[7] = 0.0f;
+
+	m_Rotation[8] = -sin(t);
+	m_Rotation[9] = 0.0f;
+	m_Rotation[10] = cos(t);
+	m_Rotation[11] = 0.0f;
+
+	m_Rotation[12] = 0.0f;
+	m_Rotation[13] = 0.0f;
+	m_Rotation[14] = 0.0f;
+	m_Rotation[15] = 1.0f;
+
+	Matrix::MatrixMultiplication(m_Rotation, &Rotation[0], m_WorldMatrix);
+	Matrix::MatrixMultiplication(m_WorldMatrix, _obj.m_Camera->GetViewMatrix(), m_MV);
+	Matrix::MatrixMultiplication(m_MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), m_MVP);
+
+	const char* uniform_name;
+	uniform_name = "mvp";
+	uniform_mvp = glGetUniformLocation(_obj.programID, uniform_name);
+	if (uniform_mvp == -1) {
+		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+	}
+	glUniformMatrix4fv(uniform_mvp, 1, 0, glm::value_ptr(glm::make_mat4(m_MVP)));
+
+#endif
 }
 
 void Mesh::Render(GraphicsModule::test& _obj, HWND _hwnd)
@@ -122,6 +182,28 @@ void Mesh::Render(GraphicsModule::test& _obj, HWND _hwnd)
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetVertexBuffers(SetVBStruct);
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetIndexBuffer(_obj.g_SimeIndexBuffer.GetIndexBuffer(), GraphicsModule::SIME_FORMAT_R32_UINT, 0);
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetPrimitiveTopology(GraphicsModule::SIME_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+#endif
+#if defined(OGL)
+	//glEnableVertexAttribArray(0);
+	//glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
+	//
+	//glVertexAttribPointer(
+	//	0,                  // atributo 0. No hay razón particular para el 0, pero debe corresponder en el shader.
+	//	3,                  // tamaño
+	//	GL_FLOAT,           // tipo
+	//	GL_FALSE,           // normalizado?
+	//	sizeof(Vertex),                    // Paso
+	//	(void*)0            // desfase del buffer
+	//);
+	//
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
+	//glActiveTexture(GL_TEXTURE0);
+	//glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
+	//glBindTexture(GL_TEXTURE_2D, tex_id);
+	glBindVertexArray(VAO);
+	glDrawElements(SIME_TRIANGLES, m_NumOfVertexIndex, SIME_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	//glDisableVertexAttribArray(0);
 #endif
 }
 
@@ -157,5 +239,109 @@ void Mesh::UpdateVertexAndIndexBuffer(GraphicsModule::test& _obj, HWND _hwnd)
 	{
 		std::cout << "error hr 2" << std::endl;
 	}
+#endif
+#if defined(OGL)
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
+	glBindVertexArray(VAO);
+	glBindBuffer(SIME_ARRAY_BUFFER, VBO);
+
+	glBufferData(SIME_ARRAY_BUFFER, m_NumOfVertex * sizeof(Vertex), &m_Vertex[0], SIME_STATIC_DRAW);
+
+	glBindBuffer(SIME_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(SIME_ELEMENT_ARRAY_BUFFER, m_NumOfVertexIndex * sizeof(unsigned int), &m_VertexIndex[0], SIME_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, SIME_FLOAT, 0, sizeof(Vertex), (void*)0);
+	// vertex normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, SIME_FLOAT, 0, sizeof(Vertex), (void*)12);
+	// vertex texture coords
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)24);
+
+	glBindVertexArray(0);
+
+	//std::ofstream outfile("test.txt");
+	//
+	//outfile << "my text here!" << std::endl;
+	//
+	//outfile.close();
+	
+	glGenTextures(1, &tex_id);
+	glBindTexture(GL_TEXTURE_2D, tex_id);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	float width;
+	float height;
+
+	FREE_IMAGE_FORMAT fif = FreeImage_GetFIFFromFilename("base_albedo.jpg");
+	m_dib1 = FreeImage_Load(fif, "base_albedo.jpg", JPEG_DEFAULT);
+	if (!m_dib1)
+	{
+		std::cerr << "Erreur ouverture d\'image" << std::endl;
+	}
+	else
+	{
+		
+		height = FreeImage_GetHeight(m_dib1);
+		width = FreeImage_GetWidth(m_dib1);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (void*)FreeImage_GetBits(m_dib1));
+		glGenerateMipmap(GL_TEXTURE_2D);
+		FreeImage_Unload(m_dib1);
+	}
+	
+
+
+	//RGBQUAD rgbquad;
+	//
+	//
+	//FREE_IMAGE_TYPE type;
+	//BITMAPINFOHEADER* header;
+	//
+	//type = FreeImage_GetImageType(m_dib1);
+	//
+	//height = FreeImage_GetHeight(m_dib1);
+	//width = FreeImage_GetWidth(m_dib1);
+	//
+	//header = FreeImage_GetInfoHeader(m_dib1);
+	//int scanLineWidh = ((3 * width) % 4 == 0) ? 3 * width : ((3 * width) / 4) * 4 + 4;
+	//unsigned char* texels = (GLubyte*)calloc(height * scanLineWidh, sizeof(GLubyte));
+	//for (x = 0; x < width; x++)
+	//	for (y = 0; y < height; y++)
+	//	{
+	//		FreeImage_GetPixelColor(m_dib1, x, y, &rgbquad);
+	//
+	//		texels[(y * scanLineWidh + 3 * x)] = ((GLubyte*)&rgbquad)[2];
+	//		texels[(y * scanLineWidh + 3 * x) + 1] = ((GLubyte*)&rgbquad)[1];
+	//		texels[(y * scanLineWidh + 3 * x) + 2] = ((GLubyte*)&rgbquad)[0];
+	//	}
+	//
+	//
+	//
+	//
+	//
+	//free(texels);
+
+	m_WorldMatrix[14] = -4.0f;
+
+	Matrix::MatrixMultiplication(m_WorldMatrix, _obj.m_Camera->GetViewMatrix(), m_MV);
+	Matrix::MatrixMultiplication(m_MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), m_MVP);
+	//mvp = glm::make_mat4(m_Camera->GetPerspectiveProjectionMatrix()) * glm::make_mat4(m_Camera->GetViewMatrix()) * glm::make_mat4(modelmatrix);
+	//mvp = glm::make_mat4(truematrix);
+	const char* uniform_name;
+	uniform_name = "mvp";
+	uniform_mvp = glGetUniformLocation(_obj.programID, uniform_name);
+	if (uniform_mvp == -1) {
+		fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+	}
+	glUniformMatrix4fv(uniform_mvp, 1, 0, glm::value_ptr(glm::make_mat4(m_MVP)));
 #endif
 }

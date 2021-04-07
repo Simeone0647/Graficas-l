@@ -415,7 +415,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

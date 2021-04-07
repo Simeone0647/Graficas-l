@@ -4,6 +4,7 @@
 #include "Vertex.h"
 #include "Material.h"
 #include <iostream>
+#include <fstream>
 
 struct CBChangesEveryFrame
 {
@@ -168,6 +169,25 @@ private:
 	Material* m_Material;
 
 	float m_MeshColor[3];
+
+	unsigned int m_VertexBuffer;
+
+	unsigned int m_IndexBuffer;
+
+	float* m_MV = new float[16];
+
+	float* m_MVP = new float[16];
+
+	float* m_Rotation = new float[16];
+
+	int uniform_mvp;
+
+	unsigned int VAO;
+	unsigned int VBO;
+	unsigned int EBO;
+	unsigned int tex_id = 0;
+	int uniform_mytexture;
+	FIBITMAP* m_dib1;
 	//topologia 
 };
 

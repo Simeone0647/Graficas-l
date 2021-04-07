@@ -54,18 +54,20 @@ private:
 	float m_Position[3];
 
 	/*
+	* @Variable Name: m_Normals
+	* @Type....#float
+	* @brief...The x, y and z values that represent the vertex normals.
+	*/
+	float m_Normal[3];
+
+	/*
 		* @Variable Name: m_Texture
 		* @Type....#float
 		* @brief...The x and y values that represent the vertex texture.
 	*/
 	float m_Texture[2];
 
-	/*
-		* @Variable Name: m_Normals
-		* @Type....#float
-		* @brief...The x, y and z values that represent the vertex normals.
-	*/
-	float m_Normal[3];
+
 
 	//float m_UV[3];
 };

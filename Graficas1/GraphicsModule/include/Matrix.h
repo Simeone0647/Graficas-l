@@ -5,6 +5,6 @@ public:
 	Matrix();
 	~Matrix();
 
-	static float* MatrixMultiplication(const float* _MatrixA, const float* _MatrixB);
+	static void MatrixMultiplication(const float* _MatrixA, const float* _MatrixB, float* _Result);
 };
 

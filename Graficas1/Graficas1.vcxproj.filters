@@ -45,5 +45,8 @@
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_opengl3.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="..\Externals\OpenGL\glad\src\glad.c">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

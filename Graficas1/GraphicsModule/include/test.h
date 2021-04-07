@@ -3,6 +3,14 @@
 #define SIME_PIDIV4           0.785398163f
 #define SIMECOMPILE_ENABLE_STRICTNESS              (1 << 11)
 #define SIME_USAGE_RENDER_TARGET_OUTPUT     ( 1L << (1 + 4) )
+#define SIME_COLOR_BUFFER_BIT 0x00004000
+#define SIME_DEPTH_BUFFER_BIT 0x00000100
+#define SIME_TRIANGLES 0x0004
+#define SIME_UNSIGNED_INT 0x1405
+#define SIME_ARRAY_BUFFER 0x8892
+#define SIME_ELEMENT_ARRAY_BUFFER 0x8893
+#define SIME_STATIC_DRAW 0x88E4
+#define SIME_FLOAT 0x1406
 
 #include <windows.h>
 #include "Buffer.h"
@@ -26,6 +34,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include "FreeImage.h"
 #if defined(OGL)
 #include <glm.hpp>
 #include <glad/glad.h>
@@ -543,17 +552,9 @@ namespace GraphicsModule
 	class test
 	{
 	public:
-		GLuint vertexbuffer;
-		GLuint colorbuffer;
-		GLuint indexbuffer;
-		GLint uniform_mvp;
-		GLuint programID;
-		glm::mat4 mvp;
-		//float mvp[16];
-		float modelmatrix[16];
-		float* ekisde = new float[16];
-		float* truematrix = new float[16];
-
+	#if defined(OGL)
+		unsigned int programID;
+	#endif
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;
