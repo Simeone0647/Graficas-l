@@ -136,6 +136,8 @@ HRESULT test::InitDevice(HWND hwnd)
 
 	glUseProgram(programID);
 
+	glEnable(GL_DEPTH_TEST);
+
 	UpdateProjectionMatrixStruct PMStruct;
 	PMStruct.AngleY = SIME_PIDIV4;
 	PMStruct.Ratio = 1024 / (FLOAT)768;
@@ -365,9 +367,9 @@ HRESULT test::InitDevice(HWND hwnd)
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_DirLightBuffer.BGetBDAddress(), NULL, g_DirLightBuffer.BGetBufferAddress());
 
 		// Load the Texture
-		hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
-		if (FAILED(hr))
-			return hr;
+		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
+		//if (FAILED(hr))
+		//	return hr;
 
 		g_SimeSamplerState.SetDesc();
 
@@ -446,30 +448,30 @@ void test::Update()
 	static float t = 0.0f;
 	int counter = 0;
 
-	if (m_IsFirstFrame)
-	{
-		if (!m_IsFirstPosStored)
-		{
-			GetCursorPos(MouseInitPos);
-			m_IsFirstPosStored = true;
-		}
-		else
-		{
-			GetCursorPos(MouseFinalPos);
-			LPPOINT Direction = new POINT;
-			Direction->x = MouseFinalPos->x - MouseInitPos->x;
-			Direction->y = MouseFinalPos->y - MouseInitPos->y;
-			Vector3 RotateVector;
-			RotateVector.SetValues(Direction->x, Direction->y, 0.0f);
-			m_Camera->RotateCamera(RotateVector);
-			m_Camera->UpdateViewMatrix();
-			m_IsFirstPosStored = false;
-			if (Direction != nullptr)
-			{
-				delete Direction;
-			}
-		}
-	}
+	//if (m_IsFirstFrame)
+	//{
+	//	if (!m_IsFirstPosStored)
+	//	{
+	//		GetCursorPos(MouseInitPos);
+	//		m_IsFirstPosStored = true;
+	//	}
+	//	else
+	//	{
+	//		GetCursorPos(MouseFinalPos);
+	//		LPPOINT Direction = new POINT;
+	//		Direction->x = MouseFinalPos->x - MouseInitPos->x;
+	//		Direction->y = MouseFinalPos->y - MouseInitPos->y;
+	//		Vector3 RotateVector;
+	//		RotateVector.SetValues(Direction->x, Direction->y, 0.0f);
+	//		m_Camera->RotateCamera(RotateVector);
+	//		m_Camera->UpdateViewMatrix();
+	//		m_IsFirstPosStored = false;
+	//		if (Direction != nullptr)
+	//		{
+	//			delete Direction;
+	//		}
+	//	}
+	//}
 
 	if (g_driverType == SIME_DRIVER_TYPE_REFERENCE)
 	{
@@ -594,6 +596,7 @@ void test::UpdateOGL(GLFWwindow* _Window)
 	int display_w, display_h;
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
 	glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
 
 	glfwGetFramebufferSize(_Window, &display_w, &display_h);

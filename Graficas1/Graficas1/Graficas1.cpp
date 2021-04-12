@@ -20,7 +20,6 @@
 
 #if defined(DX11)
 #include "imgui_impl_dx11.h"
-
 #endif
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -29,13 +28,14 @@ HWND g_hwnd;
 GraphicsModule::test m_Obj;
 std::vector<Mesh> m_vModels;
 int m_ModelsNum = 0;
+#if defined(OGL)
 bool OnW = false;
 bool OnA = false;
 bool OnS = false;
 bool OnD = false;
 bool OnQ = false;
 bool OnE = false;
-
+#endif
 #if defined(OGL)
 GLFWwindow* m_OGLWindow; // (En el código que viene aqui, está variable es global)
 #endif
@@ -252,15 +252,15 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 		break;
 	}
 
-	case WM_LBUTTONDOWN:
-	{
-		m_Obj.m_IsFirstFrame = true;
-		break;
-	}
-
-	case WM_LBUTTONUP:
-		m_Obj.m_IsFirstFrame = false;
-		break;
+	//case WM_LBUTTONDOWN:
+	//{
+	//	m_Obj.m_IsFirstFrame = true;
+	//	break;
+	//}
+	//
+	//case WM_LBUTTONUP:
+	//	m_Obj.m_IsFirstFrame = false;
+	//	break;
 #endif
 	}
 	
@@ -339,31 +339,62 @@ HRESULT InitImgUI()
 	return S_OK;
 }
 
-
 void LoadMesh(const aiScene* _scene)
 {
+	int counter = 0;
 	m_vModels.push_back(Mesh());
 	//std::vector<Material> vMaterials;
 
 	int TotalNumOfVertex = _scene->mMeshes[0]->mNumVertices + _scene->mMeshes[1]->mNumVertices + _scene->mMeshes[2]->mNumVertices;
 	std::vector <Vertex> VectorEnteringVertexArray;
-
+	
 	int VertexArrayPosition = 0;
 
 	int NumMeshes = _scene->mNumMeshes;
 
 	int NumMaterials = _scene->mNumMaterials;
+	
+	aiString Path;
 
 	for (int i = 0; i < NumMeshes; ++i)
 	{
-		//vMaterials.push_back(Material());
-		//vMaterials[i].SetID(_scene->mMeshes[i]->mMaterialIndex);
 		int NumOfVertex = _scene->mMeshes[i]->mNumVertices;
 		for (int j = 0; j < NumOfVertex; ++j)
 		{
-			VectorEnteringVertexArray.push_back(Vertex(_scene->mMeshes[i]->mVertices[j].x, _scene->mMeshes[i]->mVertices[j].y, _scene->mMeshes[i]->mVertices[j].z,
-				_scene->mMeshes[i]->mNormals[j].x, _scene->mMeshes[i]->mNormals[j].y, _scene->mMeshes[i]->mNormals[j].z,
-				_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y));
+			VectorEnteringVertexArray.push_back(Vertex());
+			VectorEnteringVertexArray[j].SetPosition(_scene->mMeshes[i]->mVertices[j].x, _scene->mMeshes[i]->mVertices[j].y, _scene->mMeshes[i]->mVertices[j].z);
+			if (_scene->mMeshes[i]->HasNormals())
+			{
+				VectorEnteringVertexArray[j].SetNormal(_scene->mMeshes[i]->mNormals[j].x, _scene->mMeshes[i]->mNormals[j].y, _scene->mMeshes[i]->mNormals[j].z);
+			}
+			if (_scene->mMeshes[i]->HasTextureCoords(0))
+			{
+			#if defined(DX11)
+				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x, _scene->mMeshes[i]->mTextureCoords[0][j].y);
+			#endif
+			#if defined(OGL)
+				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y);
+			#endif
+			}
+			//VectorEnteringVertexArray.push_back(Vertex(_scene->mMeshes[i]->mVertices[j].x, _scene->mMeshes[i]->mVertices[j].y, _scene->mMeshes[i]->mVertices[j].z,
+			//	_scene->mMeshes[i]->mNormals[j].x, _scene->mMeshes[i]->mNormals[j].y, _scene->mMeshes[i]->mNormals[j].z,
+			//	_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y));
+		}
+	}
+
+	for (unsigned int i = 0; i < NumMaterials; i++) 
+	{
+		const aiMaterial* pMaterial = _scene->mMaterials[i];
+		for (int j = 1; j < 18; j++)
+		{
+			if (pMaterial->GetTextureCount(aiTextureType(j)) > 0 ) 
+			{
+				if (pMaterial->GetTexture(aiTextureType(j), 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) 
+				{
+					std::string FullPath = Path.data;
+					//m_vModels[m_ModelsNum].LoadTexture(Path.data, m_Obj, g_hwnd);
+				}
+			}
 		}
 	}
 
@@ -374,6 +405,18 @@ void LoadMesh(const aiScene* _scene)
 		VertexIndex[i] = i;
 	}
 
+	//for (unsigned int k = 0; k < NumMeshes; k++)
+	//{
+	//	for (unsigned int i = 0; i < _scene->mMeshes[k]->mNumFaces ; i++)
+	//	{
+	//		aiFace face = _scene->mMeshes[k]->mFaces[i];
+	//		for (unsigned int j = 0; j < face.mNumIndices; j++)
+	//		{
+	//			VertexIndex[counter] = face.mIndices[j];
+	//			counter++;
+	//		}
+	//	}
+	//}
 	m_vModels[m_ModelsNum].SetVertex(VectorEnteringVertexArray.data(), TotalNumOfVertex);
 	m_vModels[m_ModelsNum].SetNumOfVertex(TotalNumOfVertex);
 	m_vModels[m_ModelsNum].SetVertexIndex(VertexIndex, TotalNumOfVertex);
@@ -382,8 +425,42 @@ void LoadMesh(const aiScene* _scene)
 	delete[] VertexIndex;
 	VertexIndex = nullptr;
 
-	m_vModels[m_ModelsNum].UpdateVertexAndIndexBuffer(m_Obj, g_hwnd);
+	m_vModels[m_ModelsNum].SetUpMesh(m_Obj, g_hwnd, Path.data);
 	m_ModelsNum++;
+}
+
+void OpenMeshMenu()
+{
+	std::string wideStringBuffer = "";
+	wideStringBuffer.resize(MAX_PATH);
+
+	OPENFILENAME ofn;
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = NULL;
+	ofn.lpstrFilter = " Obj Files\0*.obj\0 Stl Files\0*.stl\0 3DS Files\0*.3ds\0 FBX Files\0*.fbx\0 All files\0*.*\0";
+	ofn.lpstrFile = &wideStringBuffer[0];
+	ofn.nMaxFile = MAX_PATH;
+	ofn.lpstrTitle = "Select a model file";
+	ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
+	if (GetOpenFileName(&ofn))
+	{
+		std::cout << "Filename to load: " << wideStringBuffer << std::endl;
+	}
+
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(wideStringBuffer, NULL);
+	if (!scene)
+	{
+		std::cout << "Error importing the model" << std::endl;
+	}
+	else
+	{
+		std::cout << "Archivo importado correctamente" << std::endl;
+
+		LoadMesh(scene);
+	}
+	m_Obj.m_ShowingTexture = true;
 }
 
 void UIRender()
@@ -398,57 +475,87 @@ void UIRender()
 	ImGui_ImplGlfw_NewFrame();
 #endif
 	ImGui::NewFrame();
-#if defined(DX11)
-	// example window
-	if (ImGui::Begin("Model Configuration", nullptr))
+
+	ImGui::Begin("Model Configuration", NULL, ImGuiWindowFlags_MenuBar);
+	static float dir[3]{};
+	static float pos[3]{};
+	static float rot[3]{};
+	static float scale[3]{};
+
+	if (ImGui::BeginMenuBar())
 	{
-		static float dir[3]{};
+		if (ImGui::BeginMenu("Menu"))
+		{
+			if (ImGui::MenuItem("Open File"))
+			{
+				OpenMeshMenu();
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+	if (ImGui::CollapsingHeader("Transform"))
+	{
+		if (ImGui::DragFloat3("Position", pos, 0.001f, -5.0f, 5.0f))
+		{
+			for (int i = 0; i < m_vModels.size(); i++)
+			{
+				m_vModels[i].GetTranslationMatrix()[12] = pos[0] * 10.0f;
+				m_vModels[i].GetTranslationMatrix()[13] = pos[1] * 10.0f;
+				m_vModels[i].GetTranslationMatrix()[14] = pos[2] * 10.0f;
+			}
+		}
+		if (ImGui::DragFloat3("Rotation", rot, 0.001f, -1.0f, 1.0f))
+		{
+			for (int i = 0; i < m_vModels.size(); i++)
+			{
+				m_vModels[i].GetRotationMatrix()[5] = cos(rot[0] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[6] = sin(rot[0] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[9] = -sin(rot[0] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[10] = cos(rot[0] * 10.0f);
+
+				m_vModels[i].GetRotationMatrix()[0] = cos(rot[1] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[2] = -sin(rot[1] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[8] = sin(rot[1] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[10] = cos(rot[1] * 10.0f);
+
+				m_vModels[i].GetRotationMatrix()[0] = cos(rot[2] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[1] = sin(rot[2] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[4] = -sin(rot[2] * 10.0f);
+				m_vModels[i].GetRotationMatrix()[5] = cos(rot[2] * 10.0f);
+			}
+		}
+		if (ImGui::DragFloat3("Scale", scale, 0.001f, -1.0f, 1.0f))
+		{
+			for (int i = 0; i < m_vModels.size(); i++)
+			{
+				m_vModels[i].GetScaleMatrix()[0] = scale[0] * 10.0f;
+				m_vModels[i].GetScaleMatrix()[5] = scale[1] * 10.0f;
+				m_vModels[i].GetScaleMatrix()[10] = scale[2] * 10.0f;
+			}
+		}
+	}
+	if (ImGui::CollapsingHeader("Light"))
+	{
 		if (ImGui::DragFloat3("Direccion de la luz", dir, 0.001f, -1.0f, 1.0f))
 		{
-			#if defined(DX11)
+		#if defined(DX11)
 			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(dir[0], dir[1], dir[2], 0.0f);
-			#endif
+		#endif
 		}
-
-		if (ImGui::Button("Open File"))
-		{
-			std::string wideStringBuffer = "";
-			wideStringBuffer.resize(MAX_PATH);
-			
-			OPENFILENAME ofn;
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = NULL;
-			ofn.lpstrFilter = " Obj Files\0*.obj\0 Stl Files\0*.stl\0 3DS Files\0*.3ds\0 FBX Files\0*.fbx\0 All files\0*.*\0";
-			ofn.lpstrFile = &wideStringBuffer[0];
-			ofn.nMaxFile = MAX_PATH;
-			ofn.lpstrTitle = "Select a model file";
-			ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
-			if (GetOpenFileName(&ofn))
-			{
-				std::cout << "Filename to load: " << wideStringBuffer << std::endl;
-			}
-
-			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(wideStringBuffer, NULL);
-			if (!scene)
-			{
-				std::cout << "Error importing the model" << std::endl;
-			}
-			else
-			{
-				std::cout << "Archivo importado correctamente" << std::endl;
-
-				LoadMesh(scene);
-			}
-			m_Obj.m_ShowingTexture = true;
-		}
-
-		if (m_Obj.m_ShowingTexture)
+	}
+	if (ImGui::CollapsingHeader("Textures"))
+	{
+		if (!m_vModels.empty())
 		{
 			float TextureWidth = 256;
 			float TextureHeight = 256;
+			#if defined(OGL)
+			ImTextureID TextureID = (void*)m_vModels[0].tex_id;
+			#endif
+			#if defined(DX11)
 			ImTextureID TextureID = m_Obj.g_SimeTextureRV.GetDXSRV();
+			#endif
 			ImVec2 Position = ImGui::GetCursorScreenPos();
 			ImVec2 UVMin = ImVec2(0.0f, 0.0f);
 			ImVec2 UVMax = ImVec2(1.0f, 1.0f);
@@ -457,64 +564,7 @@ void UIRender()
 			ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
 		}
 	}
-#endif
-#if defined(OGL)
-	if (ImGui::Begin("Model Configuration", nullptr))
-	{
-		static float dir[3]{};
-		if (ImGui::DragFloat3("Direccion de la luz", dir, 0.001f, -1.0f, 1.0f))
-		{
-			//m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(dir[0], dir[1], dir[2], 0.0f);
-		}
 
-		if (ImGui::Button("Open File"))
-		{
-			std::string wideStringBuffer = "";
-			wideStringBuffer.resize(MAX_PATH);
-
-			OPENFILENAME ofn;
-			ZeroMemory(&ofn, sizeof(ofn));
-			ofn.lStructSize = sizeof(ofn);
-			ofn.hwndOwner = NULL;
-			ofn.lpstrFilter = " Obj Files\0*.obj\0 Stl Files\0*.stl\0 3DS Files\0*.3ds\0 FBX Files\0*.fbx\0 All files\0*.*\0";
-			ofn.lpstrFile = &wideStringBuffer[0];
-			ofn.nMaxFile = MAX_PATH;
-			ofn.lpstrTitle = "Select a model file";
-			ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
-			if (GetOpenFileName(&ofn))
-			{
-				std::cout << "Filename to load: " << wideStringBuffer << std::endl;
-			}
-
-			Assimp::Importer importer;
-			const aiScene* scene = importer.ReadFile(wideStringBuffer, NULL);
-			if (!scene)
-			{
-				std::cout << "Error importing the model" << std::endl;
-			}
-			else
-			{
-				std::cout << "Archivo importado correctamente" << std::endl;
-			
-				LoadMesh(scene);
-			}
-			m_Obj.m_ShowingTexture = true;
-		}
-
-		//if (m_Obj.m_ShowingTexture)
-		//{
-		//	float TextureWidth = 256;
-		//	float TextureHeight = 256;
-		//	ImTextureID TextureID = m_Obj.g_SimeTextureRV.GetDXSRV();
-		//	ImVec2 Position = ImGui::GetCursorScreenPos();
-		//	ImVec2 UVMin = ImVec2(0.0f, 0.0f);
-		//	ImVec2 UVMax = ImVec2(1.0f, 1.0f);
-		//	ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		//	ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-		//	ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
-		//}
-	}
-#endif
 	ImGui::End();
 
 	// render UI
@@ -672,8 +722,6 @@ int main()
 	std::cout << "FreeImage" << FreeImage_GetVersion() << "\n";
 	std::cout << FreeImage_GetCopyrightMessage() << "\n\n";
 	
-	
-
 	do 
 	{
 		Update();

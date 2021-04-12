@@ -6,5 +6,6 @@ public:
 	~Matrix();
 
 	static void MatrixMultiplication(const float* _MatrixA, const float* _MatrixB, float* _Result);
+	static void SetIdentityMatrix(float* _Matrix);
 };
 

@@ -63,6 +63,8 @@ public:
 	*/
 	inline D3D11_TEXTURE2D_DESC* GetDescDepthAddress() { return &m_descDepth; }
 
+	inline D3D11_TEXTURE2D_DESC GetTextureDesc() { return m_descDepth; }
+
 	/*
 		* @Function Name: GetTexture
 		* @brief...This function will return the Texture2D object.

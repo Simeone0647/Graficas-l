@@ -110,7 +110,7 @@ public:
 		* @param...#float: Value that will be inserted.
 		* @bug.....No known bugs.
 	*/
-	inline void SetWorldMatrixValue(int index, float value) { m_WorldMatrix[index] = value; }
+	inline void SetWorldMatrixValue(int index, float value) { m_ModelMatrix[index] = value; }
 
 	/*
 		* @Function Name: GetWorldMatrix
@@ -118,14 +118,22 @@ public:
 		* @bug.....No known bugs.
 		* @return..#float_pointer: Pointer to an sixteen elements array.
 	*/
-	inline float* GetWorldMatrix() { return m_WorldMatrix; }
+	inline float* GetWorldMatrix() { return m_ModelMatrix; }
 
+	inline float* GetTranslationMatrix() { return m_TraslationMatrix; }
+
+	inline float* GetScaleMatrix() { return m_ScaleMatrix; }
+
+	inline float* GetRotationMatrix() { return m_RotationMatrix; }
 
 	void Update(GraphicsModule::test& _obj, HWND _hwnd);
 
 	void Render(GraphicsModule::test& _obj, HWND _hwnd);
 
-	void UpdateVertexAndIndexBuffer(GraphicsModule::test& _obj, HWND _hwnd);
+	void SetUpMesh(GraphicsModule::test& _obj, HWND _hwnd, const char* _FileName);
+
+	void LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _hwnd);
+	unsigned int tex_id = 0;
 
 private:
 
@@ -158,11 +166,17 @@ private:
 	int m_NumOfVertexIndex;
 
 	/*
-		* @Variable Name: m_WorldMatrix.
+		* @Variable Name: m_ModelMatrix.
 		* @Type: #float_poiner.
-		* @brief.Pointer to an array of 16 floats, represent the mesh world matrix.
+		* @brief.Pointer to an array of 16 floats, represent the model matrix.
 	*/
-	float* m_WorldMatrix;
+	float m_ModelMatrix[16];
+
+	float m_TraslationMatrix[16];
+
+	float m_RotationMatrix[16];
+
+	float m_ScaleMatrix[16];
 
 	CBChangesEveryFrame m_cb;
 
@@ -174,20 +188,19 @@ private:
 
 	unsigned int m_IndexBuffer;
 
-	float* m_MV = new float[16];
+	//int m_UniformMVP;
 
-	float* m_MVP = new float[16];
+	unsigned int m_VAO;
 
-	float* m_Rotation = new float[16];
+	unsigned int m_VBO;
 
-	int uniform_mvp;
+	unsigned int m_EBO;
 
-	unsigned int VAO;
-	unsigned int VBO;
-	unsigned int EBO;
-	unsigned int tex_id = 0;
-	int uniform_mytexture;
 	FIBITMAP* m_dib1;
+
+	bool m_ShowTexture;
+
+	Texture2D EntryTexture;
 	//topologia 
 };
 

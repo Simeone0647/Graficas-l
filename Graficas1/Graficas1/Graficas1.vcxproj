@@ -398,14 +398,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DX11;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(SolutionDir)Externals\Assimp\include\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(SolutionDir)Externals\Assimp\include\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)\lib\Assimp\Debug\x64\;$(SolutionDir)lib\GLFW\Debug\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11d.lib;d3dx9d.lib;GraphicsModule_d.lib;assimp-vc142-mtd.lib;Shell32.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)\lib\Assimp\Debug\x64\;$(SolutionDir)lib\GLFW\Debug\x64\;$(SolutionDir)\lib\FreeImage\Debug\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11d.lib;d3dx9d.lib;GraphicsModule_d.lib;assimp-vc142-mtd.lib;Shell32.lib;glfw3.lib;FreeImaged.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

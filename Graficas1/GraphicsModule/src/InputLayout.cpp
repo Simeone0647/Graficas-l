@@ -92,9 +92,21 @@ void InputLayout::DefineInputLayout(D3D11_SHADER_DESC shaderdesc, ID3D11ShaderRe
 				ElementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 			}
 		}
-
+		//if (i == 0)
+		//{
+		//	ElementDesc.AlignedByteOffset = 0;
+		//}
+		//else if (i == 1)
+		//{
+		//	ElementDesc.AlignedByteOffset = 12;
+		//}
+		//else if (i == 2)
+		//{
+		//	ElementDesc.AlignedByteOffset = 20;
+		//}
 		//save element desc
 		m_vInputLayoutDesc.push_back(ElementDesc);
 	}
+	
 }
 #endif
