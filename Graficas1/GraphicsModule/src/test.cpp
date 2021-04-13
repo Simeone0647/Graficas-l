@@ -547,10 +547,6 @@ void test::Render()
 #endif
 #if defined(DX11)
 
-
-	//MESH
-
-
 	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());

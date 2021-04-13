@@ -232,16 +232,16 @@ void Mesh::SetUpMesh(GraphicsModule::test& _obj, HWND _hwnd, const char* _FileNa
 	glBufferData(SIME_ELEMENT_ARRAY_BUFFER, m_NumOfVertexIndex * sizeof(unsigned int), &m_VertexIndex[0], SIME_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, SIME_FLOAT, 0, sizeof(Vertex), (void*)0);
+	glVertexAttribPointer(0, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)0);
 	// vertex normals
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, SIME_FLOAT, 0, sizeof(Vertex), (void*)12);
+	glVertexAttribPointer(1, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)16);
 	// vertex texture coords
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)24);
+	glVertexAttribPointer(2, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)32);
 
 	glBindVertexArray(0);
-
+	LoadTexture(_FileName, _obj, _hwnd);
 	Matrix::MatrixMultiplication(m_ModelMatrix, _obj.m_Camera->GetViewMatrix(), MV);
 	Matrix::MatrixMultiplication(MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), MVP);
 	//mvp = glm::make_mat4(m_Camera->GetPerspectiveProjectionMatrix()) * glm::make_mat4(m_Camera->GetViewMatrix()) * glm::make_mat4(modelmatrix);
@@ -272,6 +272,8 @@ void Mesh::LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _
 	bits = FreeImage_GetBits(dib);
 	#endif
 	#if defined(OGL)
+	//FIBITMAP* dib;
+	//dib = FreeImage_ConvertTo32Bits(m_dib1);
 	bits = FreeImage_GetBits(m_dib1);
 	height = FreeImage_GetHeight(m_dib1);
 	width = FreeImage_GetWidth(m_dib1);

@@ -51,14 +51,14 @@ private:
 		* @Type....#float
 		* @brief...The x, y, and z values that represent the vertex position.
 	*/
-	float m_Position[3];
+	float m_Position[4];
 
 	/*
 	* @Variable Name: m_Normals
 	* @Type....#float
 	* @brief...The x, y and z values that represent the vertex normals.
 	*/
-	float m_Normal[3];
+	float m_Normal[4];
 
 	/*
 		* @Variable Name: m_Texture

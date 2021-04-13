@@ -370,7 +370,7 @@ void LoadMesh(const aiScene* _scene)
 			if (_scene->mMeshes[i]->HasTextureCoords(0))
 			{
 			#if defined(DX11)
-				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x, _scene->mMeshes[i]->mTextureCoords[0][j].y);
+				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x,  _scene->mMeshes[i]->mTextureCoords[0][j].y);
 			#endif
 			#if defined(OGL)
 				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y);
