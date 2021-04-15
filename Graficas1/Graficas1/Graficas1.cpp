@@ -1,4 +1,5 @@
 #pragma comment(lib, "ComDlg32.lib")
+
 #include "Windows.h"
 #include <iostream>
 #include "imgui.h"
@@ -7,11 +8,11 @@
 #include "GraphicModule.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(OGL)
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#if defined(OGL)
 #include <glad/glad.h>
 #include <glfw3.h>
 #include "imgui_impl_glfw.h"
@@ -19,6 +20,9 @@
 #endif
 
 #if defined(DX11)
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include "imgui_impl_dx11.h"
 #endif
 //--------------------------------------------------------------------------------------
@@ -26,8 +30,11 @@
 //--------------------------------------------------------------------------------------
 HWND g_hwnd;
 GraphicsModule::test m_Obj;
-std::vector<Mesh> m_vModels;
-int m_ModelsNum = 0;
+#if defined(DX11) || defined(OGL)
+std::vector<Model> m_vModels;
+int ModelNum = 0;
+static float dir[3]{};
+#endif
 #if defined(OGL)
 bool OnW = false;
 bool OnA = false;
@@ -35,8 +42,7 @@ bool OnS = false;
 bool OnD = false;
 bool OnQ = false;
 bool OnE = false;
-#endif
-#if defined(OGL)
+
 GLFWwindow* m_OGLWindow; // (En el código que viene aqui, está variable es global)
 #endif
 //-----------------------------------------------------------------------------------------
@@ -316,7 +322,6 @@ HRESULT InitWindow(LONG width, LONG height)
 */
 HRESULT InitImgUI()
 {
-
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -338,98 +343,94 @@ HRESULT InitImgUI()
 #endif
 	return S_OK;
 }
-
-void LoadMesh(const aiScene* _scene)
+#if defined(DX11) || defined(OGL)
+Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _LoadPoints)
 {
-	int counter = 0;
-	m_vModels.push_back(Mesh());
-	//std::vector<Material> vMaterials;
+	std::vector<Vertex> MeshVertex;
+	std::vector<unsigned int> MeshIndices;
 
-	int TotalNumOfVertex = _scene->mMeshes[0]->mNumVertices + _scene->mMeshes[1]->mNumVertices + _scene->mMeshes[2]->mNumVertices;
-	std::vector <Vertex> VectorEnteringVertexArray;
-	
-	int VertexArrayPosition = 0;
-
-	int NumMeshes = _scene->mNumMeshes;
-
-	int NumMaterials = _scene->mNumMaterials;
-	
 	aiString Path;
+	std::vector<std::string> vFilename;
+	unsigned int NumVertex = _Mesh->mNumVertices;
 
-	for (int i = 0; i < NumMeshes; ++i)
+	for (int i = 0; i < NumVertex; ++i)
 	{
-		int NumOfVertex = _scene->mMeshes[i]->mNumVertices;
-		for (int j = 0; j < NumOfVertex; ++j)
+		Vertex vertex;
+
+		vertex.SetPosition(_Mesh->mVertices[i].x, _Mesh->mVertices[i].y, _Mesh->mVertices[i].z);
+		if (_Mesh->HasNormals())
 		{
-			VectorEnteringVertexArray.push_back(Vertex());
-			VectorEnteringVertexArray[j].SetPosition(_scene->mMeshes[i]->mVertices[j].x, _scene->mMeshes[i]->mVertices[j].y, _scene->mMeshes[i]->mVertices[j].z);
-			if (_scene->mMeshes[i]->HasNormals())
-			{
-				VectorEnteringVertexArray[j].SetNormal(_scene->mMeshes[i]->mNormals[j].x, _scene->mMeshes[i]->mNormals[j].y, _scene->mMeshes[i]->mNormals[j].z);
-			}
-			if (_scene->mMeshes[i]->HasTextureCoords(0))
-			{
-			#if defined(DX11)
-				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x,  _scene->mMeshes[i]->mTextureCoords[0][j].y);
-			#endif
-			#if defined(OGL)
-				VectorEnteringVertexArray[j].SetTexture(_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y);
-			#endif
-			}
-			//VectorEnteringVertexArray.push_back(Vertex(_scene->mMeshes[i]->mVertices[j].x, _scene->mMeshes[i]->mVertices[j].y, _scene->mMeshes[i]->mVertices[j].z,
-			//	_scene->mMeshes[i]->mNormals[j].x, _scene->mMeshes[i]->mNormals[j].y, _scene->mMeshes[i]->mNormals[j].z,
-			//	_scene->mMeshes[i]->mTextureCoords[0][j].x, 1 - _scene->mMeshes[i]->mTextureCoords[0][j].y));
+			vertex.SetNormal(_Mesh->mNormals[i].x, _Mesh->mNormals[i].y, _Mesh->mNormals[i].z);
+		}
+		if (_Mesh->HasTextureCoords(0))
+		{
+#if defined(DX11)
+			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, _Mesh->mTextureCoords[0][i].y);
+#endif
+#if defined(OGL)
+			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, 1 - _Mesh->mTextureCoords[0][i].y);
+#endif
+		}
+		MeshVertex.push_back(vertex);
+	}
+
+	for (unsigned int i = 0; i < _Mesh->mNumFaces ; i++)
+	{
+		aiFace& Face = _Mesh->mFaces[i];
+		for (unsigned int j = 0; j < Face.mNumIndices; j++)
+		{
+			MeshIndices.push_back(Face.mIndices[j]);
 		}
 	}
 
-	for (unsigned int i = 0; i < NumMaterials; i++) 
-	{
-		const aiMaterial* pMaterial = _scene->mMaterials[i];
-		for (int j = 1; j < 18; j++)
+		aiString tmpMatName;
+		const aiMaterial* pMaterial = _Scene->mMaterials[_Mesh->mMaterialIndex];
+		pMaterial->Get(AI_MATKEY_NAME, tmpMatName);
+		for (unsigned int j = 1; j < aiTextureType_UNKNOWN; j++)
 		{
-			if (pMaterial->GetTextureCount(aiTextureType(j)) > 0 ) 
+			if (pMaterial->GetTextureCount(aiTextureType(j)) > 0)
 			{
-				if (pMaterial->GetTexture(aiTextureType(j), 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS) 
+				if (pMaterial->GetTexture(aiTextureType(j), 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 				{
-					std::string FullPath = Path.data;
-					//m_vModels[m_ModelsNum].LoadTexture(Path.data, m_Obj, g_hwnd);
+					char drive[_MAX_DRIVE];
+					char dir[_MAX_DIR];
+					char fname[_MAX_FNAME];
+					char ext[_MAX_EXT];
+
+					std::string Filename = "";
+
+					_splitpath_s(Path.data, drive, _MAX_DRIVE, dir, _MAX_DIR, fname, _MAX_FNAME, ext, _MAX_EXT);
+
+					Filename = fname;
+					Filename += ext;
+					vFilename.push_back(Filename);
 				}
 			}
 		}
-	}
 
-	unsigned int* VertexIndex = new unsigned int[TotalNumOfVertex];
-
-	for (int i = 0; i < TotalNumOfVertex; ++i)
-	{
-		VertexIndex[i] = i;
-	}
-
-	//for (unsigned int k = 0; k < NumMeshes; k++)
-	//{
-	//	for (unsigned int i = 0; i < _scene->mMeshes[k]->mNumFaces ; i++)
-	//	{
-	//		aiFace face = _scene->mMeshes[k]->mFaces[i];
-	//		for (unsigned int j = 0; j < face.mNumIndices; j++)
-	//		{
-	//			VertexIndex[counter] = face.mIndices[j];
-	//			counter++;
-	//		}
-	//	}
-	//}
-	m_vModels[m_ModelsNum].SetVertex(VectorEnteringVertexArray.data(), TotalNumOfVertex);
-	m_vModels[m_ModelsNum].SetNumOfVertex(TotalNumOfVertex);
-	m_vModels[m_ModelsNum].SetVertexIndex(VertexIndex, TotalNumOfVertex);
-	m_vModels[m_ModelsNum].SetNumOfVertexIndex(TotalNumOfVertex);
-
-	delete[] VertexIndex;
-	VertexIndex = nullptr;
-
-	m_vModels[m_ModelsNum].SetUpMesh(m_Obj, g_hwnd, Path.data);
-	m_ModelsNum++;
+	return Mesh(MeshVertex, MeshIndices, vFilename, NumVertex, _LoadRGBA, _LoadBGRA, _LoadTriangles, _LoadPoints, _Mesh->mName.data, m_Obj.programID);
 }
 
-void OpenMeshMenu()
+void LoadModel(const aiScene* _scene, std::string _ModelName, bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _LoadPoints)
+{
+	m_vModels.push_back(Model());
+	m_vModels[ModelNum].SetName(_ModelName);
+
+	int NumMeshes = _scene->mNumMeshes;
+	m_vModels[ModelNum].SetMeshNum(NumMeshes);
+	
+	for (int i = 0; i < NumMeshes; ++i)
+	{
+		aiMesh* ActualMesh = _scene->mMeshes[i];
+
+		m_vModels[ModelNum].AddMesh(LoadMesh(ActualMesh, _scene, _LoadRGBA, _LoadBGRA, _LoadTriangles, _LoadPoints));
+	}
+
+	m_vModels[ModelNum].SetUpModel(g_hwnd);
+	ModelNum++;
+}
+
+void OpenMeshMenu(bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _LoadPoints)
 {
 	std::string wideStringBuffer = "";
 	wideStringBuffer.resize(MAX_PATH);
@@ -438,7 +439,7 @@ void OpenMeshMenu()
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = NULL;
-	ofn.lpstrFilter = " Obj Files\0*.obj\0 Stl Files\0*.stl\0 3DS Files\0*.3ds\0 FBX Files\0*.fbx\0 All files\0*.*\0";
+	ofn.lpstrFilter = "All files\0*.*\0 Obj \0*.obj\0 Stl Files\0*.stl\0 3DS Files\0*.3ds\0 FBX Files\0*.fbx\0";
 	ofn.lpstrFile = &wideStringBuffer[0];
 	ofn.nMaxFile = MAX_PATH;
 	ofn.lpstrTitle = "Select a model file";
@@ -449,18 +450,115 @@ void OpenMeshMenu()
 	}
 
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(wideStringBuffer, NULL);
+	const aiScene* scene = importer.ReadFile(wideStringBuffer, aiProcessPreset_TargetRealtime_MaxQuality);
 	if (!scene)
 	{
 		std::cout << "Error importing the model" << std::endl;
 	}
 	else
 	{
-		std::cout << "Archivo importado correctamente" << std::endl;
 
-		LoadMesh(scene);
+		//Usar string
+		char drive[_MAX_DRIVE];
+		char dir[_MAX_DIR];
+		char fname[_MAX_FNAME];
+		char ext[_MAX_EXT];
+
+		std::string Filename = "";
+
+		_splitpath_s(wideStringBuffer.c_str(), drive, _MAX_DRIVE, dir, _MAX_DIR, fname, _MAX_FNAME, ext, _MAX_EXT);
+
+		Filename = fname;
+		Filename += ext;
+
+		for (unsigned int i = 0; i < ModelNum; ++i)
+		{
+			if (Filename == m_vModels[i].GetName())
+			{
+				std::cout << "Model Already Imported!" << std::endl;
+				return;
+			}
+		}
+
+		std::cout << "Archivo importado correctamente" << std::endl;
+		LoadModel(scene, Filename, _LoadRGBA, _LoadBGRA, _LoadTriangles, _LoadPoints);
 	}
-	m_Obj.m_ShowingTexture = true;
+}
+
+void ShowMenuOptions()
+{
+	if (ImGui::BeginMenu("Open File"))
+	{
+		if (ImGui::BeginMenu("...as Triangles"))
+		{
+			if (ImGui::MenuItem("...as RGBA"))
+			{
+				OpenMeshMenu(true, false, true, false);
+			}
+			if (ImGui::MenuItem("...as BGRA"))
+			{
+				OpenMeshMenu(false, true, true, false);
+			}
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("...as Points"))
+		{
+			if (ImGui::MenuItem("...as RGBA"))
+			{
+				OpenMeshMenu(true, false, false, true);
+			}
+			if (ImGui::MenuItem("...as BGRA"))
+			{
+				OpenMeshMenu(false, true, false, true);
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenu();
+	}
+}
+
+void ShowMeshesMenu(const unsigned int _i)
+{
+	for (unsigned int j = 0; j < m_vModels[_i].GetMeshes().size(); ++j)
+	{
+		if (ImGui::CollapsingHeader(m_vModels[_i].GetMeshes()[j].GetName().c_str()))
+		{
+			if (ImGui::CollapsingHeader("Textures"))
+			{
+				float TextureWidth = 256;
+				float TextureHeight = 256;
+				#if defined(OGL)
+				ImTextureID TextureID = (void*)m_vModels[_i].GetMeshes()[j].GetTexId();
+				#endif
+				#if defined(DX11)
+				ImTextureID TextureID = m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture()->GetDXSRV();//m_Obj.g_SimeTextureRV.GetDXSRV();
+				#endif
+				ImVec2 Position = ImGui::GetCursorScreenPos();
+				ImVec2 UVMin = ImVec2(0.0f, 0.0f);
+				ImVec2 UVMax = ImVec2(1.0f, 1.0f);
+				ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+				ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+				ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
+			}
+		}
+	}
+}
+
+void UpdateTransformMenu(const unsigned int _i)
+{
+	if (ImGui::DragFloat3("Position", m_vModels[_i].GetGuiPos(), 0.01f))
+	{
+		m_vModels[_i].UpdateTranslationMatrix(m_vModels[_i].GetGuiPos()[0] * 10.0f, m_vModels[_i].GetGuiPos()[1] * 10.0f, m_vModels[_i].GetGuiPos()[2] * 10.0f);
+	}
+	if (ImGui::DragFloat3("Rotation", m_vModels[_i].GetGuiRot(), 1.0f))
+	{
+		m_vModels[_i].UpdateRotationMatrix(m_vModels[_i].GetGuiRot()[0], m_vModels[_i].GetGuiRot()[1], m_vModels[_i].GetGuiRot()[2]);
+	}
+	if (ImGui::DragFloat3("Scale", m_vModels[_i].GetGuiScale(), 0.001f))
+	{
+		m_vModels[_i].UpdateScaleMatrix(m_vModels[_i].GetGuiScale()[0], m_vModels[_i].GetGuiScale()[1], m_vModels[_i].GetGuiScale()[2]);
+	}
 }
 
 void UIRender()
@@ -477,96 +575,50 @@ void UIRender()
 	ImGui::NewFrame();
 
 	ImGui::Begin("Model Configuration", NULL, ImGuiWindowFlags_MenuBar);
-	static float dir[3]{};
-	static float pos[3]{};
-	static float rot[3]{};
-	static float scale[3]{};
 
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("Menu"))
 		{
-			if (ImGui::MenuItem("Open File"))
-			{
-				OpenMeshMenu();
-			}
+			ShowMenuOptions();
 			ImGui::EndMenu();
 		}
 		ImGui::EndMenuBar();
 	}
-	if (ImGui::CollapsingHeader("Transform"))
+	for (unsigned int i = 0; i < m_vModels.size(); ++i)
 	{
-		if (ImGui::DragFloat3("Position", pos, 0.001f, -5.0f, 5.0f))
+		if (ImGui::CollapsingHeader(m_vModels[i].GetName().c_str()))
 		{
-			for (int i = 0; i < m_vModels.size(); i++)
+			if (ImGui::CollapsingHeader("Transform"))
 			{
-				m_vModels[i].GetTranslationMatrix()[12] = pos[0] * 10.0f;
-				m_vModels[i].GetTranslationMatrix()[13] = pos[1] * 10.0f;
-				m_vModels[i].GetTranslationMatrix()[14] = pos[2] * 10.0f;
+				UpdateTransformMenu(i);
 			}
-		}
-		if (ImGui::DragFloat3("Rotation", rot, 0.001f, -1.0f, 1.0f))
-		{
-			for (int i = 0; i < m_vModels.size(); i++)
+			if (ImGui::CollapsingHeader("Meshes"))
 			{
-				m_vModels[i].GetRotationMatrix()[5] = cos(rot[0] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[6] = sin(rot[0] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[9] = -sin(rot[0] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[10] = cos(rot[0] * 10.0f);
-
-				m_vModels[i].GetRotationMatrix()[0] = cos(rot[1] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[2] = -sin(rot[1] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[8] = sin(rot[1] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[10] = cos(rot[1] * 10.0f);
-
-				m_vModels[i].GetRotationMatrix()[0] = cos(rot[2] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[1] = sin(rot[2] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[4] = -sin(rot[2] * 10.0f);
-				m_vModels[i].GetRotationMatrix()[5] = cos(rot[2] * 10.0f);
-			}
-		}
-		if (ImGui::DragFloat3("Scale", scale, 0.001f, -1.0f, 1.0f))
-		{
-			for (int i = 0; i < m_vModels.size(); i++)
-			{
-				m_vModels[i].GetScaleMatrix()[0] = scale[0] * 10.0f;
-				m_vModels[i].GetScaleMatrix()[5] = scale[1] * 10.0f;
-				m_vModels[i].GetScaleMatrix()[10] = scale[2] * 10.0f;
+				ShowMeshesMenu(i);
 			}
 		}
 	}
+	ImGui::End();
+
+	ImGui::Begin("Enviroment", NULL, 0);
 	if (ImGui::CollapsingHeader("Light"))
 	{
-		if (ImGui::DragFloat3("Direccion de la luz", dir, 0.001f, -1.0f, 1.0f))
+		if (ImGui::DragFloat3("Direction", dir, 0.001f, -1.0f, 1.0f))
 		{
 		#if defined(DX11)
 			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(dir[0], dir[1], dir[2], 0.0f);
 		#endif
+		#if defined(OGL)
+			m_Obj.g_DirLightBufferDesc.Dir[0] = dir[0];
+			m_Obj.g_DirLightBufferDesc.Dir[1] = dir[1];
+			m_Obj.g_DirLightBufferDesc.Dir[2] = dir[2];
+			m_Obj.g_DirLightBufferDesc.Dir[3] = 0.0f;
+		#endif
 		}
 	}
-	if (ImGui::CollapsingHeader("Textures"))
-	{
-		if (!m_vModels.empty())
-		{
-			float TextureWidth = 256;
-			float TextureHeight = 256;
-			#if defined(OGL)
-			ImTextureID TextureID = (void*)m_vModels[0].tex_id;
-			#endif
-			#if defined(DX11)
-			ImTextureID TextureID = m_Obj.g_SimeTextureRV.GetDXSRV();
-			#endif
-			ImVec2 Position = ImGui::GetCursorScreenPos();
-			ImVec2 UVMin = ImVec2(0.0f, 0.0f);
-			ImVec2 UVMax = ImVec2(1.0f, 1.0f);
-			ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-			ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-			ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
-		}
-	}
-
 	ImGui::End();
-
+	//ImGui::ShowDemoWindow();
 	// render UI
 	ImGui::Render();
 #if defined(DX11)
@@ -583,6 +635,7 @@ void Update()
 #if defined(DX11)
 	for (int i = 0; i < m_vModels.size(); ++i)
 	{
+		//m_vModels[i].UpdateModelMatrix();
 		m_vModels[i].Update(m_Obj, g_hwnd);
 	}
 	m_Obj.Update();
@@ -601,7 +654,7 @@ void Render()
 #if defined(DX11)
 	for (int i = 0; i < m_vModels.size(); ++i)
 	{
-		m_vModels[i].Render(m_Obj, g_hwnd);
+		m_vModels[i].Render(g_hwnd);
 	}
 	m_Obj.Render();
 	UIRender();
@@ -610,7 +663,7 @@ void Render()
 #if defined(OGL)
 	for (int i = 0; i < m_vModels.size(); ++i)
 	{
-		m_vModels[i].Render(m_Obj, g_hwnd);
+		m_vModels[i].Render(g_hwnd);
 	}
 	m_Obj.Render();
 	UIRender();
@@ -620,17 +673,64 @@ void Render()
 }
 
 
-
+#endif
 int main()
 {
-#if defined(DX11)
+#if !defined(DX11) && !defined(OGL)
 	// create the window and console
-	if (FAILED(InitWindow(1280, 720)))
+	if (FAILED(InitWindow(1024, 768)))
 	{
 		DestroyWindow(g_hwnd);
 		return 0;
 	}
-	
+	// create Graphic API interface
+	if (FAILED(m_Obj.InitDevice(g_hwnd)))
+	{
+		m_Obj.CleanupDevice();
+		return 0;
+	}
+	//// create UI
+	if (FAILED(InitImgUI()))
+	{
+		ImGui_ImplWin32_Shutdown();
+		ImGui::DestroyContext();
+		return 0;
+	}
+
+	// main loop
+	MSG msg = { 0 };
+	while (WM_QUIT != msg.message)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+		//	Update();
+		//	Render();
+		}
+	}
+
+	// clean resources
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+	//for (int i = 0; i < m_vModels.size(); ++i)
+	//{
+	//	m_vModels[i].CleanUpDXResources();
+	//}
+	m_Obj.CleanupDevice();
+	DestroyWindow(g_hwnd);
+	return (int)msg.wParam;
+#endif
+#if defined(DX11)
+	// create the window and console
+	if (FAILED(InitWindow(1024, 768)))
+	{
+		DestroyWindow(g_hwnd);
+		return 0;
+	}
 	// create Graphic API interface
 	if (FAILED(m_Obj.InitDevice(g_hwnd)))
 	{
@@ -666,6 +766,10 @@ int main()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
+	for (int i = 0; i < m_vModels.size(); ++i)
+	{
+		m_vModels[i].CleanUpDXResources();
+	}
 	m_Obj.CleanupDevice();
 	DestroyWindow(g_hwnd);
 	return (int)msg.wParam;

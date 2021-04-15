@@ -18,13 +18,14 @@ public:
 		* @bug.....No known bugs.
 	*/
 
-	void Render(HWND _hwnd, GraphicsModule::test& _obj, CBChangesEveryFrame& cb);
+	void Render(HWND _hwnd, CBChangesEveryFrame& cb, ConstantBuffer& _MeshCB);
 
 	inline void SetID(int _Value) { m_ID = _Value; }
 	inline int GetID() { return m_ID; }
 
-	inline Texture2D GetTexture() { return m_Color; }
-
+	#if defined(DX11)
+	inline ShaderResourceView* GetSRVTexture() { return m_SRVTexture; }
+	#endif
 private:
 
 	Texture2D m_Color;
@@ -32,8 +33,7 @@ private:
 	int m_ID;
 
 	#if defined(DX11)
-	ID3D11ShaderResourceView* m_ColorTexture;
+	ShaderResourceView* m_SRVTexture;
 	#endif
-	//referencia a shaderresourceview
 };
 

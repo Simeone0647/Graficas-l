@@ -1,69 +1,85 @@
 #include "Mesh.h"
 
-Mesh::Mesh() : m_Vertex{ nullptr }, m_NumOfVertex{ 0 }, m_VertexIndex{ nullptr }, m_NumOfVertexIndex{ 0 }, m_ShowTexture{ false }
+Mesh::Mesh() : m_NumOfVertex{ 0 }, m_NumOfVertexIndex{ 0 }, m_ShowTexture{ false }
 {
 
-	Matrix::SetIdentityMatrix(m_ModelMatrix);
-	Matrix::SetIdentityMatrix(m_TraslationMatrix);
-	Matrix::SetIdentityMatrix(m_RotationMatrix);
-	Matrix::SetIdentityMatrix(m_ScaleMatrix);
+	Matrix::SetIdentity(m_ModelMatrix);
+	Matrix::SetIdentity(m_TraslationMatrix);
+	Matrix::SetIdentity(m_RotationMatrix);
+	Matrix::SetIdentity(m_ScaleMatrix);
+	Matrix::SetIdentity(m_MVP);
 
 	m_MeshColor[0] = 0.0f;
 	m_MeshColor[1] = 0.0f;
 	m_MeshColor[2] = 0.0f;
 }
 
+Mesh::Mesh(std::vector<Vertex> _MeshVertex, std::vector<unsigned int> _MeshIndices, std::vector<std::string> _Filename, unsigned int _VertexNum, bool _LoadRGBA, bool _LoadBGRA,
+		   bool _LoadTriangles, bool _LoadPoints, std::string _Name, unsigned int _ShaderID)
+{
+	m_Vertex = _MeshVertex;
+	m_VertexIndex = _MeshIndices;
+	m_NumOfVertex = m_Vertex.size();
+	m_NumOfVertexIndex = m_VertexIndex.size();
+	m_Filename = _Filename;
+	//if (!m_Filename.empty())
+	//{ 
+	//	std::cout << m_Filename[0] << std::endl;
+	//}
+	Matrix::SetIdentity(m_ModelMatrix);
+	Matrix::SetIdentity(m_TraslationMatrix);
+	Matrix::SetIdentity(m_RotationMatrix);
+	Matrix::SetIdentity(m_ScaleMatrix);
+	Matrix::SetIdentity(m_MVP);
+
+	m_MeshColor[0] = 0.0f;
+	m_MeshColor[1] = 0.0f;
+	m_MeshColor[2] = 0.0f;
+
+	m_LoadAsRGBA = _LoadRGBA;
+	m_LoadAsBGRA = _LoadBGRA;
+	m_LoadAsPoints = _LoadPoints;
+	m_LoadAsTriangles = _LoadTriangles;
+
+	m_Material = new Material;
+
+	m_Name = _Name;
+
+	m_ShaderID = _ShaderID;
+}
+
 Mesh::~Mesh()
 {
-	if (m_Vertex != nullptr)
-	{
-		delete[] m_Vertex;
-		m_Vertex = nullptr;
-	}
 
-	if (m_VertexIndex != nullptr)
-	{
-		delete[] m_VertexIndex;
-		m_VertexIndex = nullptr;
-	}
 }
 
 void Mesh::SetVertex(Vertex* figure, int numofvertex)
 {
-	if (m_Vertex != nullptr)
-	{
-		delete[] m_Vertex;
-	}
-
-	m_Vertex = new Vertex[numofvertex];
-	memcpy(m_Vertex, figure, sizeof(figure[0]) * numofvertex);
+	//if (m_Vertex != nullptr)
+	//{
+	//	delete[] m_Vertex;
+	//}
+	//
+	//m_Vertex = new Vertex[numofvertex];
+	//memcpy(m_Vertex, figure, sizeof(figure[0]) * numofvertex);
 }
 
 void Mesh::SetVertexIndex(unsigned int* vertexindexarr, int numofvertexindex)
 {
-	if (m_VertexIndex != nullptr)
-	{
-		delete[] m_VertexIndex;
-	}
-	
-	m_VertexIndex = new unsigned int[numofvertexindex];
-	memcpy(m_VertexIndex, vertexindexarr, sizeof(vertexindexarr[0]) * numofvertexindex);
+	//if (m_VertexIndex != nullptr)
+	//{
+	//	delete[] m_VertexIndex;
+	//}
+	//
+	//m_VertexIndex = new unsigned int[numofvertexindex];
+	//memcpy(m_VertexIndex, vertexindexarr, sizeof(vertexindexarr[0]) * numofvertexindex);
 }
 
-void Mesh::Update(GraphicsModule::test& _obj, HWND _hwnd)
+void Mesh::Update()
 {
-
-	float RT[16];
-	float MV[16];
-	float MVP[16];
-
-	Matrix::MatrixMultiplication(m_TraslationMatrix, m_RotationMatrix, RT);
-	Matrix::MatrixMultiplication(RT, m_ScaleMatrix, m_ModelMatrix);
-	Matrix::MatrixMultiplication(m_ModelMatrix, _obj.m_Camera->GetViewMatrix(), MV);
-	Matrix::MatrixMultiplication(MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), MVP);
-
 #if defined(DX11)
-	for (int i = 0; i < 16; ++i)
+
+	for (unsigned int i = 0; i < 16; ++i)
 	{
 		m_cb.mWorld[i] = m_ModelMatrix[i];
 	}
@@ -72,66 +88,32 @@ void Mesh::Update(GraphicsModule::test& _obj, HWND _hwnd)
 	m_cb.mWorld[1] = m_ModelMatrix[4];
 	m_cb.mWorld[2] = m_ModelMatrix[8];
 	m_cb.mWorld[3] = m_ModelMatrix[12];
-
+						
 	m_cb.mWorld[4] = m_ModelMatrix[1];
 	m_cb.mWorld[5] = m_ModelMatrix[5];
 	m_cb.mWorld[6] = m_ModelMatrix[9];
 	m_cb.mWorld[7] = m_ModelMatrix[13];
-
+						
 	m_cb.mWorld[8] = m_ModelMatrix[2];
 	m_cb.mWorld[9] = m_ModelMatrix[6];
 	m_cb.mWorld[10] = m_ModelMatrix[10];
 	m_cb.mWorld[11] = m_ModelMatrix[14];
-
+	
 	m_cb.mWorld[12] = m_ModelMatrix[3];
 	m_cb.mWorld[13] = m_ModelMatrix[7];
 	m_cb.mWorld[14] = m_ModelMatrix[11];
 	m_cb.mWorld[15] = m_ModelMatrix[15];
-
-	m_cb.vMeshColor[0] = m_MeshColor[0];
-	m_cb.vMeshColor[1] = m_MeshColor[1];
-	m_cb.vMeshColor[2] = m_MeshColor[2];
+	
+	m_cb.vMeshColor[0] = m_ModelMatrix[0];
+	m_cb.vMeshColor[1] = m_ModelMatrix[1];
+	m_cb.vMeshColor[2] = m_ModelMatrix[2];
 #endif
 #if defined(OGL)
-	//static float t = 3.14f;
-	//t += 0.01f;
-	//float angle = t / 1000.0f * 45.0f;
 
-	//m_Rotation[0] = cos(t);
-	//m_Rotation[1] = 0.0f;
-	//m_Rotation[2] = sin(t);
-	//m_Rotation[3] = 0.0f;
-	//
-	//m_Rotation[4] = 0.0f;
-	//m_Rotation[5] = 1.0f;
-	//m_Rotation[6] = 0.0f;
-	//m_Rotation[7] = 0.0f;
-	//
-	//m_Rotation[8] = -sin(t);
-	//m_Rotation[9] = 0.0f;
-	//m_Rotation[10] = cos(t);
-	//m_Rotation[11] = 0.0f;
-	//
-	//m_Rotation[12] = 0.0f;
-	//m_Rotation[13] = 0.0f;
-	//m_Rotation[14] = 0.0f;
-	//m_Rotation[15] = 1.0f;
-
-
-
-	const char* UniformName;
-	int UniformMVP;
-	UniformName = "mvp";
-	UniformMVP = glGetUniformLocation(_obj.programID, UniformName);
-	if (UniformMVP == -1) 
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformName);
-	}
-	glUniformMatrix4fv(UniformMVP, 1, 0, glm::value_ptr(glm::make_mat4(MVP)));
 #endif
 }
 
-void Mesh::Render(GraphicsModule::test& _obj, HWND _hwnd)
+void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _hwnd)
 {
 #if defined(DX11)
 	UINT stride = sizeof(Vertex);
@@ -140,81 +122,124 @@ void Mesh::Render(GraphicsModule::test& _obj, HWND _hwnd)
 	GraphicsModule::SetVertexBufferStruct SetVBStruct;
 	SetVBStruct.StartSlot = 0;
 	SetVBStruct.NumBuffers = 1;
-	SetVBStruct.ppVertexBuffers = _obj.g_SimeVertexBuffer.GetVertexBufferAddress();
+	SetVBStruct.ppVertexBuffers = _VB.GetVertexBufferAddress();
 	SetVBStruct.pStrides = &stride;
 	SetVBStruct.pOffsets = &offset;
 
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetVertexBuffers(SetVBStruct);
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetIndexBuffer(_obj.g_SimeIndexBuffer.GetIndexBuffer(), GraphicsModule::SIME_FORMAT_R32_UINT, 0);
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetPrimitiveTopology(GraphicsModule::SIME_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetIndexBuffer(_IB.GetIndexBuffer(), GraphicsModule::SIME_FORMAT_R32_UINT, 0);
+	if (m_LoadAsTriangles)
+	{ 
+		GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetPrimitiveTopology(GraphicsModule::SIME_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+	else if (m_LoadAsPoints)
+	{
+		GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetPrimitiveTopology(GraphicsModule::SIME_PRIMITIVE_TOPOLOGY_POINTLIST);
+	}
 
-	m_Material->Render(_hwnd, _obj, m_cb);
-
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, _obj.g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, _obj.g_DirLightBuffer.BGetBufferAddress());
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetConstantBuffers(2, 1, _obj.g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CDrawIndexed(m_NumOfVertexIndex, 0, 0);
-
+	m_Material->Render(_hwnd, m_cb, m_MeshCB);
+	
+	//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, _obj.g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
+	//
+	//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetConstantBuffers(2, 1, _obj.g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
+	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
+	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
+	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CDrawIndexed(m_VertexIndex.size(), 0, 0);
 
 #endif
 #if defined(OGL)
-	//glEnableVertexAttribArray(0);
-	//glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
-	//
-	//glVertexAttribPointer(
-	//	0,                  // atributo 0. No hay razón particular para el 0, pero debe corresponder en el shader.
-	//	3,                  // tamaño
-	//	GL_FLOAT,           // tipo
-	//	GL_FALSE,           // normalizado?
-	//	sizeof(Vertex),                    // Paso
-	//	(void*)0            // desfase del buffer
-	//);
-	//
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
-	//glActiveTexture(GL_TEXTURE0);
-	//glUniform1i(uniform_mytexture, /*GL_TEXTURE*/0);
-	glBindTexture(GL_TEXTURE_2D, tex_id);
+	const char* UniformName;
+	int UniformMVP;
+	UniformName = "mvp";
+	UniformMVP = glGetUniformLocation(m_ShaderID, UniformName);
+	if (UniformMVP == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformName);
+	}
+	glUniformMatrix4fv(UniformMVP, 1, 0, glm::value_ptr(glm::make_mat4(m_MVP)));
+
+	const char* UniformNameModel;
+	int UniformModel;
+	UniformNameModel = "world";
+	UniformModel = glGetUniformLocation(m_ShaderID, UniformNameModel);
+	if (UniformModel == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameModel);
+	}
+	glUniformMatrix4fv(UniformModel, 1, 0, glm::value_ptr(glm::make_mat4(m_ModelMatrix)));
+
+	//const char* UniformNameLight;
+	//int UniformLight;
+	//UniformNameLight = "dirlight";
+	//UniformLight = glGetUniformLocation(m_ShaderID, UniformNameLight);
+	//if (UniformLight == -1)
+	//{
+	//	fprintf(stderr, "Could not bind uniform %s\n", UniformNameLight);
+	//}
+	//glUniform4fv(UniformLight, 1, glm::value_ptr(glm::make_vec4(_obj.g_DirLightBufferDesc.Dir)));
+
+	glBindTexture(GL_TEXTURE_2D, m_TexID);
 	glBindVertexArray(m_VAO);
-	glDrawElements(SIME_TRIANGLES, m_NumOfVertexIndex, SIME_UNSIGNED_INT, 0);
+	if (m_LoadAsTriangles)
+	{
+		glDrawElements(SIME_TRIANGLES, m_NumOfVertexIndex, SIME_UNSIGNED_INT, 0);
+	}
+	else if (m_LoadAsPoints)
+	{
+		glDrawElements(GL_POINTS, m_NumOfVertexIndex, SIME_UNSIGNED_INT, 0);
+	}
 	glBindVertexArray(0);
 	//glDisableVertexAttribArray(0);
 #endif
 }
 
-void Mesh::SetUpMesh(GraphicsModule::test& _obj, HWND _hwnd, const char* _FileName)
+void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _hwnd)
 {
 #if defined(DX11)
 	HRESULT hr;
+
+	GraphicsModule::UpdateBDStruct BDStruct;
+	BDStruct.Usage = GraphicsModule::SIME_USAGE_DEFAULT;
+	BDStruct.ByteWidth = sizeof(GraphicsModule::CBNeverChanges);
+	BDStruct.BindFlags = GraphicsModule::SIME_BIND_CONSTANT_BUFFER;
+	BDStruct.CPUAccessFlags = 0;
+	BDStruct.StructureBytestride = 0;
+	BDStruct.MiscFlags = 0;
+	BDStruct.ByteWidth = sizeof(CBChangesEveryFrame);
+
+	m_MeshCB.UpdateBD(BDStruct);
+	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateBuffer(m_MeshCB.GetBDAddress(), NULL, m_MeshCB.GetCBChangesEveryFrameAddress());
+	if (FAILED(hr))
+		std::cout << "Error hr de cb" << std::endl;
+
 	GraphicsModule::UpdateBDStruct UpdateBDS;
 	UpdateBDS.Usage = GraphicsModule::SIME_USAGE_DEFAULT;
-	UpdateBDS.ByteWidth = sizeof(Vertex) * m_NumOfVertex;
+	UpdateBDS.ByteWidth = sizeof(Vertex) * m_Vertex.size();
 	UpdateBDS.BindFlags = GraphicsModule::SIME_BIND_VERTEX_BUFFER;
 	UpdateBDS.CPUAccessFlags = 0;
 	UpdateBDS.MiscFlags = 0;
 	UpdateBDS.StructureBytestride = 0;
 
-	_obj.g_SimeVertexBuffer.UpdateBD(UpdateBDS);
-	_obj.g_SimeVertexBuffer.UpdateInitData(m_Vertex);
-	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateBuffer(_obj.g_SimeVertexBuffer.GetBDAddress(), _obj.g_SimeVertexBuffer.GetInitDataAddress(),
-		_obj.g_SimeVertexBuffer.GetVertexBufferAddress());
+	_VB.UpdateBD(UpdateBDS);
+	_VB.UpdateInitData(m_Vertex.data());
+	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateBuffer(_VB.GetBDAddress(), _VB.GetInitDataAddress(), _VB.GetVertexBufferAddress());
 	if (FAILED(hr))
 	{
 		std::cout << "error hr 1" << std::endl;
 	}
 
-	UpdateBDS.ByteWidth = sizeof(unsigned int) * m_NumOfVertexIndex;
+	UpdateBDS.ByteWidth = sizeof(unsigned int) * m_VertexIndex.size();
 	UpdateBDS.BindFlags = GraphicsModule::SIME_BIND_INDEX_BUFFER;
 
-	_obj.g_SimeIndexBuffer.UpdateBD(UpdateBDS);
-	_obj.g_SimeIndexBuffer.UpdateInitData(m_VertexIndex);
-	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateBuffer(_obj.g_SimeIndexBuffer.GetBDAddress(), _obj.g_SimeIndexBuffer.GetInitDataAdress(),
-		_obj.g_SimeIndexBuffer.GetIndexBufferAddress());
+	_IB.UpdateBD(UpdateBDS);
+	_IB.UpdateInitData(m_VertexIndex.data());
+	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateBuffer(_IB.GetBDAddress(), _IB.GetInitDataAdress(), _IB.GetIndexBufferAddress());
 	if (FAILED(hr))
 	{
 		std::cout << "error hr 2" << std::endl;
 	}
 
-	LoadTexture(_FileName, _obj, _hwnd);
+	LoadTexture(_hwnd);
 #endif
 #if defined(OGL)
 	float MV[16];
@@ -226,10 +251,10 @@ void Mesh::SetUpMesh(GraphicsModule::test& _obj, HWND _hwnd, const char* _FileNa
 	glBindVertexArray(m_VAO);
 	glBindBuffer(SIME_ARRAY_BUFFER, m_VBO);
 
-	glBufferData(SIME_ARRAY_BUFFER, m_NumOfVertex * sizeof(Vertex), &m_Vertex[0], SIME_STATIC_DRAW);
+	glBufferData(SIME_ARRAY_BUFFER, m_NumOfVertex * sizeof(Vertex), m_Vertex.data(), SIME_STATIC_DRAW);
 
 	glBindBuffer(SIME_ELEMENT_ARRAY_BUFFER, m_EBO);
-	glBufferData(SIME_ELEMENT_ARRAY_BUFFER, m_NumOfVertexIndex * sizeof(unsigned int), &m_VertexIndex[0], SIME_STATIC_DRAW);
+	glBufferData(SIME_ELEMENT_ARRAY_BUFFER, m_NumOfVertexIndex * sizeof(unsigned int), m_VertexIndex.data(), SIME_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)0);
@@ -241,43 +266,41 @@ void Mesh::SetUpMesh(GraphicsModule::test& _obj, HWND _hwnd, const char* _FileNa
 	glVertexAttribPointer(2, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)32);
 
 	glBindVertexArray(0);
-	LoadTexture(_FileName, _obj, _hwnd);
-	Matrix::MatrixMultiplication(m_ModelMatrix, _obj.m_Camera->GetViewMatrix(), MV);
-	Matrix::MatrixMultiplication(MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), MVP);
-	//mvp = glm::make_mat4(m_Camera->GetPerspectiveProjectionMatrix()) * glm::make_mat4(m_Camera->GetViewMatrix()) * glm::make_mat4(modelmatrix);
-	//mvp = glm::make_mat4(truematrix);
-	const char* UniformName;
-	int UniformMVP;
-	UniformName = "mvp";
-	UniformMVP = glGetUniformLocation(_obj.programID, UniformName);
-	if (UniformMVP == -1) {
-		fprintf(stderr, "Could not bind uniform %s\n", UniformName);
-	}
-	glUniformMatrix4fv(UniformMVP, 1, 0, glm::value_ptr(glm::make_mat4(MVP)));
+
+	//Matrix::MatrixMultiplication(m_ModelMatrix, _obj.m_Camera->GetViewMatrix(), MV);
+	//Matrix::MatrixMultiplication(MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), MVP);
+
+	LoadTexture(_hwnd);
 #endif
 }
 
-void Mesh::LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _hwnd)
+#if defined(DX11) || defined(OGL)
+void Mesh::LoadTexture(HWND _hwnd)
 {
+	if (m_Filename.empty())
+	{
+		return;
+	}
+
 	float width;
 	float height;
 	const unsigned char* bits(0);
+	char* char_arr;
+	
+	char_arr = &m_Filename[0][0];
 	FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 
-	fif = FreeImage_GetFileType(_FileName, 0);
-	m_dib1 = FreeImage_Load(fif, _FileName);
-	#if defined(DX11)
+	std::cout << m_Filename[0] << std::endl;
+
+	fif = FreeImage_GetFileType(char_arr, 0);
+	m_dib1 = FreeImage_Load(fif, char_arr);
+
 	FIBITMAP* dib;
 	dib = FreeImage_ConvertTo32Bits(m_dib1);
 	bits = FreeImage_GetBits(dib);
-	#endif
-	#if defined(OGL)
-	//FIBITMAP* dib;
-	//dib = FreeImage_ConvertTo32Bits(m_dib1);
-	bits = FreeImage_GetBits(m_dib1);
-	height = FreeImage_GetHeight(m_dib1);
-	width = FreeImage_GetWidth(m_dib1);
-	#endif
+	height = FreeImage_GetHeight(dib);
+	width = FreeImage_GetWidth(dib);
+
 	if (!m_dib1)
 	{
 		std::cerr << "Error al cargar la imagen" << std::endl;
@@ -287,8 +310,6 @@ void Mesh::LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _
 
 	#if defined(DX11)
 	HRESULT hr;
-	height = FreeImage_GetHeight(dib);
-	width = FreeImage_GetWidth(dib);
 	int RowPitch = FreeImage_GetPitch(dib);
 	
 	//ShaderResourceView EntryShader;
@@ -298,7 +319,15 @@ void Mesh::LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _
 	TextureDesc.Height = height;
 	TextureDesc.MipLevels = 0;
 	TextureDesc.Arraysize = 1;
-	TextureDesc.Format = GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM;
+	if (m_LoadAsBGRA)
+	{ 
+		TextureDesc.Format = GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM;
+	}
+
+	else if (m_LoadAsRGBA)
+	{
+		TextureDesc.Format = GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM;
+	}
 	TextureDesc.Count = 1;
 	TextureDesc.Quality = 0;
 	TextureDesc.Usage = GraphicsModule::SIME_USAGE_DEFAULT;
@@ -322,28 +351,57 @@ void Mesh::LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	_obj.g_SimeTextureRV.SetDesc(GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
-	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateShaderResourceView(EntryTexture.GetTexture(), _obj.g_SimeTextureRV.GetDXSRVDescAddress(),
-	_obj.g_SimeTextureRV.GetDXSRVAddress());
+	if (m_LoadAsBGRA)
+	{
+		m_Material->GetSRVTexture()->SetDesc(GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
+	}
+	else if (m_LoadAsRGBA)
+	{
+		m_Material->GetSRVTexture()->SetDesc(GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
+	}
+	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateShaderResourceView(EntryTexture.GetTexture(), m_Material->GetSRVTexture()->GetDXSRVDescAddress(),
+	m_Material->GetSRVTexture()->GetDXSRVAddress());
 	if (FAILED(hr))
 	{
 		std::cout << "Error en el srv dx" << std::endl;
 	}
-	FreeImage_Unload(dib);
+
 	#endif
 	#if defined(OGL)
-		glGenTextures(1, &tex_id);
-		glBindTexture(GL_TEXTURE_2D, tex_id);
+		glGenTextures(1, &m_TexID);
+		glBindTexture(GL_TEXTURE_2D, m_TexID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, bits);
-	
+		if (m_LoadAsRGBA)
+		{ 
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bits);
+		}
+		else if (m_LoadAsBGRA)
+		{
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, bits);
+		}
 		glGenerateMipmap(GL_TEXTURE_2D);
 	#endif
 		m_ShowTexture = true;
 
+		FreeImage_Unload(dib);
 		FreeImage_Unload(m_dib1);
 	}
 }
+#endif
+
+#if defined(DX11)
+void Mesh::CleanUpDXResources()
+{
+	if (m_Material->GetSRVTexture()->GetDXSRV())
+	{
+		m_Material->GetSRVTexture()->GetDXSRV()->Release();
+	}
+	if (m_MeshCB.GetCBChangesEveryFrame())
+	{
+		m_MeshCB.GetCBChangesEveryFrame()->Release();
+	}
+}
+#endif

@@ -99,8 +99,6 @@ namespace GraphicsModule
 			printf("%s\n", &FragmentShaderErrorMessage[0]);
 		}
 
-
-
 		// Vincular el programa por medio del ID
 		printf("Linking program\n");
 		GLuint ProgramID = glCreateProgram();
@@ -146,8 +144,8 @@ HRESULT test::InitDevice(HWND hwnd)
 	PMStruct.Width = 1024;
 	PMStruct.Height = 768;
 
-	m_PerspectiveCamera.SetEye(0.0f, 2.0f, 0.0f);
-	m_PerspectiveCamera.SetAt(0.0f, 0.0f, -4.0f);
+	m_PerspectiveCamera.SetEye(0.0f, 3.0f, -6.0f);
+	m_PerspectiveCamera.SetAt(0.0f, 0.0f, 0.0f);
 	m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
 	m_PerspectiveCamera.UpdateViewMatrix();
 	m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
@@ -356,11 +354,11 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 			return hr;
 
-		BDStruct.ByteWidth = sizeof(CBChangesEveryFrame);
-		g_SimeCBChangesEveryFrame.UpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBChangesEveryFrame.GetBDAddress(), NULL, g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
-		if (FAILED(hr))
-			return hr;
+		//BDStruct.ByteWidth = sizeof(CBChangesEveryFrame);
+		//g_SimeCBChangesEveryFrame.UpdateBD(BDStruct);
+		//hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBChangesEveryFrame.GetBDAddress(), NULL, g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
+		//if (FAILED(hr))
+		//	return hr;
 
 		BDStruct.ByteWidth = sizeof(DirLight);
 		g_DirLightBuffer.BUpdateBD(BDStruct);
@@ -542,11 +540,27 @@ void test::Update()
 void test::Render()
 {
 #if defined(OGL)
-
+	const char* UniformNameLight;
+	int UniformLight;
+	UniformNameLight = "dirlight";
+	UniformLight = glGetUniformLocation(programID, UniformNameLight);
+	if (UniformLight == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameLight);
+	}
+	glUniform4fv(UniformLight, 1, glm::value_ptr(glm::make_vec4(g_DirLightBufferDesc.Dir)));
 
 #endif
 #if defined(DX11)
+	GraphicsModule::UpdateSubResourceStruct UpdateSRStruct;
+	UpdateSRStruct.pDstResource = g_DirLightBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_DirLightBufferDesc;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
 
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
@@ -555,9 +569,10 @@ void test::Render()
 	//LUEGO
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(0, 1, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(1, 1, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
-
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif
 }
 

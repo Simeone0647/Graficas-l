@@ -35,8 +35,9 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include "FreeImage.h"
+
 #if defined(OGL)
+#include "FreeImage.h"
 #include <glm.hpp>
 #include <glad/glad.h>
 #include <glfw3.h>
@@ -46,6 +47,7 @@
 #include <gtc/type_ptr.hpp>
 #endif
 #if defined(DX11)
+#include "FreeImage.h"
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3dcompiler.h>
@@ -399,6 +401,9 @@ namespace GraphicsModule
 	#if defined(DX11)
 		XMFLOAT4 Dir;
 	#endif
+	#if defined(OGL)
+		float Dir[4];
+	#endif
 	};
 
 	struct CBNeverChanges
@@ -565,9 +570,9 @@ namespace GraphicsModule
 	class test
 	{
 	public:
-	#if defined(OGL)
-		unsigned int programID;
-	#endif
+
+		unsigned int programID = 0;
+
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;

@@ -5,7 +5,8 @@
 #include "Material.h"
 #include <iostream>
 #include <fstream>
-
+#include <vector>
+#include <cstring>
 struct CBChangesEveryFrame
 {
 	float mWorld[16];
@@ -17,6 +18,8 @@ class Mesh
 public:
 
 	Mesh();
+	Mesh(std::vector<Vertex> _MeshVertex, std::vector<unsigned int> _MeshIndices, std::vector<std::string> _Filename, unsigned int _VertexNum, bool _LoadRGBA, bool _LoadBGRA,
+		bool _LoadTriangles, bool _LoadPoints, std::string _Name, unsigned int _ShaderID);
 	~Mesh();
 
 	/*
@@ -34,7 +37,7 @@ public:
 		* @bug.....No known bugs.
 		* @return #CVertex_Pointer: Pointer to the vertex array.
 	*/
-	inline Vertex* GetVertex() { return m_Vertex; }
+	inline std::vector<Vertex> GetVertex() { return m_Vertex; }
 
 	/*
 		* @Function Name: SetNumOfVertex
@@ -67,7 +70,7 @@ public:
 		* @bug.....No known bugs.
 		* @return #unsigned_short_pointer: Pointer to the vertex index array.
 	*/
-	inline unsigned int* GetVertexIndex() {return m_VertexIndex;}
+	inline std::vector<unsigned int> GetVertexIndex() {return m_VertexIndex;}
 
 	/*
 		* @Function Name: SetNumOfVertexIndex
@@ -118,7 +121,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#float_pointer: Pointer to an sixteen elements array.
 	*/
-	inline float* GetWorldMatrix() { return m_ModelMatrix; }
+	inline float* GetModelMatrix() { return m_ModelMatrix; }
 
 	inline float* GetTranslationMatrix() { return m_TraslationMatrix; }
 
@@ -126,15 +129,27 @@ public:
 
 	inline float* GetRotationMatrix() { return m_RotationMatrix; }
 
-	void Update(GraphicsModule::test& _obj, HWND _hwnd);
+	inline float* GetMVPMatrix() { return m_MVP; }
 
-	void Render(GraphicsModule::test& _obj, HWND _hwnd);
+	void Update();
 
-	void SetUpMesh(GraphicsModule::test& _obj, HWND _hwnd, const char* _FileName);
+	void Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _hwnd);
 
-	void LoadTexture(const char* _FileName, GraphicsModule::test& _obj, HWND _hwnd);
-	unsigned int tex_id = 0;
+	void SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, const HWND _hwnd);
 
+	#if defined(DX11) || defined(OGL)
+	void LoadTexture(HWND _hwnd);
+	#endif
+	inline unsigned int GetTexId() { return m_TexID; }
+
+	inline Texture2D GetDXTexture() { return EntryTexture; };
+
+	#if defined(DX11)
+	void CleanUpDXResources();
+	#endif
+	std::string GetName() { return m_Name; }
+
+	Material* GetMaterial() { return m_Material; }
 private:
 
 	/*
@@ -142,7 +157,7 @@ private:
 		* @Type: #CVertex_pointer.
 		* @brief.Mesh vertex array.
 	*/
-	Vertex* m_Vertex;
+	std::vector<Vertex> m_Vertex;
 
 	/*
 		* @Variable Name: m_NumOfVertex.
@@ -156,7 +171,7 @@ private:
 		* @Type: #unsigned_short_pointer.
 		* @brief.Mesh vertex index array.
 	*/
-	unsigned int* m_VertexIndex;
+	std::vector<unsigned int> m_VertexIndex;
 
 	/*
 		* @Variable Name: m_NumOfVertexIndex.
@@ -178,7 +193,11 @@ private:
 
 	float m_ScaleMatrix[16];
 
+	float m_MVP[16];
+
 	CBChangesEveryFrame m_cb;
+
+	ConstantBuffer	m_MeshCB;
 
 	Material* m_Material;
 
@@ -188,19 +207,33 @@ private:
 
 	unsigned int m_IndexBuffer;
 
-	//int m_UniformMVP;
-
 	unsigned int m_VAO;
 
 	unsigned int m_VBO;
 
 	unsigned int m_EBO;
-
+	#if defined(DX11) || defined(OGL)
 	FIBITMAP* m_dib1;
-
+	#endif
 	bool m_ShowTexture;
 
 	Texture2D EntryTexture;
+
+	std::vector<std::string> m_Filename;
+
+	std::string m_Name;
+
+	unsigned int m_TexID = 0;
+
+	bool m_LoadAsRGBA;
+
+	bool m_LoadAsBGRA;
+
+	bool m_LoadAsPoints;
+	
+	bool m_LoadAsTriangles;
+
+	unsigned int m_ShaderID;
 	//topologia 
 };
 

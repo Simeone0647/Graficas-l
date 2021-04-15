@@ -272,14 +272,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OGL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)Assimp\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(SolutionDir)lib\GLFW\Debug\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;GraphicsModule_d.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(SolutionDir)lib\GLFW\Debug\x86\;$(SolutionDir)\lib\Assimp\Debug\x32\;$(SolutionDir)\lib\FreeImage\Debug\x32\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;GraphicsModule_d.lib;Shell32.lib;FreeImaged.lib;assimp-vc142-mtd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|Win32'">
@@ -288,14 +288,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DX11;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11d.lib;d3dx9d.lib;GraphicsModule_d.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)\lib\FreeImage\Debug\x32\;$(SolutionDir)\lib\Assimp\Debug\x32\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11d.lib;d3dx9d.lib;GraphicsModule_d.lib;FreeImaged.lib;assimp-vc142-mtd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -326,7 +326,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OGL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)Assimp\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -334,8 +334,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(SolutionDir)lib\GLFW\Release\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>GraphicsModule.lib;opengl32.lib;glfw3.lib;vcruntime.lib;msvcrt.lib;Shell32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(SolutionDir)lib\GLFW\Release\x86\;$(SolutionDir)\lib\Assimp\Release\x32\;$(SolutionDir)\lib\FreeImage\Release\x32\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GraphicsModule.lib;opengl32.lib;glfw3.lib;vcruntime.lib;msvcrt.lib;Shell32.lib;FreeImage.lib;assimp-vc142-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|Win32'">
@@ -346,7 +346,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DX11;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)Assimp\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -354,8 +354,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11.lib;d3dx9.lib;GraphicsModule.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)\lib\Assimp\Release\x32\;$(SolutionDir)\lib\FreeImage\Release\x32\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11.lib;d3dx9.lib;GraphicsModule.lib;FreeImage.lib;assimp-vc142-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -380,7 +380,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OGL;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\Assimp\include\;$(SolutionDir)Externals\FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)Assimp\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -398,14 +398,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DX11;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(SolutionDir)Externals\Assimp\include\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)\lib\Assimp\Debug\x64\;$(SolutionDir)lib\GLFW\Debug\x64\;$(SolutionDir)\lib\FreeImage\Debug\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11d.lib;d3dx9d.lib;GraphicsModule_d.lib;assimp-vc142-mtd.lib;Shell32.lib;glfw3.lib;FreeImaged.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)\lib\Assimp\Debug\x64\;$(SolutionDir)\lib\FreeImage\Debug\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11d.lib;d3dx9d.lib;GraphicsModule_d.lib;assimp-vc142-mtd.lib;FreeImaged.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -436,7 +436,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>OGL;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)Assimp\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -444,8 +444,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(SolutionDir)lib\GLFW\Release\x64\;$(SolutionDir)lib\Assimp\Release\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>GraphicsModule.lib;opengl32.lib;glfw3.lib;vcruntime.lib;msvcrt.lib;Shell32.lib;assimp-vc142-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(SolutionDir)lib\GLFW\Release\x64\;$(SolutionDir)lib\Assimp\Release\x64\;$(SolutionDir)\lib\FreeImage\Release\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GraphicsModule.lib;opengl32.lib;glfw3.lib;vcruntime.lib;msvcrt.lib;Shell32.lib;assimp-vc142-mt.lib;FreeImage.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|x64'">
@@ -456,7 +456,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DX11;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(SolutionDir)Externals\Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(DEVLIBS)imgui-1.8\;$(DEVLIBS)imgui-1.8\backends\;$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)Assimp\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -464,21 +464,48 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)lib\Assimp\Release\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11.lib;d3dx9.lib;GraphicsModule.lib;assimp-vc142-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\GraphicsModule\$(Configuration)\$(PlatformTarget)\;$(DXSDK_DIR)Lib\$(PlatformTarget)\;$(SolutionDir)lib\Assimp\Release\x64\;$(SolutionDir)lib\FreeImage\Release\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxerr.lib;dxguid.lib;d3dx11.lib;d3dx9.lib;GraphicsModule.lib;FreeImage.lib;assimp-vc142-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\Externals\OpenGL\glad\src\glad.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_dx11.cpp" />
-    <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_glfw.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_opengl3.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_DirectX|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_DirectX|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\imgui.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\imgui_demo.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\imgui_draw.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\Downloads\imgui-1.8\imgui-1.8\imgui_widgets.cpp" />
-    <ClCompile Include="..\Externals\OpenGL\glad\src\glad.c" />
     <ClCompile Include="Graficas1.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

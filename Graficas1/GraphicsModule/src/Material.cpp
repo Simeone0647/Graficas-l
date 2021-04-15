@@ -4,18 +4,22 @@
 Material::Material()
 {
 	m_ID = 0;
+	#if defined(DX11)
+	m_SRVTexture = new ShaderResourceView;
+	#endif
 }
 
 Material::~Material()
 {
+
 }
 
-void Material::Render(HWND _hwnd, GraphicsModule::test& _obj, CBChangesEveryFrame& cb)
+void Material::Render(HWND _hwnd , CBChangesEveryFrame& cb, ConstantBuffer& _MeshCB)
 {
 #if defined(DX11)
 	//m_ColorTexture = _obj.g_pTextureRV;
 	GraphicsModule::UpdateSubResourceStruct UpdateSRStruct;
-	UpdateSRStruct.pDstResource = _obj.g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame();
+	UpdateSRStruct.pDstResource = _MeshCB.GetCBChangesEveryFrame();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
 	UpdateSRStruct.pSrcData = &cb;
@@ -23,11 +27,11 @@ void Material::Render(HWND _hwnd, GraphicsModule::test& _obj, CBChangesEveryFram
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = _obj.g_DirLightBuffer.BGetBuffer();
-	UpdateSRStruct.pSrcData = &_obj.g_DirLightBufferDesc;
+	//UpdateSRStruct.pDstResource = _obj.g_DirLightBuffer.BGetBuffer();
+	//UpdateSRStruct.pSrcData = &_obj.g_DirLightBufferDesc;
 
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, _obj.g_SimeTextureRV.GetDXSRVAddress());
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, _obj.g_SimeSamplerState.GetDXSamplerStateAddress());
+	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, m_SRVTexture->GetDXSRVAddress());
+	//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, _obj.g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif
 }

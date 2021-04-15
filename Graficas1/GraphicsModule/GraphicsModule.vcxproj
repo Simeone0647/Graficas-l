@@ -274,7 +274,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -296,7 +296,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -345,7 +345,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -370,7 +370,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -415,7 +415,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;$(SolutionDir)Externals\FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -437,7 +437,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(SolutionDir)Externals\FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -486,7 +486,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(SolutionDir)Externals\OpenGL\GLFW\include\GLFW\;$(SolutionDir)Externals\GLM\glm\;$(SolutionDir)Externals\OpenGL\glad\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -511,7 +511,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -540,7 +540,9 @@
     <ClInclude Include="include\Material.h" />
     <ClInclude Include="include\Matrix.h" />
     <ClInclude Include="include\Mesh.h" />
+    <ClInclude Include="include\Model.h" />
     <ClInclude Include="include\PixelShader.h" />
+    <ClInclude Include="include\Quaternion.h" />
     <ClInclude Include="include\RenderTargetView.h" />
     <ClInclude Include="include\SamplerState.h" />
     <ClInclude Include="include\ShaderReflection.h" />
@@ -553,8 +555,10 @@
     <ClInclude Include="include\VertexBuffer.h" />
     <ClInclude Include="include\VertexShader.h" />
     <ClInclude Include="include\Viewport.h" />
+    <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
@@ -567,7 +571,9 @@
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\Matrix.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\PixelShader.cpp" />
+    <ClCompile Include="src\Quaternion.cpp" />
     <ClCompile Include="src\RenderTargetView.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\ShaderReflection.cpp" />
