@@ -4,10 +4,6 @@
 #include "Quaternion.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
-struct RotationMatrixStruct
-{
-	float x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
-};
 
 class Model
 {
@@ -21,17 +17,19 @@ public:
 
 	inline void SetMeshNum(const unsigned int _Num) { m_MeshNum = _Num; }
 
+	inline unsigned int GetMeshNum() { return m_MeshNum; }
+
 	inline void SetName(std::string _Name) { m_Name = _Name; }
 
 	inline std::string GetName() { return m_Name; }
 
-	inline float* GetModelMatrix() { return m_ModelMatrix; }
+	inline Matrix GetModelMatrix() { return m_ModelMatrix; }
 
-	inline float* GetTranslationMatrix() { return m_TraslationMatrix; }
+	inline Matrix GetTranslationMatrix() { return m_TraslationMatrix; }
 
-	inline float* GetScaleMatrix() { return m_ScaleMatrix; }
+	inline Matrix GetScaleMatrix() { return m_ScaleMatrix; }
 
-	inline float* GetRotationMatrix() { return m_RotationMatrix; }
+	inline Matrix GetRotationMatrix() { return m_RotationMatrix; }
 
 	inline float* GetGuiPos() { return m_GuiPos; }
 
@@ -52,8 +50,6 @@ public:
 	void Render(HWND _hwnd);
 
 	std::vector<Mesh> GetMeshes() { return m_Meshes; }
-
-	void SetQuaternionValues(Vector3 _Axis, float _Angle);
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
@@ -72,20 +68,21 @@ private:
 		* @Type: #float_poiner.
 		* @brief.Pointer to an array of 16 floats, represent the model matrix.
 	*/
-	float m_ModelMatrix[16];
+	//float m_ModelMatrix[16];
+	Matrix m_ModelMatrix;
 
-	float m_TraslationMatrix[16];
+	Matrix m_TraslationMatrix;
 
-	float m_RotationMatrix[16];
+	Matrix m_RotationMatrix;
 
-	float m_ScaleMatrix[16];
-
-	Quaternion m_Quaternion;
+	Matrix m_ScaleMatrix;
 
 	float m_GuiPos[3]{};
 	float m_GuiRot[3]{ 0.0f, 0.0f, 0.0f};
 	float m_GuiScale[3]{ 1.0f, 1.0f, 1.0f };
 
 	std::string m_Name;
+
+	
 };
 

@@ -499,7 +499,29 @@ void test::Update()
 	GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 
 	CBNeverChanges cbNeverChanges;
-	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->GetViewMatrix());
+	//Matrix ViewMatrix = Matrix::Transpose(m_Camera->m_ViewMatrix);
+	//Matrix ViewMatrix;
+	//ViewMatrix.m_Matrix1D[0] = m_Camera->m_ViewMatrix.m_Matrix1D[0];
+	//ViewMatrix.m_Matrix1D[1] = m_Camera->m_ViewMatrix.m_Matrix1D[4];
+	//ViewMatrix.m_Matrix1D[2] = m_Camera->m_ViewMatrix.m_Matrix1D[8];
+	//ViewMatrix.m_Matrix1D[3] = m_Camera->m_ViewMatrix.m_Matrix1D[12];
+	//
+	//ViewMatrix.m_Matrix1D[4] = m_Camera->m_ViewMatrix.m_Matrix1D[1];
+	//ViewMatrix.m_Matrix1D[5] = m_Camera->m_ViewMatrix.m_Matrix1D[5];
+	//ViewMatrix.m_Matrix1D[6] = m_Camera->m_ViewMatrix.m_Matrix1D[9];
+	//ViewMatrix.m_Matrix1D[7] = m_Camera->m_ViewMatrix.m_Matrix1D[13];
+	//
+	//ViewMatrix.m_Matrix1D[8] = m_Camera->m_ViewMatrix.m_Matrix1D[2];
+	//ViewMatrix.m_Matrix1D[9] = m_Camera->m_ViewMatrix.m_Matrix1D[6];
+	//ViewMatrix.m_Matrix1D[10] = m_Camera->m_ViewMatrix.m_Matrix1D[10];
+	//ViewMatrix.m_Matrix1D[11] = m_Camera->m_ViewMatrix.m_Matrix1D[14];
+	//
+	//ViewMatrix.m_Matrix1D[12] = m_Camera->m_ViewMatrix.m_Matrix1D[3];
+	//ViewMatrix.m_Matrix1D[13] = m_Camera->m_ViewMatrix.m_Matrix1D[7];
+	//ViewMatrix.m_Matrix1D[14] = m_Camera->m_ViewMatrix.m_Matrix1D[11];
+	//ViewMatrix.m_Matrix1D[15] = m_Camera->m_ViewMatrix.m_Matrix1D[15];
+	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->m_ViewMatrix);
+
 	UpdateSubResourceStruct UpdateSBStruct;
 	UpdateSBStruct.pDstResource = g_SimeCBNeverChanges.GetCBNeverChanges();
 	UpdateSBStruct.DstSubresource = 0;
@@ -509,8 +531,30 @@ void test::Update()
 	UpdateSBStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 
+	//Matrix ProjectionMatrix = Matrix::Transpose(m_Camera->m_ProjectionMatrix);
+	//Matrix ProjectionMatrix;
+	//Matrix ProjectionMatrix = Matrix::Transpose(m_Obj.m_Camera->m_ProjectionMatrix);
+	//ProjectionMatrix.m_Matrix1D[0] = m_Camera->m_ProjectionMatrix.m_Matrix1D[0];
+	//ProjectionMatrix.m_Matrix1D[1] = m_Camera->m_ProjectionMatrix.m_Matrix1D[4];
+	//ProjectionMatrix.m_Matrix1D[2] = m_Camera->m_ProjectionMatrix.m_Matrix1D[8];
+	//ProjectionMatrix.m_Matrix1D[3] = m_Camera->m_ProjectionMatrix.m_Matrix1D[12];
+	//
+	//ProjectionMatrix.m_Matrix1D[4] = m_Camera->m_ProjectionMatrix.m_Matrix1D[1];
+	//ProjectionMatrix.m_Matrix1D[5] = m_Camera->m_ProjectionMatrix.m_Matrix1D[5];
+	//ProjectionMatrix.m_Matrix1D[6] = m_Camera->m_ProjectionMatrix.m_Matrix1D[9];
+	//ProjectionMatrix.m_Matrix1D[7] = m_Camera->m_ProjectionMatrix.m_Matrix1D[13];
+	//
+	//ProjectionMatrix.m_Matrix1D[8] = m_Camera->m_ProjectionMatrix.m_Matrix1D[2];
+	//ProjectionMatrix.m_Matrix1D[9] = m_Camera->m_ProjectionMatrix.m_Matrix1D[6];
+	//ProjectionMatrix.m_Matrix1D[10] = m_Camera->m_ProjectionMatrix.m_Matrix1D[10];
+	//ProjectionMatrix.m_Matrix1D[11] = m_Camera->m_ProjectionMatrix.m_Matrix1D[14];
+	//
+	//ProjectionMatrix.m_Matrix1D[12] = m_Camera->m_ProjectionMatrix.m_Matrix1D[3];
+	//ProjectionMatrix.m_Matrix1D[13] = m_Camera->m_ProjectionMatrix.m_Matrix1D[7];
+	//ProjectionMatrix.m_Matrix1D[14] = m_Camera->m_ProjectionMatrix.m_Matrix1D[11];
+	//ProjectionMatrix.m_Matrix1D[15] = m_Camera->m_ProjectionMatrix.m_Matrix1D[15];
 	CBChangeOnResize cbChangesOnResize;
-	cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
+	cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
 	UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 	UpdateSBStruct.pSrcData = &cbChangesOnResize;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
@@ -518,7 +562,7 @@ void test::Update()
 	if (m_IsPerspectiveActive)
 	{
 		CBChangeOnResize cbChangesOnResize;
-		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetPerspectiveProjectionMatrix());
+		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
 		UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 		UpdateSBStruct.pSrcData = &cbChangesOnResize;
 		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
@@ -526,11 +570,12 @@ void test::Update()
 	else
 	{
 		CBChangeOnResize cbChangesOnResize;
-		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->GetOrtographicProjectionMatrix());
+		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
 		UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 		UpdateSBStruct.pSrcData = &cbChangesOnResize;
 		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 	}
+
 #endif
 #if defined(OGL)
 

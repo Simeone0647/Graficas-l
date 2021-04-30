@@ -43,7 +43,6 @@ namespace GraphicsModule
 			* @return..#SwapChain: My SwapChain
 		*/
 		inline SwapChain GetSwapChain() { return m_SwapChain; }
-
 	#if defined(DX11)
 		/*
 			* @Function Name: CreateDeviceAndSwapChain

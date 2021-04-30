@@ -8,7 +8,7 @@
 #include "GraphicModule.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "Windowsx.h"
 #if defined(OGL)
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -34,6 +34,10 @@ GraphicsModule::test m_Obj;
 std::vector<Model> m_vModels;
 int ModelNum = 0;
 static float dir[3]{};
+static double MouseRelativePosition[2]{};
+static double PreviousMouseRelativePosition[2]{};
+static bool OverImGuiWindow = false;
+bool LeftClick = false;
 #endif
 #if defined(OGL)
 bool OnW = false;
@@ -42,12 +46,52 @@ bool OnS = false;
 bool OnD = false;
 bool OnQ = false;
 bool OnE = false;
-
 GLFWwindow* m_OGLWindow; // (En el código que viene aqui, está variable es global)
 #endif
 //-----------------------------------------------------------------------------------------
 
 #if defined(OGL)
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (LeftClick)
+	{
+		if (PreviousMouseRelativePosition[0] < xpos)
+		{
+			m_Obj.m_Camera->RotateCamera(-0.01, 0.0f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (PreviousMouseRelativePosition[0] > xpos)
+		{
+			m_Obj.m_Camera->RotateCamera(0.01, 0.0f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (PreviousMouseRelativePosition[1] < ypos)
+		{
+			m_Obj.m_Camera->RotateCamera(0.0f, -0.01f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (PreviousMouseRelativePosition[1] > ypos)
+		{
+			m_Obj.m_Camera->RotateCamera(0.0f, 0.01f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+	}
+}
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		if (!OverImGuiWindow)
+		{
+			LeftClick = true;
+			glfwGetCursorPos(window, &PreviousMouseRelativePosition[0], &PreviousMouseRelativePosition[1]);
+		}
+	}
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		LeftClick = false;
+	}
+}
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
@@ -176,9 +220,10 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam);
 
+
 LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 {
-	Vector3 cam_pos;
+	Vector3 CamPos;
 	// Handle UI inputs
 	if (ImGui_ImplWin32_WndProcHandler(_hwnd, _msg, _wParam, _lParam))
 		return 1;
@@ -186,12 +231,6 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	// Handle Window inputs
 	switch (_msg)
 	{
-	case WM_SIZE:
-		//if (g_pd3dDevice != NULL && _wParam != SIZE_MINIMIZED)
-		//{
-		//}
-		//return 0;
-		break;
 
 	case WM_SYSCOMMAND:
 		if ((_wParam & 0xfff0) == SC_KEYMENU)
@@ -203,43 +242,171 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-	#if defined(DX11)
+#if defined(DX11)
+	case WM_SIZE:
+	{
+		if (GraphicsModule::GetManagerObj(_hwnd).GetSwapChain().GetDXSC())
+		{
+			//GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+			//ClearDSVStruct.pDepthStencilView = m_Obj.g_SimeDepthStencilView.GetDSV();
+			//ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+			//ClearDSVStruct.Depth = 1.0f;
+			//ClearDSVStruct.Stencil = 0;
+			//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+			HRESULT hr;
+
+			m_Obj.g_SimeRenderTargetView.GetRTV()->Release();
+
+			hr = GraphicsModule::GetManagerObj(_hwnd).GetSwapChain().GetDXSC()->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().COMSetRenderTargets(0, 0, 0);
+
+
+			// Release all outstanding references to the swap chain's buffers.
+
+
+
+			// Preserve the existing buffer count and format.
+			// Automatically choose the width and height to match the client rect for HWNDs.
+
+
+			// Perform error handling here!
+
+			// Get buffer and create a render-target-view.
+			ID3D11Texture2D* pBuffer;
+			hr = GraphicsModule::GetManagerObj(_hwnd).GetSwapChain().CGetBuffer(0, __uuidof(ID3D11Texture2D),(void**)&pBuffer);
+			// Perform error handling here!
+
+			hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateRenderTargetView(pBuffer, NULL, m_Obj.g_SimeRenderTargetView.GetRTVAdress());
+
+			// Perform error handling here!
+			pBuffer->Release();
+
+			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().COMSetRenderTargets(1, m_Obj.g_SimeRenderTargetView.GetRTVAdress(), NULL);
+
+			// Set up the viewport.
+			RECT rc;
+			UINT width;
+			UINT height;
+			GetClientRect(_hwnd, &rc);
+			width = rc.right - rc.left;
+			height = rc.bottom - rc.top;
+
+			GraphicsModule::InitViewportStruct InitVPStruct;
+			InitVPStruct.Width = width;
+			InitVPStruct.Height = height;
+			InitVPStruct.MinDepth = 0.0f;
+			InitVPStruct.MaxDepth = 1.0f;
+			InitVPStruct.TopLeftX = 0;
+			InitVPStruct.TopLeftY = 0;
+
+			GraphicsModule::UpdateProjectionMatrixStruct PMStruct;
+			PMStruct.AngleY = SIME_PIDIV4;
+			PMStruct.Ratio = width / (FLOAT)height;
+			PMStruct.NearPlane = 0.01f;
+			PMStruct.FarPlane = 1000.0f;
+			PMStruct.Width = width;
+			PMStruct.Height = height;
+
+			m_Obj.m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
+			m_Obj.m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
+
+			m_Obj.g_SimeViewport.InitViewport(InitVPStruct);
+			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetViewports(1, m_Obj.g_SimeViewport.GetViewportAddress());
+
+			GraphicsModule::UpdateSubResourceStruct UpdateSBStruct;
+			UpdateSBStruct.DstSubresource = 0;
+			UpdateSBStruct.pDstBox = NULL;
+			UpdateSBStruct.SrcRowPitch = 0;
+			UpdateSBStruct.SrcDepthPitch = 0;
+			
+			GraphicsModule::CBChangeOnResize cbChangesOnResize;
+			//Matrix ProjectionMatrix;
+			//Matrix ProjectionMatrix = Matrix::Transpose(m_Obj.m_Camera->m_ProjectionMatrix);
+			//ProjectionMatrix.m_Matrix1D[0] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[0];
+			//ProjectionMatrix.m_Matrix1D[1] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[4];
+			//ProjectionMatrix.m_Matrix1D[2] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[8];
+			//ProjectionMatrix.m_Matrix1D[3] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[12];
+			//
+			//ProjectionMatrix.m_Matrix1D[4] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[1];
+			//ProjectionMatrix.m_Matrix1D[5] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[5];
+			//ProjectionMatrix.m_Matrix1D[6] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[9];
+			//ProjectionMatrix.m_Matrix1D[7] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[13];
+			//
+			//ProjectionMatrix.m_Matrix1D[8] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[2];
+			//ProjectionMatrix.m_Matrix1D[9] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[6];
+			//ProjectionMatrix.m_Matrix1D[10] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[10];
+			//ProjectionMatrix.m_Matrix1D[11] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[14];
+			//
+			//ProjectionMatrix.m_Matrix1D[12] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[3];
+			//ProjectionMatrix.m_Matrix1D[13] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[7];
+			//ProjectionMatrix.m_Matrix1D[14] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[11];
+			//ProjectionMatrix.m_Matrix1D[15] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[15];
+
+			//cbChangesOnResize.mProjection = ProjectionMatrix.m_Matrix1D;
+			cbChangesOnResize.mProjection = XMMatrixTranspose(m_Obj.m_Camera->m_ProjectionMatrix);
+			UpdateSBStruct.pDstResource = m_Obj.g_SimeCBChangeOnResize.GetCBChangesOnResize();
+			UpdateSBStruct.pSrcData = &cbChangesOnResize;
+			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
+		}
+	break;
+	}
+
 	case WM_KEYDOWN:
 	{
 		if (LOWORD(_wParam) == 'W')
 		{
-			cam_pos.SetValues(0.0f, 0.1f, 0.0f);
-			m_Obj.m_Camera->MoveCamera(cam_pos);
+			CamPos.m_X = 0.0f;
+			CamPos.m_Y = 0.1f;
+			CamPos.m_Z = 0.0f;
+			//cam_pos.SetValues(0.0f, 0.1f, 0.0f);
+			m_Obj.m_Camera->MoveCamera(CamPos);
 			m_Obj.m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'A')
 		{
-			cam_pos.SetValues(-0.1f, 0.0f, 0.0f);
-			m_Obj.m_Camera->MoveCamera(cam_pos);
+			//cam_pos.SetValues(-0.1f, 0.0f, 0.0f);
+			CamPos.m_X = -0.1f;
+			CamPos.m_Y = 0.0f;
+			CamPos.m_Z = 0.0f;
+
+			m_Obj.m_Camera->MoveCamera(CamPos);
 			m_Obj.m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'S')
 		{
-			cam_pos.SetValues(0.0f, -0.1f, 0.0f);
-			m_Obj.m_Camera->MoveCamera(cam_pos);
+			//cam_pos.SetValues(0.0f, -0.1f, 0.0f);
+			CamPos.m_X = 0.0f;
+			CamPos.m_Y = -0.1f;
+			CamPos.m_Z = 0.0f;
+			m_Obj.m_Camera->MoveCamera(CamPos);
 			m_Obj.m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'D')
 		{
-			cam_pos.SetValues(0.1f, 0.0f, 0.0f);
-			m_Obj.m_Camera->MoveCamera(cam_pos);
+			//cam_pos.SetValues(0.1f, 0.0f, 0.0f);
+			CamPos.m_X = 0.1f;
+			CamPos.m_Y = 0.0f;
+			CamPos.m_Z = 0.0f;
+			m_Obj.m_Camera->MoveCamera(CamPos);
 			m_Obj.m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'Q')
 		{
-			cam_pos.SetValues(0.0f, 0.0f, 0.1f);
-			m_Obj.m_Camera->MoveCamera(cam_pos);
+			//cam_pos.SetValues(0.0f, 0.0f, 0.1f);
+			CamPos.m_X = 0.0f;
+			CamPos.m_Y = 0.0f;
+			CamPos.m_Z = 0.1f;
+			m_Obj.m_Camera->MoveCamera(CamPos);
 			m_Obj.m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'E')
 		{
-			cam_pos.SetValues(0.0f, 0.0f, -0.1f);
-			m_Obj.m_Camera->MoveCamera(cam_pos);
+			//cam_pos.SetValues(0.0f, 0.0f, -0.1f);
+			CamPos.m_X = 0.0f;
+			CamPos.m_Y = 0.0f;
+			CamPos.m_Z = -0.1f;
+			m_Obj.m_Camera->MoveCamera(CamPos);
 			m_Obj.m_Camera->UpdateViewMatrix();
 		}
 		if (_wParam == VK_TAB)
@@ -258,18 +425,54 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 		break;
 	}
 
-	//case WM_LBUTTONDOWN:
-	//{
-	//	m_Obj.m_IsFirstFrame = true;
-	//	break;
-	//}
-	//
-	//case WM_LBUTTONUP:
-	//	m_Obj.m_IsFirstFrame = false;
-	//	break;
-#endif
+	case WM_LBUTTONDOWN:
+	{
+		//m_Obj.m_IsFirstFrame = true;
+		if (!OverImGuiWindow)
+		{
+			LeftClick = true;
+			//		
+			//glfwGetCursorPos(window, &PreviousMouseRelativePosition[0], &PreviousMouseRelativePosition[1]);
+		}
+		break;
 	}
-	
+	//
+	case WM_LBUTTONUP:
+	{
+		//m_Obj.m_IsFirstFrame = false;
+		LeftClick = false;
+		break;
+	}
+
+	}
+	if (LeftClick)
+	{ 
+		float xPos = GET_X_LPARAM(_lParam);
+		float yPos = GET_Y_LPARAM(_lParam);
+		//std::cout << "Pos en window callback:" + to_string(xPos) + ", " + to_string(yPos)<< std::endl;
+		if (PreviousMouseRelativePosition[0] < xPos)
+		{
+			//std::cout << "Esta avanzando" << std::endl;
+			m_Obj.m_Camera->RotateCamera(-0.01, 0.0f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (PreviousMouseRelativePosition[0] > xPos)
+		{
+			m_Obj.m_Camera->RotateCamera(0.01, 0.0f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (PreviousMouseRelativePosition[1] < yPos)
+		{
+			m_Obj.m_Camera->RotateCamera(0.0f, -0.01f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+		if (PreviousMouseRelativePosition[1] > yPos)
+		{
+			m_Obj.m_Camera->RotateCamera(0.0f, 0.01f, 0.0f);
+			m_Obj.m_Camera->UpdateViewMatrix();
+		}
+	#endif
+	}
 	return ::DefWindowProc(_hwnd, _msg, _wParam, _lParam);
 }
 
@@ -334,13 +537,15 @@ HRESULT InitImgUI()
 #endif
 
 	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
+	ImGui::StyleColorsClassic();
 
 	// Setup Platform/Renderer back ends
 	ImGui_ImplWin32_Init(g_hwnd);
 #if defined(DX11)
 	ImGui_ImplDX11_Init(GraphicsModule::GetManagerObj(g_hwnd).GetDevice().GetDXDevice(), GraphicsModule::GetManagerObj(g_hwnd).GetDeviceContext().GetDXDC());
 #endif
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.FrameRounding = 7.0f;
 	return S_OK;
 }
 #if defined(DX11) || defined(OGL)
@@ -524,7 +729,7 @@ void ShowMeshesMenu(const unsigned int _i)
 	{
 		if (ImGui::CollapsingHeader(m_vModels[_i].GetMeshes()[j].GetName().c_str()))
 		{
-			if (ImGui::CollapsingHeader("Textures"))
+			if (ImGui::TreeNode("Textures"))
 			{
 				float TextureWidth = 256;
 				float TextureHeight = 256;
@@ -540,6 +745,7 @@ void ShowMeshesMenu(const unsigned int _i)
 				ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 				ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
 				ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
+				ImGui::TreePop();
 			}
 		}
 	}
@@ -561,9 +767,72 @@ void UpdateTransformMenu(const unsigned int _i)
 	}
 }
 
+void DisplayModelsMenu()
+{
+	for (unsigned int i = 0; i < m_vModels.size(); ++i)
+	{
+
+		if (ImGui::TreeNode(m_vModels[i].GetName().c_str()))
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled("(?)");
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 8);
+				std::string MeshNumText = "Meshes:" + to_string(m_vModels[i].GetMeshNum());
+				ImGui::TextUnformatted(&MeshNumText[0]);
+				ImGui::PopTextWrapPos();
+				ImGui::EndTooltip();
+			}
+			ImGui::Separator();
+			if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+			{
+				if (ImGui::BeginTabItem("Transform"))
+				{
+					UpdateTransformMenu(i);
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("Meshes"))
+				{
+					ShowMeshesMenu(i);
+					ImGui::EndTabItem();
+				}
+				ImGui::EndTabBar();
+			}
+			ImGui::TreePop();
+		}
+
+		else
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled("(?)");
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20);
+				std::string MeshNumText = "Meshes:" + to_string(m_vModels[i].GetMeshNum());
+				ImGui::TextUnformatted(&MeshNumText[0]);
+				ImGui::PopTextWrapPos();
+				ImGui::EndTooltip();
+			}
+		}
+
+		ImGui::Separator();
+	}
+}
+
 void UIRender()
 {
 	// Start the Dear ImGui frame
+	if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+	{
+		OverImGuiWindow = true;
+	}
+	else
+	{
+		OverImGuiWindow = false;
+	}
 #if defined(DX11)
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -574,7 +843,7 @@ void UIRender()
 #endif
 	ImGui::NewFrame();
 
-	ImGui::Begin("Model Configuration", NULL, ImGuiWindowFlags_MenuBar);
+	ImGui::Begin("Configuration", NULL, ImGuiWindowFlags_MenuBar);
 
 	if (ImGui::BeginMenuBar())
 	{
@@ -585,19 +854,10 @@ void UIRender()
 		}
 		ImGui::EndMenuBar();
 	}
-	for (unsigned int i = 0; i < m_vModels.size(); ++i)
+
+	if (ImGui::CollapsingHeader("Models"))
 	{
-		if (ImGui::CollapsingHeader(m_vModels[i].GetName().c_str()))
-		{
-			if (ImGui::CollapsingHeader("Transform"))
-			{
-				UpdateTransformMenu(i);
-			}
-			if (ImGui::CollapsingHeader("Meshes"))
-			{
-				ShowMeshesMenu(i);
-			}
-		}
+		DisplayModelsMenu();
 	}
 	ImGui::End();
 
@@ -618,7 +878,6 @@ void UIRender()
 		}
 	}
 	ImGui::End();
-	//ImGui::ShowDemoWindow();
 	// render UI
 	ImGui::Render();
 #if defined(DX11)
@@ -632,6 +891,20 @@ void UIRender()
 
 void Update()
 {
+	if(LeftClick)
+	{
+	#if defined(OGL)
+		glfwGetCursorPos(m_OGLWindow, &PreviousMouseRelativePosition[0], &PreviousMouseRelativePosition[1]);
+	#endif
+	#if defined(DX11)
+		LPPOINT Direction = new POINT;
+		GetCursorPos(Direction);
+		ScreenToClient(g_hwnd, Direction);
+		PreviousMouseRelativePosition[0] = Direction->x;
+		PreviousMouseRelativePosition[1] = Direction->y;
+		//std::cout << "Pos en update:" + to_string(PreviousMouseRelativePosition[0]) + ", " + to_string(PreviousMouseRelativePosition[1]) << std::endl;
+	#endif
+	}
 #if defined(DX11)
 	for (int i = 0; i < m_vModels.size(); ++i)
 	{
@@ -801,7 +1074,10 @@ int main()
 		return -1;
 	}
 
-	glfwSetInputMode(m_OGLWindow, GLFW_STICKY_KEYS, GL_TRUE);
+	//glfwSetInputMode(m_OGLWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(m_OGLWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	//glfwSetInputMode(m_OGLWindow, GLFW_STICKY_KEYS, GL_TRUE);
+	glfwSetInputMode(m_OGLWindow, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 
 	if (FAILED(m_Obj.InitDevice(g_hwnd)))
 	{
@@ -819,7 +1095,8 @@ int main()
 
 	glViewport(0, 0, 1024, 768);
 	glfwSetFramebufferSizeCallback(m_OGLWindow, framebuffer_size_callback);
-
+	glfwSetMouseButtonCallback(m_OGLWindow, mouse_button_callback);
+	glfwSetCursorPosCallback(m_OGLWindow, cursor_position_callback);
 	glfwSetKeyCallback(m_OGLWindow, KeyCallback);
 
 	FreeImage_Initialise();

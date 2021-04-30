@@ -410,6 +410,7 @@ namespace GraphicsModule
 	{
 	#if defined(DX11)
 		XMMATRIX mView;
+		//Matrix mView;
 	#endif
 	};
 
@@ -417,16 +418,17 @@ namespace GraphicsModule
 	{
 	#if defined(DX11)
 		XMMATRIX mProjection;
+		//Matrix mProjection;
 	#endif
 	};
 
-	struct CBChangesEveryFrame
-	{
-	#if defined(DX11)
-		XMMATRIX mWorld;
-		XMFLOAT4 vMeshColor;
-	#endif
-	};
+	//struct CBChangesEveryFrame
+	//{
+	//#if defined(DX11)
+	//	XMMATRIX mWorld;
+	//	XMFLOAT4 vMeshColor;
+	//#endif
+	//};
 
 	struct CreateDevAndSCDesc
 	{

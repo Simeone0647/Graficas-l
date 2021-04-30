@@ -6,34 +6,8 @@ class Vector3
 public:
 
 	Vector3();
-	Vector3(float x, float y, float z);
+	Vector3(float _X, float _Y, float _Z);
 	~Vector3();
-
-	/*
-		* @Function Name: GetX
-		* @brief...This function will return the vector X value.
-		* @bug.....No known bugs.
-		* @return #float: Vector X value.
-	*/
-	inline float GetX() { return m_PosX; }
-
-	/*
-		* @Function Name: GetY
-		* @brief...This function will return the vector Y value.
-		* @bug.....No known bugs.
-		* @return #float: Vector X value.
-	*/
-	inline float GetY() { return m_PosY; }
-
-	/*
-		* @Function Name: GetZ
-		* @brief...This function will return the vector Z value.
-		* @bug.....No known bugs.
-		* @return #float: Vector X value.
-	*/
-	inline float GetZ() { return m_PosZ; }
-
-	inline float GetA() { return m_A; }
 
 	/*
 		* @Function Name: Normalize
@@ -42,7 +16,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#CVector3: The normalized vector.
 	*/
-	static Vector3 Normalize(Vector3& v);
+	static Vector3 Normalize(Vector3& _Vector);
 
 	/*
 		* @Function Name: CrossProduct
@@ -52,7 +26,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#CVector3: The cross product of first param and second param.
 	*/
-	static Vector3 CrossProduct(Vector3& v1, Vector3& v2);
+	static Vector3 CrossProduct(Vector3& _V1, Vector3& _V2);
 
 	/*
 		* @Function Name: DotProduct
@@ -62,55 +36,32 @@ public:
 		* @bug.....No known bugs.
 		* @return..#float: The dot product (scalar) of param one and param two.
 	*/
-	static float DotProduct(Vector3& v1, Vector3& v2);
+	static float DotProduct(Vector3& _V1, Vector3& _V2);
+
+	Vector3 operator-(const Vector3& _Vector);
+
+//private:
 
 	/*
-		* @Function Name: GetValues
-		* @brief...This function will return the vector.
-		* @bug.....No known bugs.
-		* @return #CVector3: The created vector.
-	*/
-	inline Vector3 GetValues() { return Vector3(GetX(), GetY(), GetZ()); }
-
-	/*
-		* @Function Name: SetValues
-		* @brief...This function will set the vector values.
-		* @param...#float: Vector X new value.
-		* @param...#float: Vector Y new value.
-		* @param...#float: Vector Z new value.
-		* @bug.....No known bugs.
-	*/
-	inline void SetValues(float x, float y, float z) { m_PosX = x; m_PosY = y; m_PosZ = z; }
-
-	Vector3 operator-(const Vector3& v)
-	{
-		Vector3 vec;
-		vec.SetValues(this->GetX() - v.m_PosX, this->GetY() - v.m_PosY, this->GetZ() - v.m_PosZ);
-		return vec;
-	}
-
-private:
-
-	/*
-		* @Variable Name: m_PosX.
+		* @Variable Name: m_X.
 		* @Type: #float.
 		* @brief...Will represent the vector X component.
 	*/
-	float m_PosX;
+	float m_X;
 
 	/*
-		* @Variable Name: m_PosY.
+		* @Variable Name: m_Y.
 		* @Type: #float.
 		* @brief...Will represent the vector Y component.
 	*/
-	float m_PosY;
+	float m_Y;
 
 	/*
-		* @Variable Name: m_PosZ.
+		* @Variable Name: m_Z.
 		* @Type: #float.
 		* @brief...Will represent the vector Z component.
 	*/
-	float m_PosZ;
+	float m_Z;
 
 	float m_A;
 

@@ -3,11 +3,11 @@
 Mesh::Mesh() : m_NumOfVertex{ 0 }, m_NumOfVertexIndex{ 0 }, m_ShowTexture{ false }
 {
 
-	Matrix::SetIdentity(m_ModelMatrix);
-	Matrix::SetIdentity(m_TraslationMatrix);
-	Matrix::SetIdentity(m_RotationMatrix);
-	Matrix::SetIdentity(m_ScaleMatrix);
-	Matrix::SetIdentity(m_MVP);
+	//Matrix::SetIdentity(m_ModelMatrix);
+	//Matrix::SetIdentity(m_TraslationMatrix);
+	//Matrix::SetIdentity(m_RotationMatrix);
+	//Matrix::SetIdentity(m_ScaleMatrix);
+	//Matrix::SetIdentity(m_MVP);
 
 	m_MeshColor[0] = 0.0f;
 	m_MeshColor[1] = 0.0f;
@@ -26,11 +26,11 @@ Mesh::Mesh(std::vector<Vertex> _MeshVertex, std::vector<unsigned int> _MeshIndic
 	//{ 
 	//	std::cout << m_Filename[0] << std::endl;
 	//}
-	Matrix::SetIdentity(m_ModelMatrix);
-	Matrix::SetIdentity(m_TraslationMatrix);
-	Matrix::SetIdentity(m_RotationMatrix);
-	Matrix::SetIdentity(m_ScaleMatrix);
-	Matrix::SetIdentity(m_MVP);
+	//Matrix::SetIdentity(m_ModelMatrix);
+	//Matrix::SetIdentity(m_TraslationMatrix);
+	//Matrix::SetIdentity(m_RotationMatrix);
+	//Matrix::SetIdentity(m_ScaleMatrix);
+	//Matrix::SetIdentity(m_MVP);
 
 	m_MeshColor[0] = 0.0f;
 	m_MeshColor[1] = 0.0f;
@@ -53,60 +53,11 @@ Mesh::~Mesh()
 
 }
 
-void Mesh::SetVertex(Vertex* figure, int numofvertex)
-{
-	//if (m_Vertex != nullptr)
-	//{
-	//	delete[] m_Vertex;
-	//}
-	//
-	//m_Vertex = new Vertex[numofvertex];
-	//memcpy(m_Vertex, figure, sizeof(figure[0]) * numofvertex);
-}
-
-void Mesh::SetVertexIndex(unsigned int* vertexindexarr, int numofvertexindex)
-{
-	//if (m_VertexIndex != nullptr)
-	//{
-	//	delete[] m_VertexIndex;
-	//}
-	//
-	//m_VertexIndex = new unsigned int[numofvertexindex];
-	//memcpy(m_VertexIndex, vertexindexarr, sizeof(vertexindexarr[0]) * numofvertexindex);
-}
-
 void Mesh::Update()
 {
 #if defined(DX11)
-
-	for (unsigned int i = 0; i < 16; ++i)
-	{
-		m_cb.mWorld[i] = m_ModelMatrix[i];
-	}
-
-	m_cb.mWorld[0] = m_ModelMatrix[0];
-	m_cb.mWorld[1] = m_ModelMatrix[4];
-	m_cb.mWorld[2] = m_ModelMatrix[8];
-	m_cb.mWorld[3] = m_ModelMatrix[12];
-						
-	m_cb.mWorld[4] = m_ModelMatrix[1];
-	m_cb.mWorld[5] = m_ModelMatrix[5];
-	m_cb.mWorld[6] = m_ModelMatrix[9];
-	m_cb.mWorld[7] = m_ModelMatrix[13];
-						
-	m_cb.mWorld[8] = m_ModelMatrix[2];
-	m_cb.mWorld[9] = m_ModelMatrix[6];
-	m_cb.mWorld[10] = m_ModelMatrix[10];
-	m_cb.mWorld[11] = m_ModelMatrix[14];
-	
-	m_cb.mWorld[12] = m_ModelMatrix[3];
-	m_cb.mWorld[13] = m_ModelMatrix[7];
-	m_cb.mWorld[14] = m_ModelMatrix[11];
-	m_cb.mWorld[15] = m_ModelMatrix[15];
-	
-	m_cb.vMeshColor[0] = m_ModelMatrix[0];
-	m_cb.vMeshColor[1] = m_ModelMatrix[1];
-	m_cb.vMeshColor[2] = m_ModelMatrix[2];
+	m_cb.mWorld = Matrix::Transpose(m_ModelMatrix);
+	//m_cb.mWorld = m_ModelMatrix;
 #endif
 #if defined(OGL)
 

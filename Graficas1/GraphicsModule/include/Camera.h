@@ -1,8 +1,10 @@
 #pragma once
 #include "Vector3.h"
+#include "Matrix.h"
 #include <windows.h>
 #include <iostream>
-
+#define _USE_MATH_DEFINES
+#include <math.h>
 using namespace std;
 
 namespace GraphicsModule
@@ -25,7 +27,7 @@ public:
 		* @param...#float: Eye's Z value.
 		* @bug.....No known bugs.
 	*/
-	inline void SetEye(float eye_x, float eye_y, float eye_z) { m_Eye.SetValues(eye_x, eye_y, eye_z); }
+	inline void SetEye(float _X, float _Y, float _Z) { m_Eye.m_X = _X; m_Eye.m_Y = _Y; m_Eye.m_Z = _Z;; }
 
 	/*
 		* @Function Name: GetEye
@@ -43,7 +45,7 @@ public:
 		* @param...#float: Eye's Z value.
 		* @bug.....No known bugs.
 	*/
-	inline void SetAt(float at_x, float at_y, float at_z) { m_At.SetValues(at_x, at_y, at_z); }
+	inline void SetAt(float _X, float _Y, float _Z) { m_At.m_X = _X; m_At.m_Y = _Y; m_At.m_Z = _Z; }
 
 	/*
 		* @Function Name: GetAt
@@ -61,7 +63,7 @@ public:
 		* @param...#float: Eye's Z value.
 		* @bug.....No known bugs.
 	*/
-	inline void SetUp(float up_x, float up_y, float up_z) { m_Up.SetValues(up_x, up_y, up_z); }
+	inline void SetUp(float _X, float _Y, float _Z) { m_Up.m_X = _X; m_Up.m_Y = _Y; m_Up.m_Z = _Z; }
 
 	/*
 		* @Function Name: GetUp
@@ -77,7 +79,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#float_pointer: A pointer to an array of sixteen floats.  
 	*/
-	inline float* GetViewMatrix() { return m_ViewMatrix; }
+	//inline float* GetViewMatrix() { return m_ViewMatrix; }
 
 	/*
 		* @Function Name: UpdateViewMatrix
@@ -92,7 +94,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#float_pointer: A pointer to an array of sixteen floats.
 	*/
-	inline float* GetPerspectiveProjectionMatrix() { return m_ProjectionMatrix; }
+	//inline float* GetPerspectiveProjectionMatrix() { return m_ProjectionMatrix; }
 
 	/*
 		* @Function Name: UpdatePerspectiveProjectionMatrix
@@ -105,13 +107,6 @@ public:
 	*/
 	void UpdatePerspectiveProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct);
 
-	/*
-		* @Function Name: GetOrtographicProjectionMatrix
-		* @brief...This function will return the camera's ortographic projection matrix.
-		* @bug.....No known bugs.
-		* @return..#float_pointer: A pointer to an array of sixteen floats.
-	*/
-	inline float* GetOrtographicProjectionMatrix() { return m_ProjectionMatrix; }
 
 	/*
 		* @Function Name: UpdateOrtographicProjectionMatrix
@@ -138,8 +133,8 @@ public:
 		* @param...#CVector3&: The vector that will be sumed or rested to the camera's at.
 		* @bug.....No known bugs.
 	*/
-	void RotateCamera(Vector3& mov);
-private:
+	void RotateCamera(const float _x, const float _y, const float _z);
+//private:
 
 	/*	
 		* @Variable Name: m_Eye
