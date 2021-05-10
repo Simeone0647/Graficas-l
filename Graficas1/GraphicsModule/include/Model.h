@@ -11,13 +11,13 @@ public:
 	Model();
 	~Model();
 
-	inline void AddMesh(Mesh _Mesh) { m_Meshes.push_back(_Mesh); }
+	inline void AddMesh(Mesh _Mesh) { m_vMeshes.push_back(_Mesh); }
 
 	void SetUpModel(HWND _hwnd);
 
-	inline void SetMeshNum(const unsigned int _Num) { m_MeshNum = _Num; }
+	inline void SetMeshNum(const unsigned int _Num) { m_MeshesNum = _Num; }
 
-	inline unsigned int GetMeshNum() { return m_MeshNum; }
+	inline unsigned int GetMeshNum() { return m_MeshesNum; }
 
 	inline void SetName(std::string _Name) { m_Name = _Name; }
 
@@ -37,8 +37,6 @@ public:
 
 	inline float* GetGuiScale() { return m_GuiScale; }
 
-	void UpdateModelMatrix();
-
 	void UpdateTranslationMatrix(const float _x, const float _y, const float _z);
 
 	void UpdateRotationMatrix(const float _x, const float _y, const float _z);
@@ -49,19 +47,20 @@ public:
 
 	void Render(HWND _hwnd);
 
-	std::vector<Mesh> GetMeshes() { return m_Meshes; }
+	std::vector<Mesh> GetMeshes() { return m_vMeshes; }
+
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
 private:
 
-	std::vector<VertexBuffer> m_vModelVB;
+	std::vector<VertexBuffer> m_vModelVBs;
 
-	std::vector<IndexBuffer> m_vModelIB;
+	std::vector<IndexBuffer> m_vModelIBs;
 
-	std::vector<Mesh> m_Meshes;
+	std::vector<Mesh> m_vMeshes;
 
-	int m_MeshNum;
+	int m_MeshesNum;
 
 	/*
 		* @Variable Name: m_ModelMatrix.

@@ -1,11 +1,7 @@
 #include "Model.h"
 
-Model::Model() : m_MeshNum{ 0 }, m_Name{ "" }
+Model::Model() : m_MeshesNum{ 0 }, m_Name{ "" }
 {
-	//Matrix::SetIdentity(m_ModelMatrix);
-	//Matrix::SetIdentity(m_TraslationMatrix);
-	//Matrix::SetIdentity(m_RotationMatrix);
-	//Matrix::SetIdentity(m_ScaleMatrix);
 }
 
 Model::~Model()
@@ -15,28 +11,16 @@ Model::~Model()
 
 void Model::SetUpModel(HWND _hwnd)
 {
-	for (int i = 0; i < m_MeshNum; i++)
+	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
-		m_vModelVB.push_back(VertexBuffer());
-		m_vModelIB.push_back(IndexBuffer());
-		m_Meshes[i].SetUpMesh(m_vModelVB[i], m_vModelIB[i], _hwnd);
-	}
-}
-
-void Model::UpdateModelMatrix()
-{
-	for (int i = 0; i < m_MeshNum; i++)
-	{
-		m_Meshes[i].SetModelMatrix(m_ModelMatrix);
-		//Matrix::Copy(m_ModelMatrix, m_Meshes[i].GetModelMatrix());
+		m_vModelVBs.push_back(VertexBuffer());
+		m_vModelIBs.push_back(IndexBuffer());
+		m_vMeshes[i].SetUpMesh(m_vModelVBs[i], m_vModelIBs[i], _hwnd);
 	}
 }
 
 void Model::UpdateTranslationMatrix(const float _x, const float _y, const float _z)
 {
-	//m_TraslationMatrix[12] = _x;
-	//m_TraslationMatrix[13] = _y;
-	//m_TraslationMatrix[14] = _z;
 	m_TraslationMatrix.m_Matrix[3][0] = _x;
 	m_TraslationMatrix.m_Matrix[3][1] = _y;
 	m_TraslationMatrix.m_Matrix[3][2] = _z;
@@ -82,9 +66,6 @@ void Model::UpdateRotationMatrix(const float _x, const float _y, const float _z)
 
 void Model::UpdateScaleMatrix(const float _x, const float _y, const float _z)
 {
-	//m_ScaleMatrix[0] = _x;
-	//m_ScaleMatrix[5] = _y;
-	//m_ScaleMatrix[10] = _z;
 	m_ScaleMatrix.m_Matrix[0][0] = _x;
 	m_ScaleMatrix.m_Matrix[1][1] = _y;
 	m_ScaleMatrix.m_Matrix[2][2] = _z;
@@ -92,56 +73,49 @@ void Model::UpdateScaleMatrix(const float _x, const float _y, const float _z)
 
 void Model::Update(GraphicsModule::test& _obj, HWND _hwnd)
 {
-	Matrix RT;
+	Matrix SR;
+
+	SR = m_ScaleMatrix * m_RotationMatrix;
+	m_ModelMatrix = SR * m_TraslationMatrix;
+	#if defined(OGL)
 	Matrix MV;
 	Matrix MVP;
-
-	//Matrix::Multiplication(m_ScaleMatrix, m_RotationMatrix, RT);
-	//Matrix::Multiplication(RT, m_TraslationMatrix, m_ModelMatrix);
-	RT = m_ScaleMatrix * m_RotationMatrix;
-	m_ModelMatrix = RT * m_TraslationMatrix;
-	#if defined(OGL)
-	Matrix::Multiplication(m_ModelMatrix, _obj.m_Camera->GetViewMatrix(), MV);
-	Matrix::Multiplication(MV, _obj.m_Camera->GetPerspectiveProjectionMatrix(), MVP);
-	for (int i = 0; i < m_MeshNum; i++)
+	MV = m_ModelMatrix * _obj.m_Camera->m_ViewMatrix;
+	MVP = MV * _obj.m_Camera->m_ProjectionMatrix;
+	for (int i = 0; i < m_MeshesNum; i++)
 	{
-		Matrix::Copy(MVP, m_Meshes[i].GetMVPMatrix());
+		m_vMeshes[i].SetModelMatrix(m_ModelMatrix);
+		m_vMeshes[i].SetMVPMatrix(MVP);
 	}
 	#endif
 	#if defined(DX11)
-	for (int i = 0; i < m_MeshNum; i++)
+	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
-		m_Meshes[i].SetModelMatrix(m_ModelMatrix);
-		//Matrix::Copy(m_ModelMatrix, m_Meshes[i].GetModelMatrix());
+		m_vMeshes[i].SetModelMatrix(m_ModelMatrix);
 	}
 	#endif
 
-	for (int i = 0; i < m_MeshNum; i++)
+	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
-		m_Meshes[i].Update();
+		m_vMeshes[i].Update();
 	}
 }
 
 void Model::Render(HWND _hwnd)
 {
-	for (int i = 0; i < m_MeshNum; i++)
+	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
-		m_Meshes[i].Render(m_vModelVB[i], m_vModelIB[i], _hwnd);
+		m_vMeshes[i].Render(m_vModelVBs[i], m_vModelIBs[i], _hwnd);
 	}
 }
-
-//void Model::SetQuaternionValues(Vector3 _Axis, float _Angle)
-//{
-//	m_Quaternion.SetValues(_Axis, _Angle);
-//}
 
 #if defined(DX11)
 
 void Model::CleanUpDXResources()
 {
-	for (int i = 0; i < m_MeshNum; i++)
+	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
-		m_Meshes[i].CleanUpDXResources();
+		m_vMeshes[i].CleanUpDXResources();
 	}
 }
 #endif

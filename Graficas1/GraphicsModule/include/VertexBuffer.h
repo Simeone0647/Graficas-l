@@ -60,11 +60,23 @@ public:
 	*/
 	inline D3D11_SUBRESOURCE_DATA* GetInitDataAddress() { return &m_InitData; }
 #endif
+#if defined(OGL)
+	inline unsigned int* GetVAOAddress() { return &m_VAO; }
+	inline unsigned int GetVAO() { return m_VAO; }
+
+	inline unsigned int* GetVBOAddress() { return &m_VBO; }
+	inline unsigned int GetVBO() { return m_VBO; }
+#endif
 private:
 #if defined(DX11)
 	ID3D11Buffer* m_pVertexBuffer;
 	D3D11_BUFFER_DESC m_BD;
 	D3D11_SUBRESOURCE_DATA m_InitData;
+#endif
+#if defined(OGL)
+	unsigned int m_VAO;
+
+	unsigned int m_VBO;
 #endif
 };
 

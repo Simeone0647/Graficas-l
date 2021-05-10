@@ -7,19 +7,28 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+
+enum LoadTypes
+{
+	LoadTriangles = 0,
+	LoadPoints,
+	LoadRGBA,
+	LoadBGRA
+};
+
+#if defined(DX11)
 struct CBChangesEveryFrame
 {
 	Matrix mWorld;
 	float vMeshColor[4];
 };
+#endif
 
 class Mesh
 {
 public:
 
-	Mesh();
-	Mesh(std::vector<Vertex> _MeshVertex, std::vector<unsigned int> _MeshIndices, std::vector<std::string> _Filename, unsigned int _VertexNum, bool _LoadRGBA, bool _LoadBGRA,
-		bool _LoadTriangles, bool _LoadPoints, std::string _Name, unsigned int _ShaderID);
+	Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name, unsigned int _ShaderID);
 	~Mesh();
 
 	/*
@@ -28,7 +37,7 @@ public:
 		* @bug.....No known bugs.
 		* @return #CVertex_Pointer: Pointer to the vertex array.
 	*/
-	inline std::vector<Vertex> GetVertex() { return m_Vertex; }
+	inline std::vector<Vertex> GetVertex() { return m_vVertex; }
 
 	/*
 		* @Function Name: GetVertexIndex
@@ -36,45 +45,35 @@ public:
 		* @bug.....No known bugs.
 		* @return #unsigned_short_pointer: Pointer to the vertex index array.
 	*/
-	inline std::vector<unsigned int> GetVertexIndex() {return m_VertexIndex;}
-
-	/*
-		* @Function Name: GetWorldMatrix
-		* @brief...This function will return the mesh world matrix.
-		* @bug.....No known bugs.
-		* @return..#float_pointer: Pointer to an sixteen elements array.
-	*/
-	inline Matrix GetModelMatrix() { return m_ModelMatrix; }
-	 
-	inline Matrix GetTranslationMatrix() { return m_TraslationMatrix; }
-	
-	inline Matrix GetScaleMatrix() { return m_ScaleMatrix; }
-	
-	inline Matrix GetRotationMatrix() { return m_RotationMatrix; }
-	
-	inline Matrix GetMVPMatrix() { return m_MVP; }
-
-	inline void SetModelMatrix(const Matrix _ModelMatrix) { m_ModelMatrix = _ModelMatrix; }
+	inline std::vector<unsigned int> GetVertexIndex() {return m_vVertexIndex;}
 
 	void Update();
 
-	void Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _hwnd);
+	void Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd);
 
-	void SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, const HWND _hwnd);
+	void SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, const HWND _Hwnd);
+
+	std::string GetName() { return m_Name; }
+
+	void SetModelMatrix(const Matrix _Matrix);
 
 	#if defined(DX11) || defined(OGL)
-	void LoadTexture(HWND _hwnd);
-	#endif
-	inline unsigned int GetTexId() { return m_TexID; }
+	void LoadTexture(HWND _Hwnd);
 
-	inline Texture2D GetDXTexture() { return EntryTexture; };
+	Material* GetMaterial() { return m_Material; }
+	#endif
 
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
-	std::string GetName() { return m_Name; }
 
-	Material* GetMaterial() { return m_Material; }
+	#if defined(OGL)
+	inline unsigned int GetTexID() { return m_TexID; }
+
+	inline float* GetMVPMatrix() { return m_MVP; }
+
+	inline void SetMVPMatrix(const Matrix _Matrix) { Matrix::MatrixTo1D(_Matrix, m_MVP); }
+	#endif
 private:
 
 	/*
@@ -82,83 +81,66 @@ private:
 		* @Type: #CVertex_pointer.
 		* @brief.Mesh vertex array.
 	*/
-	std::vector<Vertex> m_Vertex;
+	std::vector<Vertex> m_vVertex;
 
 	/*
 		* @Variable Name: m_NumOfVertex.
 		* @Type: #int.
 		* @brief.Indicate the number of vertex that the mesh have.
 	*/
-	int m_NumOfVertex;
+	int m_VertexNum;
 
 	/*
 		* @Variable Name: m_VertexIndex.
 		* @Type: #unsigned_short_pointer.
 		* @brief.Mesh vertex index array.
 	*/
-	std::vector<unsigned int> m_VertexIndex;
+	std::vector<unsigned int> m_vVertexIndex;
 
 	/*
 		* @Variable Name: m_NumOfVertexIndex.
 		* @Type: #int.
 		* @brief.Number of vertex index.
 	*/
-	int m_NumOfVertexIndex;
+	int m_VertexIndexNum;
 
-	/*
-		* @Variable Name: m_ModelMatrix.
-		* @Type: #float_poiner.
-		* @brief.Pointer to an array of 16 floats, represent the model matrix.
-	*/
-	Matrix m_ModelMatrix;
-
-	Matrix m_TraslationMatrix;
-
-	Matrix m_RotationMatrix;
-
-	Matrix m_ScaleMatrix;
-
-	Matrix m_MVP;
-
-	CBChangesEveryFrame m_cb;
-
-	ConstantBuffer	m_MeshCB;
-
-	Material* m_Material;
-
-	float m_MeshColor[3];
-
-	unsigned int m_VertexBuffer;
-
-	unsigned int m_IndexBuffer;
-
-	unsigned int m_VAO;
-
-	unsigned int m_VBO;
-
-	unsigned int m_EBO;
-	#if defined(DX11) || defined(OGL)
-	FIBITMAP* m_dib1;
-	#endif
-	bool m_ShowTexture;
-
-	Texture2D EntryTexture;
-
-	std::vector<std::string> m_Filename;
+	std::vector<std::string> m_vTexturesNames;
 
 	std::string m_Name;
 
-	unsigned int m_TexID = 0;
+	Material* m_Material;
 
-	bool m_LoadAsRGBA;
+	bool m_LoadTypes[4] = {false, false, false, false};
 
-	bool m_LoadAsBGRA;
+	#if defined(DX11)
+	/*
+		* @Variable Name: m_ModelMatrix.
+		* @Type: #Matrix.
+		* @brief.4x4 2D Array. Represent the model matrix.
+	*/
+	Matrix m_ModelMatrix;
 
-	bool m_LoadAsPoints;
-	
-	bool m_LoadAsTriangles;
+	CBChangesEveryFrame m_CBChangesEveryFrame;
+
+	ConstantBuffer m_MeshCB;
+
+	float m_MeshColor[3];
+	#endif
+
+	#if defined(OGL)
+	/*
+		* @Variable Name: m_ModelMatrix.
+		* @Type: #Matrix.
+		* @brief.4x4 2D Array. Represent the model matrix.
+	*/
+	float* m_ModelMatrix;
+
+	float* m_MVP;
 
 	unsigned int m_ShaderID;
+
+	unsigned int m_TexID = 0;
+	#endif
 	//topologia 
 };
 

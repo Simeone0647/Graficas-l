@@ -20,11 +20,6 @@ Matrix::Matrix()
 
 Matrix::~Matrix()
 {
-	//if (m_Matrix1D != nullptr)
-	//{
-	//	delete[] m_Matrix1D;
-	//	m_Matrix1D = nullptr;
-	//}
 }
 
 void Matrix::SetIdentity(float* _Matrix)
@@ -76,6 +71,19 @@ Matrix Matrix::Transpose(const Matrix _Matrix)
 	return Temp;
 }
 
+void Matrix::MatrixTo1D(const Matrix _Matrix, float* _Arr)
+{
+	int Counter = 0;
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+		{
+			_Arr[Counter] = _Matrix.m_Matrix[i][j];
+			Counter++;
+		}
+	}
+}
+
 void Matrix::operator=(const Matrix& _MatrixA)
 {
 	for (unsigned int i = 0; i < 4; ++i)
@@ -85,6 +93,66 @@ void Matrix::operator=(const Matrix& _MatrixA)
 			m_Matrix[i][j] = _MatrixA.m_Matrix[i][j];
 		}
 	}
+}
+
+void Matrix::operator=(const float* _MatrixA)
+{
+	int Counter = 0;
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+		{
+			m_Matrix[i][j] = _MatrixA[Counter];
+			Counter++;
+		}
+	}
+}
+
+Matrix& Matrix::operator*=(const float* _MatrixA)
+{
+	Matrix MatrixA;
+	Matrix Result;
+	unsigned int Counter = 0;
+	int Row = 0;
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		for (unsigned int j = 0; j < 4; ++j)
+		{
+			MatrixA.m_Matrix[i][j] = _MatrixA[Counter];
+			Counter++;
+		}
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			Result.m_Matrix[Row][i] =
+				(MatrixA.m_Matrix[0][i] * m_Matrix[Row][0])
+				+ (MatrixA.m_Matrix[1][i] * m_Matrix[Row][1])
+				+ (MatrixA.m_Matrix[2][i] * m_Matrix[Row][2])
+				+ (MatrixA.m_Matrix[3][i] * m_Matrix[Row][3]);
+			Row++;
+		}
+		Row = 0;
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			m_Matrix[i][j] = Result.m_Matrix[i][j];
+		}
+	}
+
+	return Result;
+}
+
+Matrix& Matrix::operator*(const float* _MatrixA)
+{
+	Matrix Result(*this);
+	return Result *= _MatrixA;
 }
 
 Matrix& Matrix::operator*=(const Matrix& _MatrixA)

@@ -58,6 +58,10 @@ public:
 	*/
 	inline D3D11_SUBRESOURCE_DATA* GetInitDataAdress() { return &m_InitData; }
 #endif
+#if defined(OGL)
+	inline unsigned int GetEBO() { return m_EBO; }
+	inline unsigned int* GetEBOAddress() { return &m_EBO; }
+#endif
 private:
 #if defined(DX11)
 	/*
@@ -80,6 +84,9 @@ private:
 		* @brief...IndexBuffer's InitData
 	*/
 	D3D11_SUBRESOURCE_DATA m_InitData;
+#endif
+#if defined(OGL)
+	unsigned int m_EBO;
 #endif
 };
 

@@ -20,8 +20,12 @@ public:
 
 	void Render(HWND _hwnd, CBChangesEveryFrame& cb, ConstantBuffer& _MeshCB);
 
-	inline void SetID(int _Value) { m_ID = _Value; }
-	inline int GetID() { return m_ID; }
+	#if defined(OGL)
+	inline void SetTextureID(unsigned int _Value) { m_TextureID = _Value; }
+	inline unsigned int GetTextureID() { return m_TextureID; }
+	inline unsigned int* GetTextureIDAddress() { return &m_TextureID; }
+	unsigned int m_TextureID = 0;
+	#endif
 
 	#if defined(DX11)
 	inline ShaderResourceView* GetSRVTexture() { return m_SRVTexture; }
@@ -30,7 +34,10 @@ private:
 
 	Texture2D m_Color;
 	SamplerState m_SamplerColor;
-	int m_ID;
+
+	#if defined(OGL)
+
+	#endif
 
 	#if defined(DX11)
 	ShaderResourceView* m_SRVTexture;

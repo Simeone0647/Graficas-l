@@ -33,7 +33,7 @@ GraphicsModule::test m_Obj;
 #if defined(DX11) || defined(OGL)
 std::vector<Model> m_vModels;
 int ModelNum = 0;
-static float dir[3]{};
+static float Dir[3]{};
 static double MouseRelativePosition[2]{};
 static double PreviousMouseRelativePosition[2]{};
 static bool OverImGuiWindow = false;
@@ -171,37 +171,49 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
 
 	if (OnW)
 	{
-		CameraPosition.SetValues(0.0f, 0.1f, 0.0f);
+		CameraPosition.m_X = 0.0f;
+		CameraPosition.m_Y = 0.1f;
+		CameraPosition.m_Z = 0.0f;
 		m_Obj.m_Camera->MoveCamera(CameraPosition);
 		m_Obj.m_Camera->UpdateViewMatrix();
 	}
 	if (OnA)
 	{
-		CameraPosition.SetValues(-0.1f, 0.0f, 0.0f);
+		CameraPosition.m_X = -0.1f;
+		CameraPosition.m_Y = 0.0f;
+		CameraPosition.m_Z = 0.0f;
 		m_Obj.m_Camera->MoveCamera(CameraPosition);
 		m_Obj.m_Camera->UpdateViewMatrix();
 	}
 	if (OnS)
 	{
-		CameraPosition.SetValues(0.0f, -0.1f, 0.0f);
+		CameraPosition.m_X = 0.0f;
+		CameraPosition.m_Y = -0.1f;
+		CameraPosition.m_Z = 0.0f;
 		m_Obj.m_Camera->MoveCamera(CameraPosition);
 		m_Obj.m_Camera->UpdateViewMatrix();
 	}
 	if (OnD)
 	{
-		CameraPosition.SetValues(0.1f, 0.0f, 0.0f);
+		CameraPosition.m_X = 0.1f;
+		CameraPosition.m_Y = 0.0f;
+		CameraPosition.m_Z = 0.0f;
 		m_Obj.m_Camera->MoveCamera(CameraPosition);
 		m_Obj.m_Camera->UpdateViewMatrix();
 	}
 	if (OnQ)
 	{
-		CameraPosition.SetValues(0.0f, 0.0f, 0.1f);
+		CameraPosition.m_X = 0.0f;
+		CameraPosition.m_Y = 0.0f;
+		CameraPosition.m_Z = 0.1f;
 		m_Obj.m_Camera->MoveCamera(CameraPosition);
 		m_Obj.m_Camera->UpdateViewMatrix();
 	}
 	if (OnE)
 	{
-		CameraPosition.SetValues(0.0f, 0.0f, -0.1f);
+		CameraPosition.m_X = 0.0f;
+		CameraPosition.m_Y = 0.0f;
+		CameraPosition.m_Z = -0.1f;
 		m_Obj.m_Camera->MoveCamera(CameraPosition);
 		m_Obj.m_Camera->UpdateViewMatrix();
 	}
@@ -321,29 +333,6 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			UpdateSBStruct.SrcDepthPitch = 0;
 			
 			GraphicsModule::CBChangeOnResize cbChangesOnResize;
-			//Matrix ProjectionMatrix;
-			//Matrix ProjectionMatrix = Matrix::Transpose(m_Obj.m_Camera->m_ProjectionMatrix);
-			//ProjectionMatrix.m_Matrix1D[0] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[0];
-			//ProjectionMatrix.m_Matrix1D[1] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[4];
-			//ProjectionMatrix.m_Matrix1D[2] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[8];
-			//ProjectionMatrix.m_Matrix1D[3] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[12];
-			//
-			//ProjectionMatrix.m_Matrix1D[4] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[1];
-			//ProjectionMatrix.m_Matrix1D[5] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[5];
-			//ProjectionMatrix.m_Matrix1D[6] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[9];
-			//ProjectionMatrix.m_Matrix1D[7] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[13];
-			//
-			//ProjectionMatrix.m_Matrix1D[8] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[2];
-			//ProjectionMatrix.m_Matrix1D[9] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[6];
-			//ProjectionMatrix.m_Matrix1D[10] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[10];
-			//ProjectionMatrix.m_Matrix1D[11] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[14];
-			//
-			//ProjectionMatrix.m_Matrix1D[12] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[3];
-			//ProjectionMatrix.m_Matrix1D[13] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[7];
-			//ProjectionMatrix.m_Matrix1D[14] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[11];
-			//ProjectionMatrix.m_Matrix1D[15] = m_Obj.m_Camera->m_ProjectionMatrix.m_Matrix1D[15];
-
-			//cbChangesOnResize.mProjection = ProjectionMatrix.m_Matrix1D;
 			cbChangesOnResize.mProjection = XMMatrixTranspose(m_Obj.m_Camera->m_ProjectionMatrix);
 			UpdateSBStruct.pDstResource = m_Obj.g_SimeCBChangeOnResize.GetCBChangesOnResize();
 			UpdateSBStruct.pSrcData = &cbChangesOnResize;
@@ -427,19 +416,14 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 
 	case WM_LBUTTONDOWN:
 	{
-		//m_Obj.m_IsFirstFrame = true;
 		if (!OverImGuiWindow)
 		{
 			LeftClick = true;
-			//		
-			//glfwGetCursorPos(window, &PreviousMouseRelativePosition[0], &PreviousMouseRelativePosition[1]);
 		}
 		break;
 	}
-	//
 	case WM_LBUTTONUP:
 	{
-		//m_Obj.m_IsFirstFrame = false;
 		LeftClick = false;
 		break;
 	}
@@ -529,30 +513,30 @@ HRESULT InitImgUI()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 
-#if defined(OGL)
+	#if defined(OGL)
 	ImGuiIO& io = ImGui::GetIO();
 	// Setup Platform/Renderer bindings
 	ImGui_ImplGlfw_InitForOpenGL(m_OGLWindow, true);
 	ImGui_ImplOpenGL3_Init();
-#endif
+	#endif
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsClassic();
 
 	// Setup Platform/Renderer back ends
 	ImGui_ImplWin32_Init(g_hwnd);
-#if defined(DX11)
+	#if defined(DX11)
 	ImGui_ImplDX11_Init(GraphicsModule::GetManagerObj(g_hwnd).GetDevice().GetDXDevice(), GraphicsModule::GetManagerObj(g_hwnd).GetDeviceContext().GetDXDC());
-#endif
+	#endif
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.FrameRounding = 7.0f;
 	return S_OK;
 }
 #if defined(DX11) || defined(OGL)
-Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _LoadPoints)
+Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, const int _Flags[])
 {
-	std::vector<Vertex> MeshVertex;
-	std::vector<unsigned int> MeshIndices;
+	std::vector<Vertex> vMeshVertex;
+	std::vector<unsigned int> vMeshIndices;
 
 	aiString Path;
 	std::vector<std::string> vFilename;
@@ -569,14 +553,14 @@ Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, bool _LoadRGBA, bool _LoadBG
 		}
 		if (_Mesh->HasTextureCoords(0))
 		{
-#if defined(DX11)
+	#if defined(DX11)
 			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, _Mesh->mTextureCoords[0][i].y);
-#endif
-#if defined(OGL)
+	#endif
+	#if defined(OGL)
 			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, 1 - _Mesh->mTextureCoords[0][i].y);
-#endif
+	#endif
 		}
-		MeshVertex.push_back(vertex);
+		vMeshVertex.push_back(vertex);
 	}
 
 	for (unsigned int i = 0; i < _Mesh->mNumFaces ; i++)
@@ -584,39 +568,39 @@ Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, bool _LoadRGBA, bool _LoadBG
 		aiFace& Face = _Mesh->mFaces[i];
 		for (unsigned int j = 0; j < Face.mNumIndices; j++)
 		{
-			MeshIndices.push_back(Face.mIndices[j]);
+			vMeshIndices.push_back(Face.mIndices[j]);
 		}
 	}
 
-		aiString tmpMatName;
-		const aiMaterial* pMaterial = _Scene->mMaterials[_Mesh->mMaterialIndex];
-		pMaterial->Get(AI_MATKEY_NAME, tmpMatName);
-		for (unsigned int j = 1; j < aiTextureType_UNKNOWN; j++)
+	aiString tmpMatName;
+	const aiMaterial* pMaterial = _Scene->mMaterials[_Mesh->mMaterialIndex];
+	pMaterial->Get(AI_MATKEY_NAME, tmpMatName);
+	for (unsigned int j = 1; j < aiTextureType_UNKNOWN; j++)
+	{
+		if (pMaterial->GetTextureCount(aiTextureType(j)) > 0)
 		{
-			if (pMaterial->GetTextureCount(aiTextureType(j)) > 0)
+			if (pMaterial->GetTexture(aiTextureType(j), 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 			{
-				if (pMaterial->GetTexture(aiTextureType(j), 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-				{
-					char drive[_MAX_DRIVE];
-					char dir[_MAX_DIR];
-					char fname[_MAX_FNAME];
-					char ext[_MAX_EXT];
+				char Drive[_MAX_DRIVE];
+				char Dir[_MAX_DIR];
+				char Fname[_MAX_FNAME];
+				char Ext[_MAX_EXT];
 
-					std::string Filename = "";
+				std::string Filename = "";
 
-					_splitpath_s(Path.data, drive, _MAX_DRIVE, dir, _MAX_DIR, fname, _MAX_FNAME, ext, _MAX_EXT);
+				_splitpath_s(Path.data, Drive, _MAX_DRIVE, Dir, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
 
-					Filename = fname;
-					Filename += ext;
-					vFilename.push_back(Filename);
-				}
+				Filename = Fname;
+				Filename += Ext;
+				vFilename.push_back(Filename);
 			}
 		}
+	}
 
-	return Mesh(MeshVertex, MeshIndices, vFilename, NumVertex, _LoadRGBA, _LoadBGRA, _LoadTriangles, _LoadPoints, _Mesh->mName.data, m_Obj.programID);
+	return Mesh(vMeshVertex, vMeshIndices, vFilename, _Flags, _Mesh->mName.data, m_Obj.programID);
 }
 
-void LoadModel(const aiScene* _scene, std::string _ModelName, bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _LoadPoints)
+void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[])
 {
 	m_vModels.push_back(Model());
 	m_vModels[ModelNum].SetName(_ModelName);
@@ -628,14 +612,14 @@ void LoadModel(const aiScene* _scene, std::string _ModelName, bool _LoadRGBA, bo
 	{
 		aiMesh* ActualMesh = _scene->mMeshes[i];
 
-		m_vModels[ModelNum].AddMesh(LoadMesh(ActualMesh, _scene, _LoadRGBA, _LoadBGRA, _LoadTriangles, _LoadPoints));
+		m_vModels[ModelNum].AddMesh(LoadMesh(ActualMesh, _scene, _Flags));
 	}
 
 	m_vModels[ModelNum].SetUpModel(g_hwnd);
 	ModelNum++;
 }
 
-void OpenMeshMenu(bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _LoadPoints)
+void OpenMeshMenu(const int _Flags[])
 {
 	std::string wideStringBuffer = "";
 	wideStringBuffer.resize(MAX_PATH);
@@ -664,17 +648,17 @@ void OpenMeshMenu(bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _Loa
 	{
 
 		//Usar string
-		char drive[_MAX_DRIVE];
-		char dir[_MAX_DIR];
-		char fname[_MAX_FNAME];
-		char ext[_MAX_EXT];
+		char Drive[_MAX_DRIVE];
+		char Directory[_MAX_DIR];
+		char Fname[_MAX_FNAME];
+		char Ext[_MAX_EXT];
 
 		std::string Filename = "";
 
-		_splitpath_s(wideStringBuffer.c_str(), drive, _MAX_DRIVE, dir, _MAX_DIR, fname, _MAX_FNAME, ext, _MAX_EXT);
+		_splitpath_s(wideStringBuffer.c_str(), Drive, _MAX_DRIVE, Directory, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
 
-		Filename = fname;
-		Filename += ext;
+		Filename = Fname;
+		Filename += Ext;
 
 		for (unsigned int i = 0; i < ModelNum; ++i)
 		{
@@ -686,7 +670,7 @@ void OpenMeshMenu(bool _LoadRGBA, bool _LoadBGRA, bool _LoadTriangles, bool _Loa
 		}
 
 		std::cout << "Archivo importado correctamente" << std::endl;
-		LoadModel(scene, Filename, _LoadRGBA, _LoadBGRA, _LoadTriangles, _LoadPoints);
+		LoadModel(scene, Filename, _Flags);
 	}
 }
 
@@ -698,11 +682,13 @@ void ShowMenuOptions()
 		{
 			if (ImGui::MenuItem("...as RGBA"))
 			{
-				OpenMeshMenu(true, false, true, false);
+				int Flags[2] = { 0, 2 };
+				OpenMeshMenu(Flags);
 			}
 			if (ImGui::MenuItem("...as BGRA"))
 			{
-				OpenMeshMenu(false, true, true, false);
+				int Flags[2] = { 0, 3 };
+				OpenMeshMenu(Flags);
 			}
 			ImGui::EndMenu();
 		}
@@ -711,11 +697,13 @@ void ShowMenuOptions()
 		{
 			if (ImGui::MenuItem("...as RGBA"))
 			{
-				OpenMeshMenu(true, false, false, true);
+				int Flags[2] = { 1, 2 };
+				OpenMeshMenu(Flags);
 			}
 			if (ImGui::MenuItem("...as BGRA"))
 			{
-				OpenMeshMenu(false, true, false, true);
+				int Flags[2] = { 1, 3 };
+				OpenMeshMenu(Flags);
 			}
 			ImGui::EndMenu();
 		}
@@ -731,13 +719,13 @@ void ShowMeshesMenu(const unsigned int _i)
 		{
 			if (ImGui::TreeNode("Textures"))
 			{
-				float TextureWidth = 256;
-				float TextureHeight = 256;
+				float TextureWidth = 256.0f;
+				float TextureHeight = 256.0f;
 				#if defined(OGL)
-				ImTextureID TextureID = (void*)m_vModels[_i].GetMeshes()[j].GetTexId();
+				ImTextureID TextureID = (void*)m_vModels[_i].GetMeshes()[j].GetTexID();
 				#endif
 				#if defined(DX11)
-				ImTextureID TextureID = m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture()->GetDXSRV();//m_Obj.g_SimeTextureRV.GetDXSRV();
+				ImTextureID TextureID = m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture()->GetDXSRV();
 				#endif
 				ImVec2 Position = ImGui::GetCursorScreenPos();
 				ImVec2 UVMin = ImVec2(0.0f, 0.0f);
@@ -841,6 +829,8 @@ void UIRender()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 #endif
+	//ImGui::SetNextWindowSize(ImVec2(550, 680), ImGuiCond_FirstUseEver);
+
 	ImGui::NewFrame();
 
 	ImGui::Begin("Configuration", NULL, ImGuiWindowFlags_MenuBar);
@@ -864,15 +854,15 @@ void UIRender()
 	ImGui::Begin("Enviroment", NULL, 0);
 	if (ImGui::CollapsingHeader("Light"))
 	{
-		if (ImGui::DragFloat3("Direction", dir, 0.001f, -1.0f, 1.0f))
+		if (ImGui::DragFloat3("Direction", Dir, 0.001f, -1.0f, 1.0f))
 		{
 		#if defined(DX11)
-			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(dir[0], dir[1], dir[2], 0.0f);
+			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(Dir[0], Dir[1], Dir[2], 0.0f);
 		#endif
 		#if defined(OGL)
-			m_Obj.g_DirLightBufferDesc.Dir[0] = dir[0];
-			m_Obj.g_DirLightBufferDesc.Dir[1] = dir[1];
-			m_Obj.g_DirLightBufferDesc.Dir[2] = dir[2];
+			m_Obj.g_DirLightBufferDesc.Dir[0] = Dir[0];
+			m_Obj.g_DirLightBufferDesc.Dir[1] = Dir[1];
+			m_Obj.g_DirLightBufferDesc.Dir[2] = Dir[2];
 			m_Obj.g_DirLightBufferDesc.Dir[3] = 0.0f;
 		#endif
 		}
@@ -902,13 +892,11 @@ void Update()
 		ScreenToClient(g_hwnd, Direction);
 		PreviousMouseRelativePosition[0] = Direction->x;
 		PreviousMouseRelativePosition[1] = Direction->y;
-		//std::cout << "Pos en update:" + to_string(PreviousMouseRelativePosition[0]) + ", " + to_string(PreviousMouseRelativePosition[1]) << std::endl;
 	#endif
 	}
 #if defined(DX11)
 	for (int i = 0; i < m_vModels.size(); ++i)
 	{
-		//m_vModels[i].UpdateModelMatrix();
 		m_vModels[i].Update(m_Obj, g_hwnd);
 	}
 	m_Obj.Update();

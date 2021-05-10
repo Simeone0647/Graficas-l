@@ -193,6 +193,7 @@ void Camera::UpdateOrtographicProjectionMatrix(GraphicsModule::UpdateProjectionM
 	m_ProjectionMatrix[13] = 0.0f;
 	m_ProjectionMatrix[14] = zz;
 	m_ProjectionMatrix[15] = 1.0f;
+
 	//m_projectionmatrix = { x, 0.0f, 0.0f, 0.0f,
 	//					   0.0f, y, 0.0f, 0.0f,
 	//					   0.0f, 0.0f, z, 0.0f,

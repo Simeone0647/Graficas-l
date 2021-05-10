@@ -3,7 +3,7 @@
 
 Material::Material()
 {
-	m_ID = 0;
+	//m_TextureID = 0;
 	#if defined(DX11)
 	m_SRVTexture = new ShaderResourceView;
 	#endif
