@@ -134,9 +134,7 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	glUniformMatrix4fv(UniformMVP, 1, 0, glm::value_ptr(glm::make_mat4(m_MVP)));
 
 	const char* UniformNameModel;
-
 	int UniformModel;
-
 	UniformNameModel = "world";
 	UniformModel = glGetUniformLocation(m_ShaderID, UniformNameModel);
 	if (UniformModel == -1)

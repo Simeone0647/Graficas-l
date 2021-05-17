@@ -32,12 +32,39 @@ HWND g_hwnd;
 GraphicsModule::test m_Obj;
 #if defined(DX11) || defined(OGL)
 std::vector<Model> m_vModels;
+std::vector<Tech> m_vTechs;
+
 int ModelNum = 0;
-static float Dir[3]{};
+
+//------------------------- LIGHTS -------------------------------------------------------
+static float DirectionLightDir[3] { 0.0f, 0.0f, 0.0f };
+
+static float PointLightPos[3] { 0.0f, 0.0f, 0.0f };
+static float PointLightAttenuation = 0.0f;
+
+static float SpotLightDir[3]{ 0.0f, 0.0f, 0.0f} ;
+static float SpotLightPos[3]{ 0.0f, 0.0f, 0.0f} ;
+static float SpotLightAttenuation = 0;
+static float InnerRadius = 0;
+static float OuterRadius = 0;
+
+static ImVec4 DirLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+static ImVec4 PointLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+static ImVec4 SpotLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+
+ImGuiColorEditFlags Flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_PickerHueBar;
+//------------------------- MOUSE ----------------------------------------------------
 static double MouseRelativePosition[2]{};
 static double PreviousMouseRelativePosition[2]{};
 static bool OverImGuiWindow = false;
-bool LeftClick = false;
+
+bool g_NewTech;
+
+bool LeftClick = g_NewTech = false;
+
+const char* items[] = { "Vertice Lighting", "Pixel Lighting" };
+static int item_current = 0;
+
 #endif
 #if defined(OGL)
 bool OnW = false;
@@ -852,23 +879,198 @@ void UIRender()
 	ImGui::End();
 
 	ImGui::Begin("Enviroment", NULL, 0);
-	if (ImGui::CollapsingHeader("Light"))
+	if (ImGui::CollapsingHeader("Lights"))
 	{
-		if (ImGui::DragFloat3("Direction", Dir, 0.001f, -1.0f, 1.0f))
+		if (ImGui::TreeNode("Directional Light"))
 		{
-		#if defined(DX11)
-			m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(Dir[0], Dir[1], Dir[2], 0.0f);
-		#endif
-		#if defined(OGL)
-			m_Obj.g_DirLightBufferDesc.Dir[0] = Dir[0];
-			m_Obj.g_DirLightBufferDesc.Dir[1] = Dir[1];
-			m_Obj.g_DirLightBufferDesc.Dir[2] = Dir[2];
-			m_Obj.g_DirLightBufferDesc.Dir[3] = 0.0f;
-		#endif
+			if (ImGui::DragFloat3("Direction", DirectionLightDir, 0.001f, -1.0f, 1.0f))
+			{
+			#if defined(DX11)
+				m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(DirectionLightDir[0], DirectionLightDir[1], DirectionLightDir[2], 0.0f);
+			#endif
+			#if defined(OGL)
+				m_Obj.g_DirLightBufferDesc.Dir[0] = DirectionLightDir[0];
+				m_Obj.g_DirLightBufferDesc.Dir[1] = DirectionLightDir[1];
+				m_Obj.g_DirLightBufferDesc.Dir[2] = DirectionLightDir[2];
+				m_Obj.g_DirLightBufferDesc.Dir[3] = 0.0f;
+
+			#endif
+			}
+			
+			if (ImGui::ColorPicker4("Color##4", (float*)&DirLightColor, Flags))
+			{
+			#if defined(DX11)
+				m_Obj.g_DirLightBufferDesc.Color = XMFLOAT4(DirLightColor.x, DirLightColor.y, DirLightColor.z, DirLightColor.w);
+			#endif
+			#if defined(OGL)
+				m_Obj.g_DirLightBufferDesc.Color[0] = DirLightColor.x;
+				m_Obj.g_DirLightBufferDesc.Color[1] = DirLightColor.y;
+				m_Obj.g_DirLightBufferDesc.Color[2] = DirLightColor.z;
+				m_Obj.g_DirLightBufferDesc.Color[3] = DirLightColor.w;
+			#endif
+			}
+			ImGui::TreePop();
 		}
+		if (ImGui::TreeNode("Point Light"))
+		{
+			if (ImGui::DragFloat3("Position", PointLightPos, 0.1f))
+			{
+				#if defined(DX11)
+				m_Obj.g_PointLightBufferDesc.Position = XMFLOAT4(PointLightPos[0], PointLightPos[1], PointLightPos[2], 1.0f);
+				#endif
+				#if defined(OGL)
+				m_Obj.g_PointLightBufferDesc.Position[0] = PointLightPos[0];
+				m_Obj.g_PointLightBufferDesc.Position[1] = PointLightPos[1];
+				m_Obj.g_PointLightBufferDesc.Position[2] = PointLightPos[2];
+				m_Obj.g_PointLightBufferDesc.Position[3] = 1.0f;
+				#endif
+			}
+			if (ImGui::DragFloat("Attenuation", &PointLightAttenuation, 0.1f, 0.0f, 100.0f))
+			{
+				#if defined(DX11)
+				m_Obj.g_PointLightBufferDesc.Attenuation = XMFLOAT4(PointLightAttenuation, 0.0f, 0.0f, 0.0f);
+				#endif
+				#if defined(OGL)
+				m_Obj.g_PointLightBufferDesc.Attenuation[0] = PointLightAttenuation;
+				m_Obj.g_PointLightBufferDesc.Attenuation[1] = 0.0f;
+				m_Obj.g_PointLightBufferDesc.Attenuation[2] = 0.0f;
+				m_Obj.g_PointLightBufferDesc.Attenuation[3] = 0.0f;
+				#endif
+			}
+
+			if (ImGui::ColorPicker4("Color##4", (float*)&PointLightColor, Flags))
+			{
+			#if defined(DX11)
+				m_Obj.g_PointLightBufferDesc.Color = XMFLOAT4(PointLightColor.x, PointLightColor.y, PointLightColor.z, PointLightColor.w);
+			#endif
+			#if defined(OGL)
+				m_Obj.g_PointLightBufferDesc.Color[0] = PointLightColor.x;
+				m_Obj.g_PointLightBufferDesc.Color[1] = PointLightColor.y;
+				m_Obj.g_PointLightBufferDesc.Color[2] = PointLightColor.z;
+				m_Obj.g_PointLightBufferDesc.Color[3] = PointLightColor.w;
+			#endif
+			}
+				ImGui::TreePop();
+		}
+		
+		if (ImGui::TreeNode("SpotLight"))
+		{
+			if (ImGui::DragFloat3("Direction", SpotLightDir, 0.001f, -1.0f, 1.0f))
+			{
+				#if defined(DX11)
+				m_Obj.g_SpotLightBufferDesc.Dir = XMFLOAT4(SpotLightDir[0], SpotLightDir[1], SpotLightDir[2], 0.0f);
+				#endif
+				#if defined(OGL)
+				m_Obj.g_SpotLightBufferDesc.Dir[0] = SpotLightDir[0];
+				m_Obj.g_SpotLightBufferDesc.Dir[1] = SpotLightDir[1];
+				m_Obj.g_SpotLightBufferDesc.Dir[2] = SpotLightDir[2];
+				m_Obj.g_SpotLightBufferDesc.Dir[3] = 0.0f;
+				#endif
+			}
+
+			if (ImGui::DragFloat3("Position", SpotLightPos, 0.1f))
+			{
+				#if defined(DX11)
+				m_Obj.g_SpotLightBufferDesc.Pos = XMFLOAT4(SpotLightPos[0], SpotLightPos[1], SpotLightPos[2], 1.0f);
+				#endif
+				#if defined(OGL)
+				m_Obj.g_SpotLightBufferDesc.Pos[0] = SpotLightPos[0];
+				m_Obj.g_SpotLightBufferDesc.Pos[1] = SpotLightPos[1];
+				m_Obj.g_SpotLightBufferDesc.Pos[2] = SpotLightPos[2];
+				m_Obj.g_SpotLightBufferDesc.Pos[3] = 1.0f;
+				#endif
+			}
+
+			if (ImGui::DragFloat("Attenuation", &SpotLightAttenuation, 0.1f, 0.0f, 100.0f))
+			{
+				m_Obj.g_SpotLightBufferDesc.Attenuation = SpotLightAttenuation;
+			}
+
+			if (ImGui::DragFloat("Inner Radius", &InnerRadius, 0.1f))
+			{
+				m_Obj.g_SpotLightBufferDesc.InnerRadius = InnerRadius;
+			}
+
+			if (ImGui::DragFloat("Outer Radius", &OuterRadius, 0.1f))
+			{
+				m_Obj.g_SpotLightBufferDesc.OuterRadius = OuterRadius;
+			}
+
+			if (ImGui::ColorPicker4("Color##4", (float*)&SpotLightColor, Flags))
+			{
+				#if defined(DX11)
+				m_Obj.g_SpotLightBufferDesc.Color = XMFLOAT4(SpotLightColor.x, SpotLightColor.y, SpotLightColor.z, SpotLightColor.w);
+				#endif
+				#if defined(OGL)
+				m_Obj.g_SpotLightBufferDesc.Color[0] = SpotLightColor.x;
+				m_Obj.g_SpotLightBufferDesc.Color[1] = SpotLightColor.y;
+				m_Obj.g_SpotLightBufferDesc.Color[2] = SpotLightColor.z;
+				m_Obj.g_SpotLightBufferDesc.Color[3] = SpotLightColor.w;
+				#endif
+			}
+			ImGui::TreePop();
+		}
+	}
+	if (ImGui::CollapsingHeader("Techniques"))
+	{
+
+		if (ImGui::Button("Add"))
+		{
+			g_NewTech = true;
+		}
+	}
+
+	if (g_NewTech)
+	{
+		ImGui::Begin("New Technique", NULL, 0);
+
+		ImGui::Text("Select Models");
+
+		for (unsigned int i = 0; i < ModelNum; ++i)
+		{
+			ImGui::Selectable(m_vModels[i].GetName().c_str(), &m_vModels[i].m_ImGuiSelected);
+		}
+
+		ImGui::Separator();
+
+		ImGui::Text("Select Technique");
+
+		ImGui::Combo("", &item_current, items, IM_ARRAYSIZE(items));
+
+		ImGui::Separator();
+
+		if (ImGui::Button("Ok"))
+		{
+			std::vector<Model> vTechModels;
+			int TechFlags;
+
+			for (unsigned int i = 0; i < ModelNum; ++i)
+			{
+				if (m_vModels[i].m_ImGuiSelected)
+				{
+					vTechModels.push_back(m_vModels[i]);
+				}
+			}
+
+			if (item_current == 0) TechFlags = kIlumPerVertex;
+			else if (item_current == 1) TechFlags = kIlumPerPixel;
+
+			m_vTechs.push_back(Tech(item_current, vTechModels));
+			g_NewTech = false;
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			g_NewTech = false;
+		}
+
+		ImGui::End();
 	}
 	ImGui::End();
 	// render UI
+	//ImGui::ShowDemoWindow();
 	ImGui::Render();
 #if defined(DX11)
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -878,7 +1080,7 @@ void UIRender()
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif
 }
-
+#endif
 void Update()
 {
 	if(LeftClick)
@@ -933,8 +1135,6 @@ void Render()
 #endif
 }
 
-
-#endif
 int main()
 {
 #if !defined(DX11) && !defined(OGL)

@@ -52,6 +52,8 @@ public:
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
+
+	bool m_ImGuiSelected = false;
 private:
 
 	std::vector<VertexBuffer> m_vModelVBs;
@@ -77,11 +79,9 @@ private:
 	Matrix m_ScaleMatrix;
 
 	float m_GuiPos[3]{};
-	float m_GuiRot[3]{ 0.0f, 0.0f, 0.0f};
+	float m_GuiRot[3]{ 0.0f, 0.0f, 0.0f };
 	float m_GuiScale[3]{ 1.0f, 1.0f, 1.0f };
 
 	std::string m_Name;
-
-	
 };
 

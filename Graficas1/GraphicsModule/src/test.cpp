@@ -364,10 +364,17 @@ HRESULT test::InitDevice(HWND hwnd)
 		g_DirLightBuffer.BUpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_DirLightBuffer.BGetBDAddress(), NULL, g_DirLightBuffer.BGetBufferAddress());
 
+		BDStruct.ByteWidth = sizeof(PointLight);
+		g_PointLightBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_PointLightBuffer.BGetBDAddress(), NULL, g_PointLightBuffer.BGetBufferAddress());
+
+		BDStruct.ByteWidth = sizeof(SpotLight);
+		g_SpotLightBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SpotLightBuffer.BGetBDAddress(), NULL, g_SpotLightBuffer.BGetBufferAddress());
 		// Load the Texture
 		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
-		//if (FAILED(hr))
-		//	return hr;
+		if (FAILED(hr))
+			std::cout << "Fallo spotlight";
 
 		g_SimeSamplerState.SetDesc();
 
@@ -511,7 +518,6 @@ void test::Update()
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 
 	CBChangeOnResize cbChangesOnResize;
-
 	cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
 	UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 	UpdateSBStruct.pSrcData = &cbChangesOnResize;
@@ -542,6 +548,7 @@ void test::Update()
 void test::Render()
 {
 #if defined(OGL)
+	//DIRECTIONAL LIGHT
 	const char* UniformNameLight;
 	int UniformLight;
 	UniformNameLight = "dirlight";
@@ -552,6 +559,108 @@ void test::Render()
 	}
 	glUniform4fv(UniformLight, 1, glm::value_ptr(glm::make_vec4(g_DirLightBufferDesc.Dir)));
 
+	const char* UniformNameLightColor;
+	int UniformLightColor;
+	UniformNameLightColor = "dirlightcolor";
+	UniformLightColor = glGetUniformLocation(programID, UniformNameLightColor);
+	if (UniformLightColor == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameLightColor);
+	}
+	glUniform4fv(UniformLightColor, 1, glm::value_ptr(glm::make_vec4(g_DirLightBufferDesc.Color)));
+
+	//POINTLIGHT
+	const char* UniformNamePointLightPos;
+	int UniformPointLightPos;
+	UniformNamePointLightPos = "PointLightPos";
+	UniformPointLightPos = glGetUniformLocation(programID, UniformNamePointLightPos);
+	if (UniformPointLightPos == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNamePointLightPos);
+	}
+	glUniform4fv(UniformPointLightPos, 1, glm::value_ptr(glm::make_vec4(g_PointLightBufferDesc.Position)));
+
+	const char* UniformNamePointLightColor;
+	int UniformPointLightColor;
+	UniformNamePointLightColor = "PointLightColor";
+	UniformPointLightColor = glGetUniformLocation(programID, UniformNamePointLightColor);
+	if (UniformPointLightColor == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNamePointLightColor);
+	}
+	glUniform4fv(UniformPointLightColor, 1, glm::value_ptr(glm::make_vec4(g_PointLightBufferDesc.Color)));
+
+	const char* UniformNamePointLightAttenuation;
+	int UniformPointLightAttenuation;
+	UniformNamePointLightAttenuation = "PointLightAttenuation";
+	UniformPointLightAttenuation = glGetUniformLocation(programID, UniformNamePointLightAttenuation);
+	if (UniformPointLightAttenuation == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNamePointLightAttenuation);
+	}
+	glUniform4fv(UniformPointLightAttenuation, 1, glm::value_ptr(glm::make_vec4(g_PointLightBufferDesc.Attenuation)));
+
+	//SPOTLIGHT
+	const char* UniformNameSpotLightDir;
+	int UniformSpotLightDir;
+	UniformNameSpotLightDir = "SpotLightDir";
+	UniformSpotLightDir = glGetUniformLocation(programID, UniformNameSpotLightDir);
+	if (UniformSpotLightDir == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightDir);
+	}
+	glUniform4fv(UniformSpotLightDir, 1, glm::value_ptr(glm::make_vec4(g_SpotLightBufferDesc.Dir)));
+
+	const char* UniformNameSpotLightPos;
+	int UniformSpotLightPos;
+	UniformNameSpotLightPos = "SpotLightPos";
+	UniformSpotLightPos = glGetUniformLocation(programID, UniformNameSpotLightPos);
+	if (UniformSpotLightPos == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightPos);
+	}
+	glUniform4fv(UniformSpotLightPos, 1, glm::value_ptr(glm::make_vec4(g_SpotLightBufferDesc.Pos)));
+
+	const char* UniformNameSpotLightColor;
+	int UniformSpotLightColor;
+	UniformNameSpotLightColor = "SpotLightColor";
+	UniformSpotLightColor = glGetUniformLocation(programID, UniformNameSpotLightColor);
+	if (UniformSpotLightColor == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightColor);
+	}
+	glUniform4fv(UniformSpotLightColor, 1, glm::value_ptr(glm::make_vec4(g_SpotLightBufferDesc.Color)));
+
+	const char* UniformNameSpotLightAttenuation;
+	int UniformSpotLightAttenuation;
+	UniformNameSpotLightAttenuation = "SpotLightAttenuation";
+	UniformSpotLightAttenuation = glGetUniformLocation(programID, UniformNameSpotLightAttenuation);
+	if (UniformSpotLightAttenuation == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightAttenuation);
+	}
+	glUniform1f(UniformSpotLightAttenuation, g_SpotLightBufferDesc.Attenuation);
+
+	const char* UniformNameSpotLightInner;
+	int UniformSpotLightInner;
+	UniformNameSpotLightInner = "SpotLightInner";
+	UniformSpotLightInner = glGetUniformLocation(programID, UniformNameSpotLightInner);
+	if (UniformSpotLightInner == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightInner);
+	}
+	glUniform1f(UniformSpotLightInner, g_SpotLightBufferDesc.InnerRadius);
+
+	const char* UniformNameSpotLightOuter;
+	int UniformSpotLightOuter;
+	UniformNameSpotLightOuter = "SpotLightOuter";
+	UniformSpotLightOuter = glGetUniformLocation(programID, UniformNameSpotLightOuter);
+	if (UniformSpotLightOuter == -1)
+	{
+		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightOuter);
+	}
+	glUniform1f(UniformSpotLightOuter, g_SpotLightBufferDesc.OuterRadius);
+	
 #endif
 #if defined(DX11)
 	GraphicsModule::UpdateSubResourceStruct UpdateSRStruct;
@@ -561,8 +670,24 @@ void test::Render()
 	UpdateSRStruct.pSrcData = &g_DirLightBufferDesc;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
-
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
+	UpdateSRStruct.pDstResource = g_PointLightBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_PointLightBufferDesc;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
+	UpdateSRStruct.pDstResource = g_SpotLightBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_SpotLightBufferDesc;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
 	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
@@ -571,8 +696,10 @@ void test::Render()
 	//LUEGO
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(0, 1, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(1, 1, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif
@@ -589,6 +716,8 @@ void test::CleanupDevice()
 		if (g_SimeCBChangeOnResize.GetCBChangesOnResize()) g_SimeCBChangeOnResize.GetCBChangesOnResize()->Release();
 		if (g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame()) g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame()->Release();
 		if (g_DirLightBuffer.BGetBuffer()) g_DirLightBuffer.BGetBuffer()->Release();
+		if (g_PointLightBuffer.BGetBuffer()) g_PointLightBuffer.BGetBuffer()->Release();
+		if (g_SpotLightBuffer.BGetBuffer()) g_SpotLightBuffer.BGetBuffer()->Release();
 		if (g_SimeVertexBuffer.GetVertexBuffer()) g_SimeVertexBuffer.GetVertexBuffer()->Release();
 		if (g_SimeIndexBuffer.GetIndexBuffer()) g_SimeIndexBuffer.GetIndexBuffer()->Release();
 		if (g_SimeInputLayout.GetDXInputLayout()) g_SimeInputLayout.GetDXInputLayout()->Release();

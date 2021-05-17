@@ -400,10 +400,45 @@ namespace GraphicsModule
 	{
 	#if defined(DX11)
 		XMFLOAT4 Dir;
+		XMFLOAT4 Color;
 	#endif
 	#if defined(OGL)
 		float Dir[4];
+		float Color[4];
 	#endif
+	};
+
+	struct PointLight
+	{
+	#if defined(DX11)
+		XMFLOAT4 Position;
+		XMFLOAT4 Color;
+		XMFLOAT4 Attenuation;
+	#endif
+	#if defined(OGL)
+		float Position[4];
+		float Color[4];
+		float Attenuation[4];
+	#endif
+		
+	};
+
+	struct SpotLight
+	{
+		#if defined(DX11)
+		XMFLOAT4 Dir;
+		XMFLOAT4 Pos;
+		XMFLOAT4 Color;
+		#endif
+		#if defined(OGL)
+		float Dir[4];
+		float Pos[4];
+		float Color[4];
+		#endif
+		float Attenuation;
+		float InnerRadius;
+		float OuterRadius;
+		float Unused;
 	};
 
 	struct CBNeverChanges
@@ -586,6 +621,10 @@ namespace GraphicsModule
 		VertexShader						g_SimeVertexShader;
 		DirLight							g_DirLightBufferDesc;
 		Buffer								g_DirLightBuffer;
+		PointLight							g_PointLightBufferDesc;
+		Buffer								g_PointLightBuffer;
+		SpotLight							g_SpotLightBufferDesc;
+		Buffer								g_SpotLightBuffer;
 		VertexBuffer						g_SimeVertexBuffer;
 		IndexBuffer							g_SimeIndexBuffer;
 		ConstantBuffer						g_SimeCBNeverChanges;
