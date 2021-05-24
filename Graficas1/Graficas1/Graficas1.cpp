@@ -1087,44 +1087,48 @@ void UIRender()
 	{
 		for (unsigned int i = 0; i < m_vTechs.size(); ++i)
 		{
-			if (ImGui::TreeNode(m_vTechs[i].GetName().c_str()))
+			if (m_vTechs[i].IsActivated())
 			{
-				LightingModelLabel = LightingModels[m_vTechs[i].GetLightingTech()];
-				if (ImGui::BeginCombo("Lighting Techs", LightingModelLabel, NULL))
+				if (ImGui::TreeNode(m_vTechs[i].GetName().c_str()))
 				{
-					for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
+					LightingModelLabel = LightingModels[m_vTechs[i].GetLightingTech()];
+					if (ImGui::BeginCombo("Lighting Techs", LightingModelLabel, NULL))
 					{
-						const bool IsSelected = (m_vTechs[i].GetLightingTech() == n);
-						if (ImGui::Selectable(LightingModels[n], IsSelected))
+						for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
 						{
-							CurrentLightingModel = n;
-							m_vTechs[i].SetDesc(CurrentLightingModel);
-						}
+							const bool IsSelected = (m_vTechs[i].GetLightingTech() == n);
+							if (ImGui::Selectable(LightingModels[n], IsSelected))
+							{
+								CurrentLightingModel = n;
+								m_vTechs[i].Deactivate();
+								m_vTechs[CurrentLightingModel].Activate();
+								m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
+							}
 
-						// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-						if (IsSelected)
+							// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+							if (IsSelected)
+							{
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+						ImGui::EndCombo();
+					}
+
+					for (unsigned int j = 0; j < m_vTechs[i].GetPasses().size(); ++j)
+					{
+						std::string PassName = "Pass " + to_string(PassNum);
+						if (ImGui::TreeNode(PassName.c_str()))
 						{
-							ImGui::SetItemDefaultFocus();
+							ImGui::Text("Models:");
+							ImGui::Text(m_vModels[0].GetName().c_str());
+
+							ImGui::TreePop();
 						}
 					}
-					ImGui::EndCombo();
+
+					ImGui::TreePop();
 				}
-
-				for (unsigned int j = 0; j < m_vTechs[i].GetPasses().size(); ++j)
-				{
-					std::string PassName = "Pass " + to_string(PassNum);
-					if (ImGui::TreeNode(PassName.c_str()))
-					{
-						ImGui::Text("Models:");
-						ImGui::Text(m_vModels[i].GetName().c_str());
-
-						ImGui::TreePop();
-					}
-				}
-
-				ImGui::TreePop();
 			}
-
 			ImGui::Separator();
 		}
 		if (ImGui::Button("Add"))
@@ -1174,7 +1178,9 @@ void UIRender()
 			else if (CurrentLightingModel == 1) TechFlags = kIlumPerVertex;
 			else if (CurrentLightingModel == 2) TechFlags = kIlumPerPixel;
 
-			m_vTechs.push_back(Tech(TechFlags, &m_vModels, g_hwnd));
+			//m_vTechs.push_back(Tech(TechFlags, &m_vModels, g_hwnd));
+			m_vTechs[TechFlags].SetModels(&m_vModels, 0);
+			m_vTechs[TechFlags].Activate();
 			PassNum++;
 			g_NewTech = false;
 		}
@@ -1217,7 +1223,7 @@ void Update()
 	#endif
 	}
 	#if defined(DX11)
-	for (int i = 0; i < m_vTechs.size(); ++i)
+	for (int i = 0; i < m_vModels.size(); ++i)
 	{
 		m_vModels[i].Update();
 	}
@@ -1237,7 +1243,10 @@ void Render()
 #if defined(DX11)
 	for (int i = 0; i < m_vTechs.size(); ++i)
 	{
-		m_vTechs[i].Render(g_hwnd);
+		if (m_vTechs[i].IsActivated())
+		{
+			m_vTechs[i].Render(g_hwnd);
+		}
 	}
 	m_Obj.Render();
 	UIRender();
@@ -1330,7 +1339,10 @@ int main()
 	// main loop
 	MSG msg = { 0 };
 
-	
+	for (unsigned int i = 0; i < 3; ++i)
+	{
+		m_vTechs.push_back(Tech(i, g_hwnd));
+	}
 
 	while (WM_QUIT != msg.message)
 	{
@@ -1350,9 +1362,9 @@ int main()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-	for (int i = 0; i < m_vTechs.size(); ++i)
+	for (int i = 0; i < m_vModels.size(); ++i)
 	{
-		m_vTechs[i].CleanUpResources();
+		m_vModels[i].CleanUpDXResources();
 	}
 	m_Obj.CleanupDevice();
 	DestroyWindow(g_hwnd);

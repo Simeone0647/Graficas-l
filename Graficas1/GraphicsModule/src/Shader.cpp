@@ -12,6 +12,12 @@ Shader::~Shader()
 #if defined(DX11)
 HRESULT Shader::CompileShaderFromFile(const char* szFileName, const D3D10_SHADER_MACRO* _Macros, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
 {
+	//std::ofstream outfile("test.txt");
+	//
+	//outfile << "my text here!" << std::endl;
+	//
+	//outfile.close();
+
 	HRESULT hr = S_OK;
 
 	DWORD dwShaderFlags = SIMECOMPILE_ENABLE_STRICTNESS;

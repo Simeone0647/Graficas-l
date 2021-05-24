@@ -700,6 +700,7 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
+
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());

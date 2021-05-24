@@ -1,9 +1,10 @@
 #include "Tech.h"
 
-Tech::Tech(const int _Flags, std::vector<Model>* _Models, HWND _hwnd)
+Tech::Tech(const int _Flags, HWND _hwnd)
 {
 	m_DefineName = "";
 	m_DefineValue = "";
+	m_Active = false;
 
 	m_Desc.TechTypesFlag = _Flags;
 	if (m_Desc.TechTypesFlag == kNone)
@@ -24,7 +25,7 @@ Tech::Tech(const int _Flags, std::vector<Model>* _Models, HWND _hwnd)
 		m_DefineValue += "TRUE";
 		m_Name = "Pixel Lighting";
 	}
-	m_Passes.push_back(Pass(_Models, m_DefineName, m_DefineValue, _hwnd));
+	m_Passes.push_back(Pass(m_DefineName, m_DefineValue, _hwnd));
 }
 
 Tech::~Tech()
@@ -39,10 +40,24 @@ void Tech::Render(HWND _hwnd)
 	}
 }
 
-void Tech::CleanUpResources()
+//void Tech::CleanUpResources()
+//{
+//	for (unsigned int i = 0; i < m_Passes.size(); ++i)
+//	{
+//		m_Passes[i].CleanUpShaders();
+//	}
+//}
+
+void Tech::SetModels(std::vector<Model>* _Models, const unsigned int _PassNum)
 {
-	for (unsigned int i = 0; i < m_Passes.size(); ++i)
-	{
-		m_Passes[i].CleanUpDevice();
-	}
+	m_Passes[_PassNum].SetModels(_Models);
+}
+
+void Tech::Deactivate()
+{
+	m_Active = false;
+	//for (unsigned int i = 0; i < m_Passes.size(); ++i)
+	//{
+	//	m_Passes[i].CleanUpShaders();
+	//}
 }
