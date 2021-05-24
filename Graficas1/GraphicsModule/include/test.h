@@ -615,10 +615,10 @@ namespace GraphicsModule
 		ShaderResourceView					g_SimeTextureRV;
 		ShaderResourceView					g_SimeDepthStencilSRV;
 		SamplerState						g_SimeSamplerState;
-		PixelShader							g_SimePixelShader;
+		//PixelShader							g_SimePixelShader;
 		ShaderReflection					g_SimeVertexShaderReflection;
-		InputLayout							g_SimeInputLayout;
-		VertexShader						g_SimeVertexShader;
+	//	InputLayout							g_SimeInputLayout;
+	//	VertexShader						g_SimeVertexShader;
 		DirLight							g_DirLightBufferDesc;
 		Buffer								g_DirLightBuffer;
 		PointLight							g_PointLightBufferDesc;

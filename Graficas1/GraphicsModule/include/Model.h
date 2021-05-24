@@ -43,7 +43,7 @@ public:
 
 	void UpdateScaleMatrix(const float _x, const float _y, const float _z);
 
-	void Update(GraphicsModule::test& _obj, HWND _hwnd);
+	void Update();
 
 	void Render(HWND _hwnd);
 
@@ -54,6 +54,10 @@ public:
 	#endif
 
 	bool m_ImGuiSelected = false;
+
+	float m_GuiPos[3]{};
+	float m_GuiRot[3]{ 0.0f, 0.0f, 0.0f };
+	float m_GuiScale[3]{ 1.0f, 1.0f, 1.0f };
 private:
 
 	std::vector<VertexBuffer> m_vModelVBs;
@@ -77,10 +81,6 @@ private:
 	Matrix m_RotationMatrix;
 
 	Matrix m_ScaleMatrix;
-
-	float m_GuiPos[3]{};
-	float m_GuiRot[3]{ 0.0f, 0.0f, 0.0f };
-	float m_GuiScale[3]{ 1.0f, 1.0f, 1.0f };
 
 	std::string m_Name;
 };

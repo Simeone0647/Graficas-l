@@ -260,80 +260,80 @@ HRESULT test::InitDevice(HWND hwnd)
 
 		g_SimeViewport.InitViewport(InitVP);
 
-		// Compile the vertex shader
-		ID3DBlob* pVSBlob = NULL;
-		hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
-		if (FAILED(hr))
-		{
-			MessageBox(NULL,
-				"The FX file cannot be compiled. Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
-			return hr;
-		}
-
-		CreateVertexShaderStruct VSStruct;
-		VSStruct.pShaderBytecode = pVSBlob->GetBufferPointer();
-		VSStruct.BytecodeLength = pVSBlob->GetBufferSize();
-		VSStruct.pClassLinkage = NULL;
-		VSStruct.ppVertexShader = g_SimeVertexShader.GetDXVertexShaderAddress();
-
-		// Create the vertex shader
-		hr = GetManagerObj(hwnd).GetDevice().CCreateVertexShader(VSStruct);
-		if (FAILED(hr))
-		{
-			pVSBlob->Release();
-			return hr;
-		}
-
-		hr = g_SimeVertexShaderReflection.DoReflect(pVSBlob);
-		if (FAILED(hr))
-		{
-			pVSBlob->Release();
-			return hr;
-		}
-
-		//CREATE INPUT LAYOUT WITH REFLECTION
-		g_SimeVertexShaderReflection.GetDesc();
-		g_SimeInputLayout.DefineInputLayout(g_SimeVertexShaderReflection.GetDXShaderReflectionDesc(), g_SimeVertexShaderReflection.GetDXShaderReflection());
-
-		CreateInputLayoutStruct ILStruct;
-		ILStruct.pInputElementDescs = g_SimeInputLayout.GetDXInputLayoutDescAddress();
-		ILStruct.NumElements = g_SimeInputLayout.GetDXInputLayoutDescSize();
-		ILStruct.pShaderBytecodeWithInputSignature = pVSBlob->GetBufferPointer();
-		ILStruct.BytecodeLength = pVSBlob->GetBufferSize();
-		ILStruct.ppInputLayout = g_SimeInputLayout.GetDXInputLayoutAddress();
-
-		hr = GetManagerObj(hwnd).GetDevice().CCreateInputLayout(ILStruct);
-		pVSBlob->Release();
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-
-		//Free allocation shader reflection memory
-		g_SimeVertexShaderReflection.GetDXShaderReflection()->Release();
-
-
-		// Compile the pixel shader
-		ID3DBlob* pPSBlob = NULL;
-		hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
-		if (FAILED(hr))
-		{
-			MessageBox(NULL,
-				"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
-			return hr;
-		}
-
-		CreatePixelShaderStruct PSStruct;
-		PSStruct.pShaderBytecode = pPSBlob->GetBufferPointer();
-		PSStruct.BytecodeLength = pPSBlob->GetBufferSize();
-		PSStruct.pClassLinkage = NULL;
-		PSStruct.ppPixelShader = g_SimePixelShader.GetDXPixelShaderAddress();
-
-		// Create the pixel shader
-		hr = GetManagerObj(hwnd).GetDevice().CCreatePixelShader(PSStruct);
-		pPSBlob->Release();
-		if (FAILED(hr))
-			return hr;
+		//// Compile the vertex shader
+		//ID3DBlob* pVSBlob = NULL;
+		//hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
+		//if (FAILED(hr))
+		//{
+		//	MessageBox(NULL,
+		//		"The FX file cannot be compiled. Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+		//	return hr;
+		//}
+		//
+		//CreateVertexShaderStruct VSStruct;
+		//VSStruct.pShaderBytecode = pVSBlob->GetBufferPointer();
+		//VSStruct.BytecodeLength = pVSBlob->GetBufferSize();
+		//VSStruct.pClassLinkage = NULL;
+		//VSStruct.ppVertexShader = g_SimeVertexShader.GetDXVertexShaderAddress();
+		//
+		//// Create the vertex shader
+		//hr = GetManagerObj(hwnd).GetDevice().CCreateVertexShader(VSStruct);
+		//if (FAILED(hr))
+		//{
+		//	pVSBlob->Release();
+		//	return hr;
+		//}
+		//
+		//hr = g_SimeVertexShaderReflection.DoReflect(pVSBlob);
+		//if (FAILED(hr))
+		//{
+		//	pVSBlob->Release();
+		//	return hr;
+		//}
+		//
+		////CREATE INPUT LAYOUT WITH REFLECTION
+		//g_SimeVertexShaderReflection.GetDesc();
+		//g_SimeInputLayout.DefineInputLayout(g_SimeVertexShaderReflection.GetDXShaderReflectionDesc(), g_SimeVertexShaderReflection.GetDXShaderReflection());
+		//
+		//CreateInputLayoutStruct ILStruct;
+		//ILStruct.pInputElementDescs = g_SimeInputLayout.GetDXInputLayoutDescAddress();
+		//ILStruct.NumElements = g_SimeInputLayout.GetDXInputLayoutDescSize();
+		//ILStruct.pShaderBytecodeWithInputSignature = pVSBlob->GetBufferPointer();
+		//ILStruct.BytecodeLength = pVSBlob->GetBufferSize();
+		//ILStruct.ppInputLayout = g_SimeInputLayout.GetDXInputLayoutAddress();
+		//
+		//hr = GetManagerObj(hwnd).GetDevice().CCreateInputLayout(ILStruct);
+		//pVSBlob->Release();
+		//if (FAILED(hr))
+		//{
+		//	return hr;
+		//}
+		//
+		////Free allocation shader reflection memory
+		//g_SimeVertexShaderReflection.GetDXShaderReflection()->Release();
+		//
+		//
+		//// Compile the pixel shader
+		//ID3DBlob* pPSBlob = NULL;
+		//hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
+		//if (FAILED(hr))
+		//{
+		//	MessageBox(NULL,
+		//		"The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+		//	return hr;
+		//}
+		//
+		//CreatePixelShaderStruct PSStruct;
+		//PSStruct.pShaderBytecode = pPSBlob->GetBufferPointer();
+		//PSStruct.BytecodeLength = pPSBlob->GetBufferSize();
+		//PSStruct.pClassLinkage = NULL;
+		//PSStruct.ppPixelShader = g_SimePixelShader.GetDXPixelShaderAddress();
+		//
+		//// Create the pixel shader
+		//hr = GetManagerObj(hwnd).GetDevice().CCreatePixelShader(PSStruct);
+		//pPSBlob->Release();
+		//if (FAILED(hr))
+		//	return hr;
 
 		UpdateBDStruct BDStruct;
 		BDStruct.Usage = SIME_USAGE_DEFAULT;
@@ -691,16 +691,19 @@ void test::Render()
 	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CIASetInputLayout(g_SimeInputLayout.GetDXInputLayout());
-
-	//LUEGO
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
+	//GetManagerObj(m_hwnd).GetDeviceContext().CIASetInputLayout(g_SimeInputLayout.GetDXInputLayout());
+	//
+	////LUEGO
+	//GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(0, 1, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(1, 1, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
+	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif
 }
@@ -720,9 +723,9 @@ void test::CleanupDevice()
 		if (g_SpotLightBuffer.BGetBuffer()) g_SpotLightBuffer.BGetBuffer()->Release();
 		if (g_SimeVertexBuffer.GetVertexBuffer()) g_SimeVertexBuffer.GetVertexBuffer()->Release();
 		if (g_SimeIndexBuffer.GetIndexBuffer()) g_SimeIndexBuffer.GetIndexBuffer()->Release();
-		if (g_SimeInputLayout.GetDXInputLayout()) g_SimeInputLayout.GetDXInputLayout()->Release();
-		if (g_SimeVertexShader.GetDXVertexShader()) g_SimeVertexShader.GetDXVertexShader()->Release();
-		if (g_SimePixelShader.GetDXPixelShader()) g_SimePixelShader.GetDXPixelShader()->Release();
+		//if (g_SimeInputLayout.GetDXInputLayout()) g_SimeInputLayout.GetDXInputLayout()->Release();
+		//if (g_SimeVertexShader.GetDXVertexShader()) g_SimeVertexShader.GetDXVertexShader()->Release();
+		//if (g_SimePixelShader.GetDXPixelShader()) g_SimePixelShader.GetDXPixelShader()->Release();
 		if (g_SimeDepthStencil.GetTexture()) g_SimeDepthStencil.GetTexture()->Release();
 		if (g_SimeDepthStencilView.GetDSV()) g_SimeDepthStencilView.GetDSV()->Release();
 		if (g_SimeRenderTargetView.GetRTV()) g_SimeRenderTargetView.GetRTV()->Release();

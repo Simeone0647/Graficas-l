@@ -35,7 +35,7 @@ std::vector<Model> m_vModels;
 std::vector<Tech> m_vTechs;
 
 int ModelNum = 0;
-
+int PassNum = -1;
 //------------------------- LIGHTS -------------------------------------------------------
 static float DirectionLightDir[3] { 0.0f, 0.0f, 0.0f };
 
@@ -62,8 +62,9 @@ bool g_NewTech;
 
 bool LeftClick = g_NewTech = false;
 
-const char* items[] = { "Vertice Lighting", "Pixel Lighting" };
-static int item_current = 0;
+const char* LightingModels[] = { "None", "Vertex Lighting", "Pixel Lighting" };
+static int CurrentLightingModel = 0;
+const char* LightingModelLabel = LightingModels[CurrentLightingModel];
 
 #endif
 #if defined(OGL)
@@ -703,37 +704,38 @@ void OpenMeshMenu(const int _Flags[])
 
 void ShowMenuOptions()
 {
-	if (ImGui::BeginMenu("Open File"))
+	if (ImGui::BeginMenu("Add Technique"))
 	{
-		if (ImGui::BeginMenu("...as Triangles"))
-		{
-			if (ImGui::MenuItem("...as RGBA"))
-			{
-				int Flags[2] = { 0, 2 };
-				OpenMeshMenu(Flags);
-			}
-			if (ImGui::MenuItem("...as BGRA"))
-			{
-				int Flags[2] = { 0, 3 };
-				OpenMeshMenu(Flags);
-			}
-			ImGui::EndMenu();
-		}
+		//if (ImGui::BeginMenu("...as Triangles"))
+		//{
+		//	if (ImGui::MenuItem("...as RGBA"))
+		//	{
+		//		int Flags[2] = { 0, 2 };
+		//		OpenMeshMenu(Flags);
+		//	}
+		//	if (ImGui::MenuItem("...as BGRA"))
+		//	{
+		//		int Flags[2] = { 0, 3 };
+		//		OpenMeshMenu(Flags);
+		//	}
+		//	ImGui::EndMenu();
+		//}
+		//
+		//if (ImGui::BeginMenu("...as Points"))
+		//{
+		//	if (ImGui::MenuItem("...as RGBA"))
+		//	{
+		//		int Flags[2] = { 1, 2 };
+		//		OpenMeshMenu(Flags);
+		//	}
+		//	if (ImGui::MenuItem("...as BGRA"))
+		//	{
+		//		int Flags[2] = { 1, 3 };
+		//		OpenMeshMenu(Flags);
+		//	}
+		//	ImGui::EndMenu();
+		//}
 
-		if (ImGui::BeginMenu("...as Points"))
-		{
-			if (ImGui::MenuItem("...as RGBA"))
-			{
-				int Flags[2] = { 1, 2 };
-				OpenMeshMenu(Flags);
-			}
-			if (ImGui::MenuItem("...as BGRA"))
-			{
-				int Flags[2] = { 1, 3 };
-				OpenMeshMenu(Flags);
-			}
-			ImGui::EndMenu();
-		}
 		ImGui::EndMenu();
 	}
 }
@@ -768,25 +770,85 @@ void ShowMeshesMenu(const unsigned int _i)
 
 void UpdateTransformMenu(const unsigned int _i)
 {
-	if (ImGui::DragFloat3("Position", m_vModels[_i].GetGuiPos(), 0.01f))
+	if (ImGui::DragFloat3("Position", m_vModels[_i].m_GuiPos, 0.01f))
 	{
 		m_vModels[_i].UpdateTranslationMatrix(m_vModels[_i].GetGuiPos()[0] * 10.0f, m_vModels[_i].GetGuiPos()[1] * 10.0f, m_vModels[_i].GetGuiPos()[2] * 10.0f);
+		//m_vTechs[_i].GetPasses()[_j].GetModels()[_k].UpdateTranslationMatrix(m_vTechs[_i].GetPasses()[_j].GetModels()[_k].m_GuiPos[0] * 10.0f,
+		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].m_GuiPos[1] * 10.0f,
+		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].m_GuiPos[2] * 10.0f);
 	}
 	if (ImGui::DragFloat3("Rotation", m_vModels[_i].GetGuiRot(), 1.0f))
 	{
 		m_vModels[_i].UpdateRotationMatrix(m_vModels[_i].GetGuiRot()[0], m_vModels[_i].GetGuiRot()[1], m_vModels[_i].GetGuiRot()[2]);
+		//m_vTechs[_i].GetPasses()[_j].GetModels()[_k].UpdateRotationMatrix(m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiRot()[0],
+		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiRot()[1],
+		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiRot()[2]);
 	}
 	if (ImGui::DragFloat3("Scale", m_vModels[_i].GetGuiScale(), 0.001f))
 	{
 		m_vModels[_i].UpdateScaleMatrix(m_vModels[_i].GetGuiScale()[0], m_vModels[_i].GetGuiScale()[1], m_vModels[_i].GetGuiScale()[2]);
+		//m_vTechs[_i].GetPasses()[_j].GetModels()[_k].UpdateScaleMatrix(m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiScale()[0],
+		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiScale()[1],
+		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiScale()[2]);
 	}
 }
 
-void DisplayModelsMenu()
+//void DisplayModelsMenu(const unsigned int _i, const unsigned int _j, const unsigned int _k)
+//{
+//	if (ImGui::TreeNode(m_vModels[_k].GetName().c_str()))
+//	{
+//		ImGui::SameLine();
+//		ImGui::TextDisabled("(?)");
+//		if (ImGui::IsItemHovered())
+//		{
+//			ImGui::BeginTooltip();
+//			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 8);
+//			std::string MeshNumText = "Meshes:" + to_string(m_vModels[_k].GetMeshNum());
+//			ImGui::TextUnformatted(&MeshNumText[0]);
+//			ImGui::PopTextWrapPos();
+//			ImGui::EndTooltip();
+//		}
+//		ImGui::Separator();
+//		if (ImGui::BeginTabBar("##tabs", ImGuiTabBarFlags_None))
+//		{
+//			if (ImGui::BeginTabItem("Transform"))
+//			{
+//				UpdateTransformMenu(_i, _j, _k);
+//				ImGui::EndTabItem();
+//			}
+//			if (ImGui::BeginTabItem("Meshes"))
+//			{
+//				ShowMeshesMenu(_k);
+//				ImGui::EndTabItem();
+//			}
+//			ImGui::EndTabBar();
+//		}
+//		ImGui::TreePop();
+//	}
+//
+//	else
+//	{
+//		ImGui::SameLine();
+//		ImGui::TextDisabled("(?)");
+//		if (ImGui::IsItemHovered())
+//		{
+//			ImGui::BeginTooltip();
+//			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20);
+//			std::string MeshNumText = "Meshes:" + to_string(m_vModels[_k].GetMeshNum());
+//			ImGui::TextUnformatted(&MeshNumText[0]);
+//			ImGui::PopTextWrapPos();
+//			ImGui::EndTooltip();
+//		}
+//	}
+//
+//	ImGui::Separator();
+//}
+
+void AccessModels()
 {
 	for (unsigned int i = 0; i < m_vModels.size(); ++i)
 	{
-
+	
 		if (ImGui::TreeNode(m_vModels[i].GetName().c_str()))
 		{
 			ImGui::SameLine();
@@ -817,7 +879,7 @@ void DisplayModelsMenu()
 			}
 			ImGui::TreePop();
 		}
-
+	
 		else
 		{
 			ImGui::SameLine();
@@ -832,9 +894,19 @@ void DisplayModelsMenu()
 				ImGui::EndTooltip();
 			}
 		}
-
+	
 		ImGui::Separator();
 	}
+	//for (unsigned int i = 0; i < m_vTechs.size(); ++i)
+	//{
+	//	for (unsigned int j = 0; j < m_vTechs[i].GetPasses().size(); ++j)
+	//	{
+	//		for (unsigned int k = 0; k < m_vTechs[i].GetPasses()[j].GetModels().size(); ++k)
+	//		{
+	//			DisplayModelsMenu(i, j, k);
+	//		}
+	//	}
+	//}
 }
 
 void UIRender()
@@ -862,19 +934,19 @@ void UIRender()
 
 	ImGui::Begin("Configuration", NULL, ImGuiWindowFlags_MenuBar);
 
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::BeginMenu("Menu"))
-		{
-			ShowMenuOptions();
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenuBar();
-	}
+	//if (ImGui::BeginMenuBar())
+	//{
+	//	if (ImGui::BeginMenu("Menu"))
+	//	{
+	//		ShowMenuOptions();
+	//		ImGui::EndMenu();
+	//	}
+	//	ImGui::EndMenuBar();
+	//}
 
 	if (ImGui::CollapsingHeader("Models"))
 	{
-		DisplayModelsMenu();
+		AccessModels();
 	}
 	ImGui::End();
 
@@ -1013,7 +1085,48 @@ void UIRender()
 	}
 	if (ImGui::CollapsingHeader("Techniques"))
 	{
+		for (unsigned int i = 0; i < m_vTechs.size(); ++i)
+		{
+			if (ImGui::TreeNode(m_vTechs[i].GetName().c_str()))
+			{
+				LightingModelLabel = LightingModels[m_vTechs[i].GetLightingTech()];
+				if (ImGui::BeginCombo("Lighting Techs", LightingModelLabel, NULL))
+				{
+					for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
+					{
+						const bool IsSelected = (m_vTechs[i].GetLightingTech() == n);
+						if (ImGui::Selectable(LightingModels[n], IsSelected))
+						{
+							CurrentLightingModel = n;
+							m_vTechs[i].SetDesc(CurrentLightingModel);
+						}
 
+						// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+						if (IsSelected)
+						{
+							ImGui::SetItemDefaultFocus();
+						}
+					}
+					ImGui::EndCombo();
+				}
+
+				for (unsigned int j = 0; j < m_vTechs[i].GetPasses().size(); ++j)
+				{
+					std::string PassName = "Pass " + to_string(PassNum);
+					if (ImGui::TreeNode(PassName.c_str()))
+					{
+						ImGui::Text("Models:");
+						ImGui::Text(m_vModels[i].GetName().c_str());
+
+						ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::Separator();
+		}
 		if (ImGui::Button("Add"))
 		{
 			g_NewTech = true;
@@ -1024,38 +1137,45 @@ void UIRender()
 	{
 		ImGui::Begin("New Technique", NULL, 0);
 
-		ImGui::Text("Select Models");
+		ImGui::Text("Load Models");
 
 		for (unsigned int i = 0; i < ModelNum; ++i)
 		{
 			ImGui::Selectable(m_vModels[i].GetName().c_str(), &m_vModels[i].m_ImGuiSelected);
 		}
 
+		if (ImGui::Button("Load"))
+		{
+			int Flags[2] = { 0, 3 };
+			OpenMeshMenu(Flags);
+		}
+
 		ImGui::Separator();
 
 		ImGui::Text("Select Technique");
 
-		ImGui::Combo("", &item_current, items, IM_ARRAYSIZE(items));
+		ImGui::Combo("", &CurrentLightingModel, LightingModels, IM_ARRAYSIZE(LightingModels));
 
 		ImGui::Separator();
 
 		if (ImGui::Button("Ok"))
 		{
-			std::vector<Model> vTechModels;
-			int TechFlags;
+			int TechFlags = 0;
 
 			for (unsigned int i = 0; i < ModelNum; ++i)
 			{
-				if (m_vModels[i].m_ImGuiSelected)
+				if (!m_vModels[i].m_ImGuiSelected)
 				{
-					vTechModels.push_back(m_vModels[i]);
+					m_vModels.erase(m_vModels.begin() + i);
 				}
 			}
 
-			if (item_current == 0) TechFlags = kIlumPerVertex;
-			else if (item_current == 1) TechFlags = kIlumPerPixel;
+			if (CurrentLightingModel == 0) TechFlags = kNone;
+			else if (CurrentLightingModel == 1) TechFlags = kIlumPerVertex;
+			else if (CurrentLightingModel == 2) TechFlags = kIlumPerPixel;
 
-			m_vTechs.push_back(Tech(item_current, vTechModels));
+			m_vTechs.push_back(Tech(TechFlags, &m_vModels, g_hwnd));
+			PassNum++;
 			g_NewTech = false;
 		}
 
@@ -1096,28 +1216,28 @@ void Update()
 		PreviousMouseRelativePosition[1] = Direction->y;
 	#endif
 	}
-#if defined(DX11)
-	for (int i = 0; i < m_vModels.size(); ++i)
+	#if defined(DX11)
+	for (int i = 0; i < m_vTechs.size(); ++i)
 	{
-		m_vModels[i].Update(m_Obj, g_hwnd);
+		m_vModels[i].Update();
 	}
 	m_Obj.Update();
-#endif
-#if defined(OGL)
+	#endif
+	#if defined(OGL)
 	for (int i = 0; i < m_vModels.size(); ++i)
 	{
 		m_vModels[i].Update(m_Obj, g_hwnd);
 	}
 	m_Obj.UpdateOGL(m_OGLWindow);
-#endif
+	#endif
 }
 
 void Render()
 {
 #if defined(DX11)
-	for (int i = 0; i < m_vModels.size(); ++i)
+	for (int i = 0; i < m_vTechs.size(); ++i)
 	{
-		m_vModels[i].Render(g_hwnd);
+		m_vTechs[i].Render(g_hwnd);
 	}
 	m_Obj.Render();
 	UIRender();
@@ -1187,7 +1307,7 @@ int main()
 #endif
 #if defined(DX11)
 	// create the window and console
-	if (FAILED(InitWindow(1024, 768)))
+	if (FAILED(InitWindow(1920, 1080)))
 	{
 		DestroyWindow(g_hwnd);
 		return 0;
@@ -1209,6 +1329,9 @@ int main()
 	
 	// main loop
 	MSG msg = { 0 };
+
+	
+
 	while (WM_QUIT != msg.message)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -1227,9 +1350,9 @@ int main()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-	for (int i = 0; i < m_vModels.size(); ++i)
+	for (int i = 0; i < m_vTechs.size(); ++i)
 	{
-		m_vModels[i].CleanUpDXResources();
+		m_vTechs[i].CleanUpResources();
 	}
 	m_Obj.CleanupDevice();
 	DestroyWindow(g_hwnd);

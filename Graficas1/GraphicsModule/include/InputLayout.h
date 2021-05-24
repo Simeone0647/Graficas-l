@@ -8,6 +8,8 @@
 #include <xnamath.h>
 
 #endif
+#include <string>
+
 class InputLayout
 {
 public:
@@ -18,7 +20,7 @@ public:
 	inline ID3D11InputLayout* GetDXInputLayout() { return m_pInputLayout; }
 	inline ID3D11InputLayout** GetDXInputLayoutAddress() { return &m_pInputLayout; }
 
-	void DefineInputLayout(D3D11_SHADER_DESC shaderdesc, ID3D11ShaderReflection* shaderreflection);
+	void DefineInputLayout(D3D11_SHADER_DESC _ShaderDesc, ID3D11ShaderReflection* _ShaderReflection);
 
 	inline D3D11_INPUT_ELEMENT_DESC* GetDXInputLayoutDescAddress() { return &m_vInputLayoutDesc[0]; }
 	inline UINT GetDXInputLayoutDescSize() { return m_vInputLayoutDesc.size(); }

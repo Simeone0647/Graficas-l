@@ -18,3 +18,5 @@
 #include "Material.h"
 #include "Model.h"
 #include "Tech.h"
+#include "Pass.h"
+#include "Shader.h"

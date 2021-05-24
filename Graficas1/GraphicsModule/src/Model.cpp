@@ -71,7 +71,7 @@ void Model::UpdateScaleMatrix(const float _x, const float _y, const float _z)
 	m_ScaleMatrix.m_Matrix[2][2] = _z;
 }
 
-void Model::Update(GraphicsModule::test& _obj, HWND _hwnd)
+void Model::Update()
 {
 	Matrix SR;
 
