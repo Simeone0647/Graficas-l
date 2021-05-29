@@ -111,6 +111,18 @@ void Model::Render(HWND _hwnd)
 
 #if defined(DX11)
 
+bool Model::GetPassID(const int _PassID)
+{
+	for (unsigned int i = 0; i < m_vPassID.size(); ++i)
+	{
+		if (m_vPassID[i] == _PassID)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 void Model::CleanUpDXResources()
 {
 	for (unsigned int i = 0; i < m_MeshesNum; ++i)

@@ -17,6 +17,7 @@
 #include "SwapChain.h"
 #include "Material.h"
 #include "Model.h"
+#include "Effect.h"
 #include "Tech.h"
 #include "Pass.h"
 #include "Shader.h"

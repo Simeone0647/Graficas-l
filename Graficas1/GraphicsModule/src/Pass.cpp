@@ -3,30 +3,28 @@
 
 Pass::Pass()
 {
-	m_Models = nullptr;
+
 }
 
-Pass::Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd)
+Pass::Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd, string _Name, int _ID)
 {	
-	m_Models = nullptr;
-	if (_DefineName == "") m_ID = "None";
-	else if (_DefineName == "VERTEX_LIGHT") m_ID = "Vertex Light";
-	else if (_DefineName == "PIXEL_LIGHT") m_ID = "Pixel Light";
+	//if (_DefineName == "") m_ID = "None";
+	//else if (_DefineName == "VERTEX_LIGHT") m_ID = "Vertex Light";
+	//else if (_DefineName == "PIXEL_LIGHT") m_ID = "Pixel Light";
+
+	m_Name = _Name;
 
 	m_Shader.SetMacros(_DefineName, _DefineValue);
 	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader);
+
+	m_ID = _ID;
 }
 
 Pass::~Pass()
 {
 }
 
-void Pass::Init(HWND _hwnd)
-{
-	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader);
-}
-
-void Pass::Render(HWND _hwnd)
+void Pass::Render(HWND _hwnd, vector<Model>& _Models)
 {
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetInputLayout(m_InputLayout.GetDXInputLayout());
 
@@ -34,18 +32,12 @@ void Pass::Render(HWND _hwnd)
 
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShader(m_PixelShader.GetDXPixelShader(), NULL, 0);
 	
-	for (unsigned int i = 0; i < m_Models[0].size(); ++i)
+	for (unsigned int i = 0; i < _Models.size(); ++i)
 	{
-		m_Models[0][i].Render(_hwnd);
-	}
-
-}
-
-void Pass::CleanUpModels()
-{
-	for (unsigned int i = 0; i < m_Models[0].size(); ++i)
-	{
-		m_Models[0][i].CleanUpDXResources();
+		if (_Models[i].GetPassID(m_ID))
+		{ 
+			_Models[i].Render(_hwnd);
+		}
 	}
 }
 

@@ -1,6 +1,6 @@
 #include "Tech.h"
 
-Tech::Tech(const int _Flags, HWND _hwnd)
+Tech::Tech(const int _Flags, HWND _hwnd, int& _PassNum)
 {
 	m_DefineName = "";
 	m_DefineValue = "";
@@ -25,18 +25,21 @@ Tech::Tech(const int _Flags, HWND _hwnd)
 		m_DefineValue += "TRUE";
 		m_Name = "Pixel Lighting";
 	}
-	m_Passes.push_back(Pass(m_DefineName, m_DefineValue, _hwnd));
+	m_Passes.push_back(Pass(m_DefineName, m_DefineValue, _hwnd, "Light", _PassNum));
+	_PassNum++;
+
+	m_PassNum = m_Passes.size();
 }
 
 Tech::~Tech()
 {
 }
 
-void Tech::Render(HWND _hwnd)
+void Tech::Render(HWND _hwnd, vector<Model>& _Models)
 {
 	for (unsigned int i = 0; i < m_Passes.size(); ++i)
 	{
-		m_Passes[i].Render(_hwnd);
+		m_Passes[i].Render(_hwnd, _Models);
 	}
 }
 
@@ -47,11 +50,6 @@ void Tech::Render(HWND _hwnd)
 //		m_Passes[i].CleanUpShaders();
 //	}
 //}
-
-void Tech::SetModels(std::vector<Model>* _Models, const unsigned int _PassNum)
-{
-	m_Passes[_PassNum].SetModels(_Models);
-}
 
 void Tech::Deactivate()
 {

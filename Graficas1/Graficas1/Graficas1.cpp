@@ -33,9 +33,10 @@ GraphicsModule::test m_Obj;
 #if defined(DX11) || defined(OGL)
 std::vector<Model> m_vModels;
 std::vector<Tech> m_vTechs;
+std::vector<Effect> m_vEffects;
 
 int ModelNum = 0;
-int PassNum = -1;
+int g_PassNum = 0;
 //------------------------- LIGHTS -------------------------------------------------------
 static float DirectionLightDir[3] { 0.0f, 0.0f, 0.0f };
 
@@ -58,14 +59,17 @@ static double MouseRelativePosition[2]{};
 static double PreviousMouseRelativePosition[2]{};
 static bool OverImGuiWindow = false;
 
-bool g_NewTech;
+bool g_NewEffect;
+bool g_NewPass;
 
-bool LeftClick = g_NewTech = false;
+bool LeftClick = g_NewEffect = false;
 
 const char* LightingModels[] = { "None", "Vertex Lighting", "Pixel Lighting" };
 static int CurrentLightingModel = 0;
 const char* LightingModelLabel = LightingModels[CurrentLightingModel];
 
+std::string NewEffectName = "";
+std::string NewPassName = "";
 #endif
 #if defined(OGL)
 bool OnW = false;
@@ -628,10 +632,11 @@ Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, const int _Flags[])
 	return Mesh(vMeshVertex, vMeshIndices, vFilename, _Flags, _Mesh->mName.data, m_Obj.programID);
 }
 
-void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[])
+void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[], const int _PassID)
 {
 	m_vModels.push_back(Model());
 	m_vModels[ModelNum].SetName(_ModelName);
+	m_vModels[ModelNum].SetPassID(_PassID);
 
 	int NumMeshes = _scene->mNumMeshes;
 	m_vModels[ModelNum].SetMeshNum(NumMeshes);
@@ -647,7 +652,7 @@ void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[]
 	ModelNum++;
 }
 
-void OpenMeshMenu(const int _Flags[])
+void OpenMeshMenu(const int _Flags[], const int _PassID)
 {
 	std::string wideStringBuffer = "";
 	wideStringBuffer.resize(MAX_PATH);
@@ -692,13 +697,21 @@ void OpenMeshMenu(const int _Flags[])
 		{
 			if (Filename == m_vModels[i].GetName())
 			{
-				std::cout << "Model Already Imported!" << std::endl;
-				return;
+				if (m_vModels[i].GetPassID(_PassID))
+				{
+					std::cout << "Model Already Imported!" << std::endl;
+					return;
+				}
+				else
+				{
+					m_vModels[i].SetPassID(_PassID);
+					return;
+				}
 			}
 		}
 
 		std::cout << "Archivo importado correctamente" << std::endl;
-		LoadModel(scene, Filename, _Flags);
+		LoadModel(scene, Filename, _Flags, _PassID);
 	}
 }
 
@@ -773,23 +786,14 @@ void UpdateTransformMenu(const unsigned int _i)
 	if (ImGui::DragFloat3("Position", m_vModels[_i].m_GuiPos, 0.01f))
 	{
 		m_vModels[_i].UpdateTranslationMatrix(m_vModels[_i].GetGuiPos()[0] * 10.0f, m_vModels[_i].GetGuiPos()[1] * 10.0f, m_vModels[_i].GetGuiPos()[2] * 10.0f);
-		//m_vTechs[_i].GetPasses()[_j].GetModels()[_k].UpdateTranslationMatrix(m_vTechs[_i].GetPasses()[_j].GetModels()[_k].m_GuiPos[0] * 10.0f,
-		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].m_GuiPos[1] * 10.0f,
-		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].m_GuiPos[2] * 10.0f);
 	}
 	if (ImGui::DragFloat3("Rotation", m_vModels[_i].GetGuiRot(), 1.0f))
 	{
 		m_vModels[_i].UpdateRotationMatrix(m_vModels[_i].GetGuiRot()[0], m_vModels[_i].GetGuiRot()[1], m_vModels[_i].GetGuiRot()[2]);
-		//m_vTechs[_i].GetPasses()[_j].GetModels()[_k].UpdateRotationMatrix(m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiRot()[0],
-		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiRot()[1],
-		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiRot()[2]);
 	}
 	if (ImGui::DragFloat3("Scale", m_vModels[_i].GetGuiScale(), 0.001f))
 	{
 		m_vModels[_i].UpdateScaleMatrix(m_vModels[_i].GetGuiScale()[0], m_vModels[_i].GetGuiScale()[1], m_vModels[_i].GetGuiScale()[2]);
-		//m_vTechs[_i].GetPasses()[_j].GetModels()[_k].UpdateScaleMatrix(m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiScale()[0],
-		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiScale()[1],
-		//																	 m_vTechs[_i].GetPasses()[_j].GetModels()[_k].GetGuiScale()[2]);
 	}
 }
 
@@ -897,16 +901,120 @@ void AccessModels()
 	
 		ImGui::Separator();
 	}
-	//for (unsigned int i = 0; i < m_vTechs.size(); ++i)
+}
+
+void PassesMenu(const int _i)
+{
+	//if (ImGui::Button("Add Pass"))
 	//{
-	//	for (unsigned int j = 0; j < m_vTechs[i].GetPasses().size(); ++j)
-	//	{
-	//		for (unsigned int k = 0; k < m_vTechs[i].GetPasses()[j].GetModels().size(); ++k)
-	//		{
-	//			DisplayModelsMenu(i, j, k);
-	//		}
-	//	}
+	//	g_NewPass = true;
 	//}
+	//
+	//if (g_NewPass)
+	//{
+	//	ImGui::Begin("New Pass", NULL, 0);
+	//
+	//	size_t Size = sizeof(NewPassName);
+	//
+	//	ImGui::InputText("Pass Name", &NewPassName[0], Size);
+	//
+	//	ImGui::Text("Load Models");
+	//	
+	//	for (unsigned int i = 0; i < ModelNum; ++i)
+	//	{
+	//		ImGui::Selectable(m_vModels[i].GetName().c_str(), &m_vModels[i].m_ImGuiSelected);
+	//	}
+	//	
+	//	if (ImGui::Button("Load"))
+	//	{
+	//		int Flags[2] = { 0, 3 };
+	//		OpenMeshMenu(Flags);
+	//	}
+	//
+	//	if (ImGui::Button("Ok"))
+	//	{
+	//		for (unsigned int i = 0; i < ModelNum; ++i)
+	//		{
+	//			if (!m_vModels[i].m_ImGuiSelected)
+	//			{
+	//				m_vModels.erase(m_vModels.begin() + i);
+	//			}
+	//		}
+	//
+	//		m_vEffects[_i].SetModels(&m_vModels);
+	//	}
+	//
+	//	if (ImGui::Button("Cancel"))
+	//	{
+	//		g_NewPass = false;
+	//	}
+	//	ImGui::End();
+	//}
+	for (unsigned int j = 0; j < m_vEffects[_i].GetPassNum(); ++j)
+	{
+		if (ImGui::TreeNode(m_vEffects[_i].GetPassName(j).c_str()))
+		{
+			if (ImGui::Button("Load Model"))
+			{
+				int Flags[2] = { 0, 3 };
+				OpenMeshMenu(Flags, m_vEffects[_i].GetPassID(j));
+
+			}
+
+			if (ImGui::TreeNode("Models"))
+			{
+				for (unsigned int i = 0; i < m_vModels.size(); ++i)
+				{
+					if (m_vModels[i].GetPassID(m_vEffects[_i].GetPassID(j)))
+					{
+						ImGui::Text(m_vModels[i].GetName().c_str());
+					}
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::TreePop();
+		}
+	}
+}
+
+void EffectsMenu(const int _i)
+{
+	if (ImGui::TreeNode(m_vEffects[_i].GetName().c_str()))
+	{
+		LightingModelLabel = LightingModels[m_vEffects[_i].GetActiveTech()];
+		if (ImGui::BeginCombo("Lighting Techs", LightingModelLabel, NULL))
+		{
+			for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
+			{
+				const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
+				if (ImGui::Selectable(LightingModels[n], IsSelected))
+				{
+					CurrentLightingModel = n;
+					m_vEffects[_i].DeactivateTech();
+					m_vEffects[_i].ActivateTech(CurrentLightingModel);
+					//m_vTechs[CurrentLightingModel].Activate();
+					//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
+				}
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (IsSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
+		if (ImGui::TreeNode("Passes"))
+		{
+			PassesMenu(_i);
+			ImGui::TreePop();
+		}
+		ImGui::TreePop();
+	}
+	ImGui::Separator();
 }
 
 void UIRender()
@@ -1083,76 +1191,24 @@ void UIRender()
 			ImGui::TreePop();
 		}
 	}
-	if (ImGui::CollapsingHeader("Techniques"))
+	if (ImGui::CollapsingHeader("Effect"))
 	{
-		for (unsigned int i = 0; i < m_vTechs.size(); ++i)
+		for (unsigned int i = 0; i < m_vEffects.size(); ++i)
 		{
-			if (m_vTechs[i].IsActivated())
-			{
-				if (ImGui::TreeNode(m_vTechs[i].GetName().c_str()))
-				{
-					LightingModelLabel = LightingModels[m_vTechs[i].GetLightingTech()];
-					if (ImGui::BeginCombo("Lighting Techs", LightingModelLabel, NULL))
-					{
-						for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
-						{
-							const bool IsSelected = (m_vTechs[i].GetLightingTech() == n);
-							if (ImGui::Selectable(LightingModels[n], IsSelected))
-							{
-								CurrentLightingModel = n;
-								m_vTechs[i].Deactivate();
-								m_vTechs[CurrentLightingModel].Activate();
-								m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
-							}
-
-							// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-							if (IsSelected)
-							{
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-						ImGui::EndCombo();
-					}
-
-					for (unsigned int j = 0; j < m_vTechs[i].GetPasses().size(); ++j)
-					{
-						std::string PassName = "Pass " + to_string(PassNum);
-						if (ImGui::TreeNode(PassName.c_str()))
-						{
-							ImGui::Text("Models:");
-							ImGui::Text(m_vModels[0].GetName().c_str());
-
-							ImGui::TreePop();
-						}
-					}
-
-					ImGui::TreePop();
-				}
-			}
-			ImGui::Separator();
+			EffectsMenu(i);
 		}
 		if (ImGui::Button("Add"))
 		{
-			g_NewTech = true;
+			g_NewEffect = true;
 		}
 	}
 
-	if (g_NewTech)
+	if (g_NewEffect)
 	{
-		ImGui::Begin("New Technique", NULL, 0);
+		ImGui::Begin("New Effect", NULL, 0);
+		size_t Size = sizeof(NewEffectName);
 
-		ImGui::Text("Load Models");
-
-		for (unsigned int i = 0; i < ModelNum; ++i)
-		{
-			ImGui::Selectable(m_vModels[i].GetName().c_str(), &m_vModels[i].m_ImGuiSelected);
-		}
-
-		if (ImGui::Button("Load"))
-		{
-			int Flags[2] = { 0, 3 };
-			OpenMeshMenu(Flags);
-		}
+		ImGui::InputText("Effect Name", &NewEffectName[0], Size);
 
 		ImGui::Separator();
 
@@ -1166,30 +1222,21 @@ void UIRender()
 		{
 			int TechFlags = 0;
 
-			for (unsigned int i = 0; i < ModelNum; ++i)
-			{
-				if (!m_vModels[i].m_ImGuiSelected)
-				{
-					m_vModels.erase(m_vModels.begin() + i);
-				}
-			}
-
 			if (CurrentLightingModel == 0) TechFlags = kNone;
 			else if (CurrentLightingModel == 1) TechFlags = kIlumPerVertex;
 			else if (CurrentLightingModel == 2) TechFlags = kIlumPerPixel;
 
-			//m_vTechs.push_back(Tech(TechFlags, &m_vModels, g_hwnd));
-			m_vTechs[TechFlags].SetModels(&m_vModels, 0);
-			m_vTechs[TechFlags].Activate();
-			PassNum++;
-			g_NewTech = false;
+			m_vEffects.push_back(Effect(&m_vTechs, NewEffectName));
+			m_vEffects.back().ActivateTech(TechFlags);
+			NewEffectName = "";
+			g_NewEffect = false;
 		}
 
 		ImGui::SameLine();
 
 		if (ImGui::Button("Cancel"))
 		{
-			g_NewTech = false;
+			g_NewEffect = false;
 		}
 
 		ImGui::End();
@@ -1241,12 +1288,9 @@ void Update()
 void Render()
 {
 #if defined(DX11)
-	for (int i = 0; i < m_vTechs.size(); ++i)
+	for (int i = 0; i < m_vEffects.size(); ++i)
 	{
-		if (m_vTechs[i].IsActivated())
-		{
-			m_vTechs[i].Render(g_hwnd);
-		}
+		m_vEffects[i].Render(g_hwnd, m_vModels);
 	}
 	m_Obj.Render();
 	UIRender();
@@ -1341,7 +1385,7 @@ int main()
 
 	for (unsigned int i = 0; i < 3; ++i)
 	{
-		m_vTechs.push_back(Tech(i, g_hwnd));
+		m_vTechs.push_back(Tech(i, g_hwnd, g_PassNum));
 	}
 
 	while (WM_QUIT != msg.message)

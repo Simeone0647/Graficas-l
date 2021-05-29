@@ -49,6 +49,8 @@ public:
 
 	std::vector<Mesh> GetMeshes() { return m_vMeshes; }
 
+	inline void SetPassID(int _ID) { m_vPassID.push_back(_ID); }
+	bool GetPassID(const int _PassID);
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
@@ -83,5 +85,7 @@ private:
 	Matrix m_ScaleMatrix;
 
 	std::string m_Name;
+
+	std::vector<int> m_vPassID;
 };
 

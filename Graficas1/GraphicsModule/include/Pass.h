@@ -10,19 +10,19 @@ class Pass
 {
 public:
 	Pass();
-	Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd);
+	Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd, string _Name, int _ID);
 	~Pass();
 
-	void Init(HWND _hwnd);
-	void Render(HWND _hwnd);
-	void CleanUpModels();
+	void Render(HWND _hwnd, vector<Model>& _Models);
 	void CleanUpShaders();
-	inline std::vector<Model>* GetModels() { return m_Models; }
-	inline void SetModels(std::vector<Model>* _Models) { m_Models = _Models; }
+	inline string GetName() { return m_Name; }
+	inline int GetID() { return m_ID; }
 private:
 	Shader m_Shader;
-	std::vector<Model>* m_Models;
-	std::string m_DefineName, m_DefineValue, m_ID;
+
+	string m_DefineName, m_DefineValue, m_Name;
+
+	int m_ID;
 
 	#if defined(DX11)
 	VertexShader m_VertexShader;
