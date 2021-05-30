@@ -19,7 +19,8 @@ public:
 	*/
 
 	void Render(HWND _hwnd, CBChangesEveryFrame& cb, ConstantBuffer& _MeshCB);
-
+	inline void OneMoreTex() { m_TexturesNum++; }
+	inline unsigned int GetTexNum() { return m_TexturesNum; }
 	#if defined(OGL)
 	inline void SetTextureID(unsigned int _Value) { m_TextureID = _Value; }
 	inline unsigned int GetTextureID() { return m_TextureID; }
@@ -28,19 +29,19 @@ public:
 	#endif
 
 	#if defined(DX11)
-	inline ShaderResourceView* GetSRVTexture() { return m_SRVTexture; }
+	inline ShaderResourceView* GetSRVTexture(const unsigned int _i) { return m_SRVTexture[_i]; }
 	#endif
 private:
 
 	Texture2D m_Color;
 	SamplerState m_SamplerColor;
-
+	unsigned int m_TexturesNum;
 	#if defined(OGL)
 
 	#endif
 
 	#if defined(DX11)
-	ShaderResourceView* m_SRVTexture;
+	ShaderResourceView* m_SRVTexture[2];
 	#endif
 };
 

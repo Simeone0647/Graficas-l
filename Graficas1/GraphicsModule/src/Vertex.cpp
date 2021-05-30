@@ -11,10 +11,13 @@ Vertex::Vertex()
 	m_Position[1] = 0.0f;
 	m_Position[2] = 0.0f;
 	m_Position[3] = 1.0f;
-	m_Normal[0] = 0.0f;
-	m_Normal[1] = 0.0f;
-	m_Normal[2] = 0.0f;
-	m_Normal[3] = 0.0f;
+
+	for (int i = 0; i < 4; i++)
+	{
+		m_Normal[i] = 0.0f;
+		m_Tangents[i] = 0.0f;
+		m_Binormal[i] = 0.0f;
+	}
 	for (int i = 0; i < 2; i++)
 	{
 		m_Texture[i] = 0;

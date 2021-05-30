@@ -371,16 +371,29 @@ HRESULT test::InitDevice(HWND hwnd)
 		BDStruct.ByteWidth = sizeof(SpotLight);
 		g_SpotLightBuffer.BUpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SpotLightBuffer.BGetBDAddress(), NULL, g_SpotLightBuffer.BGetBufferAddress());
+
+		BDStruct.ByteWidth = sizeof(Diffuse);
+		g_DiffuseBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_DiffuseBuffer.BGetBDAddress(), NULL, g_DiffuseBuffer.BGetBufferAddress());
+
+		BDStruct.ByteWidth = sizeof(Ambient);
+		g_AmbientBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_AmbientBuffer.BGetBDAddress(), NULL, g_AmbientBuffer.BGetBufferAddress());
+
+		BDStruct.ByteWidth = sizeof(Specular);
+		g_SpecularBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SpecularBuffer.BGetBDAddress(), NULL, g_SpecularBuffer.BGetBufferAddress());
+
 		// Load the Texture
 		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
 		if (FAILED(hr))
 			std::cout << "Fallo spotlight";
 
-		g_SimeSamplerState.SetDesc();
-
-		hr = GetManagerObj(hwnd).GetDevice().CCreateSamplerState(g_SimeSamplerState.GetDXSamplerDescAddress(), g_SimeSamplerState.GetDXSamplerStateAddress());
-		if (FAILED(hr))
-			return hr;
+		//g_SimeSamplerState.SetDesc();
+		//
+		//hr = GetManagerObj(hwnd).GetDevice().CCreateSamplerState(g_SimeSamplerState.GetDXSamplerDescAddress(), g_SimeSamplerState.GetDXSamplerStateAddress());
+		//if (FAILED(hr))
+		//	return hr;
 
 		UpdateProjectionMatrixStruct PMStruct;
 		PMStruct.AngleY = SIME_PIDIV4;
@@ -688,6 +701,30 @@ void test::Render()
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
+	UpdateSRStruct.pDstResource = g_AmbientBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_Ambient;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
+	UpdateSRStruct.pDstResource = g_DiffuseBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_Diffuse;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
+	UpdateSRStruct.pDstResource = g_SpecularBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_Specular;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
 	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
@@ -700,12 +737,18 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(6, 1, g_SpecularBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
 
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(6, 1, g_SpecularBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
+	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif
 }
 
@@ -714,7 +757,7 @@ void test::CleanupDevice()
 	#if defined(DX11)
 		if (GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()) GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()->ClearState();
 
-		if (g_SimeSamplerState.GetDXSamplerState()) g_SimeSamplerState.GetDXSamplerState()->Release();
+		//if (g_SimeSamplerState.GetDXSamplerState()) g_SimeSamplerState.GetDXSamplerState()->Release();
 		if (g_SimeTextureRV.GetDXSRV()) g_SimeTextureRV.GetDXSRV()->Release();
 		if (g_SimeCBNeverChanges.GetCBNeverChanges()) g_SimeCBNeverChanges.GetCBNeverChanges()->Release();
 		if (g_SimeCBChangeOnResize.GetCBChangesOnResize()) g_SimeCBChangeOnResize.GetCBChangesOnResize()->Release();

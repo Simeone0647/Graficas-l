@@ -4,6 +4,7 @@ Effect::Effect(vector<Tech>* _Techs, string _Name)
 {
 	m_Name = _strdup(&_Name[0]);
 	m_vTechs = _Techs;
+	m_ImGuiNormalMap = false;
 }
 
 Effect::~Effect()
@@ -23,6 +24,19 @@ void Effect::Render(HWND _hwnd, vector<Model>& _Models)
 			m_vTechs[0][i].Render(_hwnd, _Models);
 		}
 	}
+}
+
+void Effect::ActivateTech(const int _i)
+{
+	//if (_i == kIlumPerPixel)
+	//{
+	//	if (m_ImGuiNormalMap)
+	//	{
+	//		m_vTechs[0][3].Activate();
+	//		return;
+	//	}
+	//}
+	m_vTechs[0][_i].Activate(); 
 }
 
 void Effect::DeactivateTech()

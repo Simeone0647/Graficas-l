@@ -7,7 +7,8 @@ enum TechTypes
 {
 	kNone = 0,
 	kIlumPerVertex,
-	kIlumPerPixel
+	kIlumPerPixel,
+	kNormalMap
 };
 
 //inline TechTypes operator|(TechTypes a, TechTypes b)

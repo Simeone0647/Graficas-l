@@ -42,8 +42,11 @@ public:
 		* @return..#int: The class size in bytes
 	*/
 
-	//inline void SetUV(float x, float y, float z) {m_UV[0] = x; m_UV[1] = y; m_UV[2] = z; }
-	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture) + sizeof(m_Normal); }
+	inline void SetTangent(const float _x, const float _y, const float _z) {m_Tangents[0] = _x; m_Tangents[1] = _y; m_Tangents[2] = _z; }
+
+	inline void SetBinormal(const float _x, const float _y, const float _z) { m_Binormal[0] = _x; m_Binormal[1] = _y; m_Binormal[2] = _z; }
+
+	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture) + sizeof(m_Normal) + sizeof(m_Tangents) + sizeof(m_Binormal); }
 
 private:
 	/*
@@ -59,6 +62,10 @@ private:
 	* @brief...The x, y and z values that represent the vertex normals.
 	*/
 	float m_Normal[4];
+
+	float m_Binormal[4];
+
+	float m_Tangents[4];
 
 	/*
 		* @Variable Name: m_Texture

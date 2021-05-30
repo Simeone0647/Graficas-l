@@ -25,6 +25,12 @@ Tech::Tech(const int _Flags, HWND _hwnd, int& _PassNum)
 		m_DefineValue += "TRUE";
 		m_Name = "Pixel Lighting";
 	}
+	else if (m_Desc.TechTypesFlag == kNormalMap)
+	{
+		m_DefineName += "NORMAL_MAP_PIXEL_LIGHT";
+		m_DefineValue += "TRUE";
+		m_Name = "Normal Map + Pixel Light";
+	}
 	m_Passes.push_back(Pass(m_DefineName, m_DefineValue, _hwnd, "Light", _PassNum));
 	_PassNum++;
 

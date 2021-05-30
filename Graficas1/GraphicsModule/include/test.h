@@ -396,6 +396,38 @@ namespace GraphicsModule
 	#endif
 	};
 
+	struct Ambient
+	{
+	#if defined(DX11)
+		XMFLOAT4 kAmbient;
+		XMFLOAT4 AmbientColor;
+	#endif
+	#if defined(OGL)
+		float Ambient[4];
+		float AmbientColor[4];
+	#endif
+	};
+
+	struct Specular
+	{
+	#if defined(DX11)
+		XMFLOAT4 kSpecular;
+	#endif
+	#if defined(OGL)
+		float Specular[4];
+	#endif
+	};
+
+	struct Diffuse
+	{
+		#if defined(DX11)
+		XMFLOAT4 kDiffuse;
+		#endif
+		#if defined(OGL)
+		float Diffuse[4];
+		#endif
+	};
+
 	struct DirLight
 	{
 	#if defined(DX11)
@@ -610,15 +642,17 @@ namespace GraphicsModule
 
 		unsigned int programID = 0;
 
+		Buffer								g_AmbientBuffer;
+		Buffer								g_SpecularBuffer;
+		Buffer								g_DiffuseBuffer;
+		Ambient								g_Ambient;
+		Specular							g_Specular;
+		Diffuse								g_Diffuse;
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;
 		ShaderResourceView					g_SimeDepthStencilSRV;
 		SamplerState						g_SimeSamplerState;
-		//PixelShader							g_SimePixelShader;
-		ShaderReflection					g_SimeVertexShaderReflection;
-	//	InputLayout							g_SimeInputLayout;
-	//	VertexShader						g_SimeVertexShader;
 		DirLight							g_DirLightBufferDesc;
 		Buffer								g_DirLightBuffer;
 		PointLight							g_PointLightBufferDesc;

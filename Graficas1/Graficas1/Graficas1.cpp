@@ -45,26 +45,32 @@ static float PointLightAttenuation = 0.0f;
 
 static float SpotLightDir[3]{ 0.0f, 0.0f, 0.0f} ;
 static float SpotLightPos[3]{ 0.0f, 0.0f, 0.0f} ;
-static float SpotLightAttenuation = 0;
-static float InnerRadius = 0;
-static float OuterRadius = 0;
+static float SpotLightAttenuation = 0.0f;
+static float InnerRadius = 0.0f;
+static float OuterRadius = 0.0f;
+
+static float kAmbient = 0.0f;
+static float kSpecular = 0.0f;
+static float kDiffuse = 0.0f;
 
 static ImVec4 DirLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 PointLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 SpotLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+static ImVec4 AmbientLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 
 ImGuiColorEditFlags Flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_PickerHueBar;
 //------------------------- MOUSE ----------------------------------------------------
 static double MouseRelativePosition[2]{};
 static double PreviousMouseRelativePosition[2]{};
 static bool OverImGuiWindow = false;
+static bool NormalMap = false;
 
 bool g_NewEffect;
 bool g_NewPass;
 
 bool LeftClick = g_NewEffect = false;
 
-const char* LightingModels[] = { "None", "Vertex Lighting", "Pixel Lighting" };
+const char* LightingModels[] = { "None", "Vertex Lighting", "Pixel Lighting"};
 static int CurrentLightingModel = 0;
 const char* LightingModelLabel = LightingModels[CurrentLightingModel];
 
@@ -585,12 +591,17 @@ Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, const int _Flags[])
 		}
 		if (_Mesh->HasTextureCoords(0))
 		{
-	#if defined(DX11)
+		#if defined(DX11)
 			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, _Mesh->mTextureCoords[0][i].y);
-	#endif
-	#if defined(OGL)
+		#endif
+		#if defined(OGL)
 			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, 1 - _Mesh->mTextureCoords[0][i].y);
-	#endif
+		#endif
+		}
+		if (_Mesh->HasTangentsAndBitangents())
+		{
+			vertex.SetTangent(_Mesh->mTangents[i].x, _Mesh->mTangents[i].y, _Mesh->mTangents[i].z);
+			vertex.SetBinormal(_Mesh->mBitangents[i].x, _Mesh->mBitangents[i].y, _Mesh->mBitangents[i].z);
 		}
 		vMeshVertex.push_back(vertex);
 	}
@@ -636,7 +647,11 @@ void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[]
 {
 	m_vModels.push_back(Model());
 	m_vModels[ModelNum].SetName(_ModelName);
-	m_vModels[ModelNum].SetPassID(_PassID);
+	if (_PassID == 2)
+	{
+		m_vModels[ModelNum].SetPassID(_PassID);
+		m_vModels[ModelNum].SetPassID(_PassID + 1);
+	}
 
 	int NumMeshes = _scene->mNumMeshes;
 	m_vModels[ModelNum].SetMeshNum(NumMeshes);
@@ -672,7 +687,7 @@ void OpenMeshMenu(const int _Flags[], const int _PassID)
 	}
 
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(wideStringBuffer, aiProcessPreset_TargetRealtime_MaxQuality);
+	const aiScene* scene = importer.ReadFile(wideStringBuffer, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_CalcTangentSpace);
 	if (!scene)
 	{
 		std::cout << "Error importing the model" << std::endl;
@@ -705,6 +720,11 @@ void OpenMeshMenu(const int _Flags[], const int _PassID)
 				else
 				{
 					m_vModels[i].SetPassID(_PassID);
+
+					if (_PassID == 2)
+					{
+						m_vModels[i].SetPassID(_PassID + 1);
+					}
 					return;
 				}
 			}
@@ -761,20 +781,24 @@ void ShowMeshesMenu(const unsigned int _i)
 		{
 			if (ImGui::TreeNode("Textures"))
 			{
-				float TextureWidth = 256.0f;
-				float TextureHeight = 256.0f;
+				float TextureWidth = 100.0f;
+				float TextureHeight = 100.0f;
 				#if defined(OGL)
 				ImTextureID TextureID = (void*)m_vModels[_i].GetMeshes()[j].GetTexID();
 				#endif
-				#if defined(DX11)
-				ImTextureID TextureID = m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture()->GetDXSRV();
-				#endif
+
 				ImVec2 Position = ImGui::GetCursorScreenPos();
 				ImVec2 UVMin = ImVec2(0.0f, 0.0f);
 				ImVec2 UVMax = ImVec2(1.0f, 1.0f);
 				ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 				ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-				ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
+				#if defined(DX11)
+				for (unsigned int i = 0; i < m_vModels[_i].GetMeshes()[j].GetMaterial()->GetTexNum(); ++i)
+				{
+					ImTextureID TextureID = m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture(i)->GetDXSRV();
+					ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
+				}
+				#endif
 				ImGui::TreePop();
 			}
 		}
@@ -983,7 +1007,14 @@ void EffectsMenu(const int _i)
 {
 	if (ImGui::TreeNode(m_vEffects[_i].GetName().c_str()))
 	{
-		LightingModelLabel = LightingModels[m_vEffects[_i].GetActiveTech()];
+		if (m_vEffects[_i].GetActiveTech() == 3)
+		{
+			LightingModelLabel = LightingModels[m_vEffects[_i].GetActiveTech() - 1];
+		}
+		else 
+		{
+			LightingModelLabel = LightingModels[m_vEffects[_i].GetActiveTech()];
+		}
 		if (ImGui::BeginCombo("Lighting Techs", LightingModelLabel, NULL))
 		{
 			for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
@@ -1005,6 +1036,23 @@ void EffectsMenu(const int _i)
 				}
 			}
 			ImGui::EndCombo();
+		}
+
+		if (m_vEffects[_i].GetActiveTech() == 2 || m_vEffects[_i].GetActiveTech() == 3)
+		{
+			if (ImGui::Checkbox("Normal Map", &m_vEffects[_i].m_ImGuiNormalMap))
+			{
+				if (m_vEffects[_i].GetActiveTech() == 2)
+				{
+					m_vEffects[_i].DeactivateTech();
+					m_vEffects[_i].ActivateTech(3);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == 3)
+				{
+					m_vEffects[_i].DeactivateTech();
+					m_vEffects[_i].ActivateTech(2);
+				}
+			}
 		}
 
 		if (ImGui::TreeNode("Passes"))
@@ -1061,6 +1109,43 @@ void UIRender()
 	ImGui::Begin("Enviroment", NULL, 0);
 	if (ImGui::CollapsingHeader("Lights"))
 	{
+		if (ImGui::DragFloat("kAmbient", &kAmbient, 0.01f, 0.0f, 100.0f))
+		{
+			#if defined(DX11)
+			m_Obj.g_Ambient.kAmbient = XMFLOAT4(kAmbient, 0.0f, 0.0f, 0.0f);
+			#endif
+			#if defined(OGL)
+			#endif
+		}
+		if (ImGui::ColorPicker4("Ambient Color##4", (float*)&AmbientLightColor, Flags))
+		{
+			#if defined(DX11)
+			m_Obj.g_Ambient.AmbientColor = XMFLOAT4(AmbientLightColor.x, AmbientLightColor.y, AmbientLightColor.z, AmbientLightColor.w);
+			#endif
+			#if defined(OGL)
+
+			#endif
+		}
+
+		if (ImGui::DragFloat("kDiffuse", &kDiffuse, 0.01f, 0.0f, 100.0f))
+		{
+			#if defined(DX11)
+			m_Obj.g_Diffuse.kDiffuse = XMFLOAT4(kDiffuse, 0.0f, 0.0f, 0.0f);
+			#endif
+			#if defined(OGL)
+			#endif
+		}
+		if (ImGui::DragFloat("kSpecular", &kSpecular, 0.01f, 0.0f, 100.0f))
+		{
+			#if defined(DX11)
+			m_Obj.g_Specular.kSpecular = XMFLOAT4(kSpecular, 0.0f, 0.0f, 0.0f);
+			#endif
+			#if defined(OGL)
+			#endif
+		}
+
+		ImGui::Separator();
+
 		if (ImGui::TreeNode("Directional Light"))
 		{
 			if (ImGui::DragFloat3("Direction", DirectionLightDir, 0.001f, -1.0f, 1.0f))
@@ -1191,7 +1276,7 @@ void UIRender()
 			ImGui::TreePop();
 		}
 	}
-	if (ImGui::CollapsingHeader("Effect"))
+	if (ImGui::CollapsingHeader("Effects"))
 	{
 		for (unsigned int i = 0; i < m_vEffects.size(); ++i)
 		{
@@ -1383,7 +1468,7 @@ int main()
 	// main loop
 	MSG msg = { 0 };
 
-	for (unsigned int i = 0; i < 3; ++i)
+	for (unsigned int i = 0; i < 4; ++i)
 	{
 		m_vTechs.push_back(Tech(i, g_hwnd, g_PassNum));
 	}

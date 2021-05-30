@@ -118,6 +118,10 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
+	for (unsigned int i = 0; i < m_vSamplers.size(); ++i)
+	{
+		GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetSamplers(i, 1, m_vSamplers[i].GetDXSamplerStateAddress());
+	}
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CDrawIndexed(m_VertexIndexNum, 0, 0);
 
 #endif
@@ -252,88 +256,104 @@ void Mesh::LoadTexture(HWND _hwnd)
 	const unsigned char* Bits(0);
 	char* Char_Arr;
 	
-	Char_Arr = &m_vTexturesNames[0][0];
-	FREE_IMAGE_FORMAT FIF = FIF_UNKNOWN;
-
-	std::cout << m_vTexturesNames[0] << std::endl;
-
-	FIF = FreeImage_GetFileType(Char_Arr, 0);
-	FirstDib = FreeImage_Load(FIF, Char_Arr);
-
-	FIBITMAP* SecondDib;
-	SecondDib = FreeImage_ConvertTo32Bits(FirstDib);
-	Bits = FreeImage_GetBits(SecondDib);
-	Height = FreeImage_GetHeight(SecondDib);
-	Width = FreeImage_GetWidth(SecondDib);
-
-	if (!FirstDib)
-	{
-		std::cerr << "Error al cargar la imagen" << std::endl;
-	}
-	else
-	{
-
-	#if defined(DX11)
-	HRESULT hr;
-
-	Texture2D EntryTexture;
-
-	int RowPitch = FreeImage_GetPitch(SecondDib);
 	
-	//ShaderResourceView EntryShader;
-	GraphicsModule::SetRTDescStruct TextureDesc;
-	
-	TextureDesc.Width = Width;
-	TextureDesc.Height = Height;
-	TextureDesc.MipLevels = 0;
-	TextureDesc.Arraysize = 1;
-	if (m_LoadTypes[2])
-	{ 
-		TextureDesc.Format = GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM;
-	}
 
-	else if (m_LoadTypes[3])
+	for (unsigned int i = 0; i < m_vTexturesNames.size(); ++i)
 	{
-		TextureDesc.Format = GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM;
-	}
-	TextureDesc.Count = 1;
-	TextureDesc.Quality = 0;
-	TextureDesc.Usage = GraphicsModule::SIME_USAGE_DEFAULT;
-	TextureDesc.BindFlags = GraphicsModule::SIME_BIND_SHADER_RESOURCE | GraphicsModule::SIME_BIND_RENDER_TARGET;
-	TextureDesc.CPUAccessFlags = 0;
-	TextureDesc.MiscFlags = 0;
-	
-	EntryTexture.SetDescRT(TextureDesc);
 
-	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateTexture2D(EntryTexture.GetDescDepthAddress(), NULL, EntryTexture.GetTextureAddress());
-	if (FAILED(hr))
-	{
-		std::cout << "Error en la textura dx" << std::endl;
-	}
-	GraphicsModule::UpdateSubResourceStruct UpdateSRStruct;
-	UpdateSRStruct.pDstResource = EntryTexture.GetTexture();
-	UpdateSRStruct.DstSubresource = 0;
-	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = Bits;
-	UpdateSRStruct.SrcRowPitch = RowPitch;
-	UpdateSRStruct.SrcDepthPitch = 0;
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+		Char_Arr = &m_vTexturesNames[i][0];
+		FREE_IMAGE_FORMAT FIF = FIF_UNKNOWN;
 
-	if (m_LoadTypes[2])
-	{
-		m_Material->GetSRVTexture()->SetDesc(GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
-	}
-	else if (m_LoadTypes[3])
-	{
-		m_Material->GetSRVTexture()->SetDesc(GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
-	}
-	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateShaderResourceView(EntryTexture.GetTexture(), m_Material->GetSRVTexture()->GetDXSRVDescAddress(),
-	m_Material->GetSRVTexture()->GetDXSRVAddress());
-	if (FAILED(hr))
-	{
-		std::cout << "Error en el srv dx" << std::endl;
-	}
+		std::cout << m_vTexturesNames[i] << std::endl;
 
+		FIF = FreeImage_GetFileType(Char_Arr, 0);
+		FirstDib = FreeImage_Load(FIF, Char_Arr);
+
+		FIBITMAP* SecondDib;
+		SecondDib = FreeImage_ConvertTo32Bits(FirstDib);
+		Bits = FreeImage_GetBits(SecondDib);
+		Height = FreeImage_GetHeight(SecondDib);
+		Width = FreeImage_GetWidth(SecondDib);
+
+		if (!FirstDib)
+		{
+			std::cerr << "Error al cargar la imagen" << std::endl;
+		}
+		else
+		{
+
+		#if defined(DX11)
+		HRESULT hr;
+
+		m_vSamplers.push_back(SamplerState());
+		m_vSamplers[i].SetDesc();
+
+		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_vSamplers[i].GetDXSamplerDescAddress(), m_vSamplers[i].GetDXSamplerStateAddress());
+
+		if (FAILED(hr))
+		{
+			cout << "Fallo sampler" << endl;
+		}
+
+		Texture2D EntryTexture;
+
+		int RowPitch = FreeImage_GetPitch(SecondDib);
+		
+		//ShaderResourceView EntryShader;
+		GraphicsModule::SetRTDescStruct TextureDesc;
+		
+		TextureDesc.Width = Width;
+		TextureDesc.Height = Height;
+		TextureDesc.MipLevels = 0;
+		TextureDesc.Arraysize = 1;
+		if (m_LoadTypes[2])
+		{ 
+			TextureDesc.Format = GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM;
+		}
+
+		else if (m_LoadTypes[3])
+		{
+			TextureDesc.Format = GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM;
+		}
+		TextureDesc.Count = 1;
+		TextureDesc.Quality = 0;
+		TextureDesc.Usage = GraphicsModule::SIME_USAGE_DEFAULT;
+		TextureDesc.BindFlags = GraphicsModule::SIME_BIND_SHADER_RESOURCE | GraphicsModule::SIME_BIND_RENDER_TARGET;
+		TextureDesc.CPUAccessFlags = 0;
+		TextureDesc.MiscFlags = 0;
+		
+		EntryTexture.SetDescRT(TextureDesc);
+
+		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateTexture2D(EntryTexture.GetDescDepthAddress(), NULL, EntryTexture.GetTextureAddress());
+		if (FAILED(hr))
+		{
+			std::cout << "Error en la textura dx" << std::endl;
+		}
+		GraphicsModule::UpdateSubResourceStruct UpdateSRStruct;
+		UpdateSRStruct.pDstResource = EntryTexture.GetTexture();
+		UpdateSRStruct.DstSubresource = 0;
+		UpdateSRStruct.pDstBox = NULL;
+		UpdateSRStruct.pSrcData = Bits;
+		UpdateSRStruct.SrcRowPitch = RowPitch;
+		UpdateSRStruct.SrcDepthPitch = 0;
+		GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
+		if (m_LoadTypes[2])
+		{
+			m_Material->GetSRVTexture(i)->SetDesc(GraphicsModule::SIME_FORMAT_B8G8R8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
+		}
+		else if (m_LoadTypes[3])
+		{
+			m_Material->GetSRVTexture(i)->SetDesc(GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
+		}
+		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateShaderResourceView(EntryTexture.GetTexture(), m_Material->GetSRVTexture(i)->GetDXSRVDescAddress(),
+		m_Material->GetSRVTexture(i)->GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			std::cout << "Error en el srv dx" << std::endl;
+		}
+		m_Material->OneMoreTex();
+	}
 	#endif
 	#if defined(OGL)
 		glGenTextures(1, &m_TexID);
@@ -372,9 +392,19 @@ void Mesh::SetModelMatrix(const Matrix _Matrix)
 #if defined(DX11)
 void Mesh::CleanUpDXResources()
 {
-	if (m_Material->GetSRVTexture()->GetDXSRV())
+	for (unsigned int i = 0; i < m_Material->GetTexNum(); ++i)
 	{
-		m_Material->GetSRVTexture()->GetDXSRV()->Release();
+		if (m_Material->GetSRVTexture(i)->GetDXSRV())
+		{
+			m_Material->GetSRVTexture(i)->GetDXSRV()->Release();
+		}
+	}
+	for (unsigned int i = 0; i < m_vSamplers.size(); ++i)
+	{
+		if (m_vSamplers[i].GetDXSamplerState())
+		{
+			m_vSamplers[i].GetDXSamplerState()->Release();
+		}
 	}
 	if (m_MeshCB.GetCBChangesEveryFrame())
 	{

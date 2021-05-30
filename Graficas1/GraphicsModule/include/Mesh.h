@@ -7,6 +7,9 @@
 #include <fstream>
 #include <vector>
 #include <cstring>
+#include "SamplerState.h"
+
+using std::vector;
 
 enum LoadTypes
 {
@@ -125,6 +128,8 @@ private:
 	ConstantBuffer m_MeshCB;
 
 	float m_MeshColor[3];
+
+	vector<SamplerState> m_vSamplers;
 	#endif
 
 	#if defined(OGL)
