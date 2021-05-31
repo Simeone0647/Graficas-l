@@ -68,6 +68,7 @@ static bool NormalMap = false;
 
 bool g_NewEffect;
 bool g_NewPass;
+int g_LastFeature = 0;
 
 static bool LightModelSelected[2] = { false, false };
 
@@ -1056,6 +1057,8 @@ void EffectsMenu(const int _i)
 				{
 					CurrentLightingModels = n;
 					m_vEffects[_i].DeactivateTech();
+					m_vEffects[_i].m_ImGuiNormalMap = false;
+					m_vEffects[_i].m_ImGuiSpecularMap = false;
 					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, 0);
 				}
 
@@ -1077,31 +1080,37 @@ void EffectsMenu(const int _i)
 					if (m_vEffects[_i].GetActiveTech() == kPixel)
 					{
 						m_vEffects[_i].DeactivateTech();
+						g_LastFeature = kPixelNM;
 						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelNM);
 					}
 					else if (m_vEffects[_i].GetActiveTech() == kPixelNM)
 					{
 						m_vEffects[_i].DeactivateTech();
+						g_LastFeature = kPixel;
 						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixel);
 					}
 					else if (m_vEffects[_i].GetActiveTech() == kPixelPhong)
 					{
 						m_vEffects[_i].DeactivateTech();
+						g_LastFeature = kPixelPhongNM;
 						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNM);
 					}
 					else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
 					{
 						m_vEffects[_i].DeactivateTech();
+						g_LastFeature = kPixelPhong;
 						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhong);
 					}
 					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhong)
 					{
 						m_vEffects[_i].DeactivateTech();
+						g_LastFeature = kPixelBlinnPhongNM;
 						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNM);
 					}
 					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
 					{
 						m_vEffects[_i].DeactivateTech();
+						g_LastFeature = kPixelBlinnPhong;
 						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhong);
 					}
 				}
@@ -1109,6 +1118,7 @@ void EffectsMenu(const int _i)
 				{
 					m_vEffects[_i].DeactivateTech();
 					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, 0);
+					m_vEffects[_i].m_ImGuiSpecularMap = false;
 				}
 			}
 		}
@@ -1117,25 +1127,33 @@ void EffectsMenu(const int _i)
 		{
 			if (ImGui::Checkbox("Specular Map", &m_vEffects[_i].m_ImGuiSpecularMap))
 			{
-				if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
+				if (m_vEffects[_i].m_ImGuiSpecularMap)
 				{
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNMSM);
+					if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
+					{
+						m_vEffects[_i].DeactivateTech();
+						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNMSM);
+					}
+					else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNMSM)
+					{
+						m_vEffects[_i].DeactivateTech();
+						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNM);
+					}
+					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
+					{
+						m_vEffects[_i].DeactivateTech();
+						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNMSM);
+					}
+					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNMSM)
+					{
+						m_vEffects[_i].DeactivateTech();
+						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNM);
+					}
 				}
-				else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNMSM)
+				else
 				{
 					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNM);
-				}
-				else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
-				{
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNMSM);
-				}
-				else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNMSM)
-				{
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNM);
+					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, g_LastFeature);
 				}
 			}
 		}
