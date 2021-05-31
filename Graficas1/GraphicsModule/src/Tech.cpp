@@ -2,36 +2,76 @@
 
 Tech::Tech(const int _Flags, HWND _hwnd, int& _PassNum)
 {
-	m_DefineName = "";
-	m_DefineValue = "";
 	m_Active = false;
 
 	m_Desc.TechTypesFlag = _Flags;
-	if (m_Desc.TechTypesFlag == kNone)
-	{ 
-		m_DefineName += "";
-		m_DefineValue += "";
-		m_Name = "NONE";
-	}
-	else if (m_Desc.TechTypesFlag == kIlumPerVertex)
+
+	if (m_Desc.TechTypesFlag == kVertex)
 	{
-		m_DefineName += "VERTEX_LIGHT";
-		m_DefineValue += "TRUE";
+		m_vDefines.push_back( { "VERTEX_LIGHT", "TRUE" } );
 		m_Name = "Vertex Lighting";
 	}
-	else if (m_Desc.TechTypesFlag == kIlumPerPixel)
+	else if (m_Desc.TechTypesFlag == kVertexPhong)
 	{
-		m_DefineName += "PIXEL_LIGHT";
-		m_DefineValue += "TRUE";
+		m_vDefines.push_back( { "VERTEX_LIGHT", "TRUE" } );
+		m_vDefines.push_back( { "PHONG", "TRUE" } );
+		m_Name = "Vertex Lighting + Phong";
+	}
+	else if (m_Desc.TechTypesFlag == kVertexBlinnPhong)
+	{
+		m_vDefines.push_back( { "VERTEX_LIGHT", "TRUE" } );
+		m_vDefines.push_back( { "BLINN_PHONG", "TRUE" } );
+		m_Name = "Vertex Lighting + BlinnPhong";
+	}
+	else if (m_Desc.TechTypesFlag == kPixel)
+	{
+		m_vDefines.push_back( { "PIXEL_LIGHT", "TRUE" } );
 		m_Name = "Pixel Lighting";
 	}
-	else if (m_Desc.TechTypesFlag == kNormalMap)
+	else if (m_Desc.TechTypesFlag == kPixelPhong)
 	{
-		m_DefineName += "NORMAL_MAP_PIXEL_LIGHT";
-		m_DefineValue += "TRUE";
-		m_Name = "Normal Map + Pixel Light";
+		m_vDefines.push_back( { "PIXEL_LIGHT", "TRUE" } );
+		m_vDefines.push_back( { "PHONG", "TRUE" } );
+		m_Name = "Pixel Lighting + Phong";
 	}
-	m_Passes.push_back(Pass(m_DefineName, m_DefineValue, _hwnd, "Light", _PassNum));
+	else if (m_Desc.TechTypesFlag == kPixelBlinnPhong)
+	{
+		m_vDefines.push_back({ "PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "BLINN_PHONG", "TRUE" });
+		m_Name = "Pixel Lighting + BlinnPhong";
+	}
+	else if (m_Desc.TechTypesFlag == kPixelNM)
+	{
+		m_vDefines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
+		m_Name = "Pixel Lighting + NM";
+	}
+	else if (m_Desc.TechTypesFlag == kPixelPhongNM)
+	{
+		m_vDefines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "PHONG", "TRUE" });
+		m_Name = "Pixel Lighting + Phong + NM";
+	}
+	else if (m_Desc.TechTypesFlag == kPixelPhongNMSM)
+	{
+		m_vDefines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "SPECULAR_MAP_PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "PHONG", "TRUE" });
+		m_Name = "Pixel Lighting + Phong + NM + SM";
+	}
+	else if (m_Desc.TechTypesFlag == kPixelBlinnPhongNM)
+	{
+		m_vDefines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "BLINN_PHONG", "TRUE" });
+		m_Name = "Pixel Lighting + BlinnPhong + NM";
+	}
+	else if (m_Desc.TechTypesFlag == kPixelBlinnPhongNMSM)
+	{
+		m_vDefines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "SPECULAR_MAP_PIXEL_LIGHT", "TRUE" });
+		m_vDefines.push_back({ "BLINN_PHONG", "TRUE" });
+		m_Name = "Pixel Lighting + BlinnPhong + NM + SM";
+	}
+	m_Passes.push_back(Pass(m_vDefines, _hwnd, "Light", _PassNum));
 	_PassNum++;
 
 	m_PassNum = m_Passes.size();

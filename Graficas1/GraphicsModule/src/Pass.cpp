@@ -6,7 +6,7 @@ Pass::Pass()
 
 }
 
-Pass::Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd, string _Name, int _ID)
+Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name, int _ID)
 {	
 	//if (_DefineName == "") m_ID = "None";
 	//else if (_DefineName == "VERTEX_LIGHT") m_ID = "Vertex Light";
@@ -14,7 +14,7 @@ Pass::Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd, string
 
 	m_Name = _Name;
 
-	m_Shader.SetMacros(_DefineName, _DefineValue);
+	m_Shader.SetMacros(_Macros);
 	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader);
 
 	m_ID = _ID;
@@ -34,10 +34,10 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models)
 	
 	for (unsigned int i = 0; i < _Models.size(); ++i)
 	{
-		if (_Models[i].GetPassID(m_ID))
-		{ 
+		//if (_Models[i].GetPassID(m_ID))
+		//{ 
 			_Models[i].Render(_hwnd);
-		}
+		//}
 	}
 }
 

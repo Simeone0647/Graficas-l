@@ -37,6 +37,8 @@ public:
 	*/
 	inline Vector3 GetEye() { return m_Eye; }
 
+	inline Vector3* GetEyeAddress() { return &m_Eye; }
+
 	/*
 		* @Function Name: SetAt
 		* @brief...This function will set the camera's At values.
@@ -72,6 +74,8 @@ public:
 		* @return..#CVector3: The camera's Up vector.
 	*/
 	inline Vector3 GetUp() { return m_Up; }
+
+	inline Vector3* GetFrontAddress() { return &m_Front; }
 
 	/*
 		* @Function Name: GetViewMatrix
@@ -158,6 +162,8 @@ public:
 	*/
 	Vector3 m_Up;
 	
+	Vector3 m_Front;
+
 	/*
 		* @Variable Name: m_ViewMatrix
 		* @Type....#float_pointer

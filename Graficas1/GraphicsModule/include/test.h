@@ -412,9 +412,11 @@ namespace GraphicsModule
 	{
 	#if defined(DX11)
 		XMFLOAT4 kSpecular;
+		XMFLOAT4 Shininess;
 	#endif
 	#if defined(OGL)
-		float Specular[4];
+		float kSpecular[4];
+		float Shininess[4];
 	#endif
 	};
 
@@ -487,6 +489,15 @@ namespace GraphicsModule
 		XMMATRIX mProjection;
 		//Matrix mProjection;
 	#endif
+	};
+
+	struct CameraFront
+	{
+		#if defined(DX11)
+		XMFLOAT4 Front;
+		#endif
+		#if defined(OGL)
+		#endif
 	};
 
 	//struct CBChangesEveryFrame
@@ -642,6 +653,8 @@ namespace GraphicsModule
 
 		unsigned int programID = 0;
 
+		CameraFront							g_Front;
+		Buffer								g_CameraFrontBuffer;
 		Buffer								g_AmbientBuffer;
 		Buffer								g_SpecularBuffer;
 		Buffer								g_DiffuseBuffer;

@@ -10,7 +10,7 @@ class Pass
 {
 public:
 	Pass();
-	Pass(std::string _DefineName, std::string _DefineValue, HWND _hwnd, string _Name, int _ID);
+	Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name, int _ID);
 	~Pass();
 
 	void Render(HWND _hwnd, vector<Model>& _Models);
@@ -20,7 +20,7 @@ public:
 private:
 	Shader m_Shader;
 
-	string m_DefineName, m_DefineValue, m_Name;
+	string m_Name;
 
 	int m_ID;
 

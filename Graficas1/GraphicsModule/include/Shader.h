@@ -11,6 +11,10 @@
 #include "InputLayout.h"
 #include <iostream>
 #include <fstream>  
+#include <vector>
+#include <tuple>
+
+using namespace std;
 
 class Shader
 {
@@ -19,17 +23,16 @@ public:
 	~Shader();
 	
 	#if defined(DX11)
-	HRESULT CompileShaderFromFile(const char* szFileName, const D3D10_SHADER_MACRO* _Macros, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+	HRESULT CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
 	void CreateInputLayout(HRESULT& _hr, ID3DBlob* pVSBlob, HWND _hwnd, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection);
 	void CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelShader);
-	void SetMacros(std::string _DefineName, std::string _DefineValue);
+	void SetMacros(const vector<tuple<string, string>> _Macros);
 	#endif
 
 	void CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader);
 private:
 	#if defined(DX11)
-	std::string m_MacroName;
-	std::string m_MacroValue;
+	vector<D3D10_SHADER_MACRO> m_vMacros;
 	#endif
 };
 

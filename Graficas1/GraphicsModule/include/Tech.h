@@ -1,14 +1,23 @@
 #pragma once
-#include <vector>
+
 #include "Pass.h"
-#include "Model.h"
+
+using std::vector;
 
 enum TechTypes
 {
-	kNone = 0,
-	kIlumPerVertex,
-	kIlumPerPixel,
-	kNormalMap
+	kVertex = 0,
+	kVertexPhong,
+	kVertexBlinnPhong,
+	kPixel,
+	kPixelNM,
+	kPixelPhong,
+	kPixelBlinnPhong,
+	kPixelPhongNM,
+	kPixelPhongNMSM,
+	kPixelBlinnPhongNM,
+	kPixelBlinnPhongNMSM
+
 };
 
 //inline TechTypes operator|(TechTypes a, TechTypes b)
@@ -40,8 +49,8 @@ public:
 
 	void Render(HWND _hwnd, vector<Model>& _Models);
 	//void CleanUpResources();
-	inline std::vector<Pass> GetPasses() { return m_Passes; }
-	inline std::string GetName() { return m_Name; }
+	inline vector<Pass> GetPasses() { return m_Passes; }
+	inline string GetName() { return m_Name; }
 	inline int GetLightingTech() { return m_Desc.TechTypesFlag; }
 	inline void Activate() { m_Active = true; }
 	void Deactivate();
@@ -53,11 +62,11 @@ public:
 	inline string GetPassName(const int _j) { return m_Passes[_j].GetName(); }
 	inline int GetPassID(const int _j) { return m_Passes[_j].GetID(); }
 private:
-	std::vector<Pass> m_Passes;	
-
+	vector<Pass> m_Passes;	
+	vector<tuple<string, string>> m_vDefines;
 	TechDesc m_Desc;
 	bool m_Active;
 	int m_PassNum;
-	std::string m_DefineValue, m_DefineName, m_Name;
+	string m_Name;
 };
 

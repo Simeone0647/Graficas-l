@@ -32,6 +32,8 @@ void Camera::UpdateViewMatrix()
 {
 	Vector3 A = m_At - m_Eye;
 	Vector3 Z_Axis = Vector3::Normalize(A);//Front
+	m_Front = Z_Axis;
+
 
 	m_At.m_X = m_Eye.m_X + Z_Axis.m_X;
 	m_At.m_Y = m_Eye.m_Y + Z_Axis.m_Y;

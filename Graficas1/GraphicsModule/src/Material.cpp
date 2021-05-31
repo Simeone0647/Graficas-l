@@ -5,7 +5,7 @@ Material::Material()
 {
 	//m_TextureID = 0;
 	#if defined(DX11)
-	for (unsigned int i = 0; i < 2; ++i)
+	for (unsigned int i = 0; i < 3; ++i)
 	{ 
 		m_SRVTexture[i] = new ShaderResourceView;
 	}

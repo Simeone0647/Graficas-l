@@ -384,6 +384,9 @@ HRESULT test::InitDevice(HWND hwnd)
 		g_SpecularBuffer.BUpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SpecularBuffer.BGetBDAddress(), NULL, g_SpecularBuffer.BGetBufferAddress());
 
+		BDStruct.ByteWidth = sizeof(Vector3);
+		g_CameraFrontBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_CameraFrontBuffer.BGetBDAddress(), NULL, g_CameraFrontBuffer.BGetBufferAddress());
 		// Load the Texture
 		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
 		if (FAILED(hr))
@@ -725,6 +728,14 @@ void test::Render()
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
+	UpdateSRStruct.pDstResource = g_CameraFrontBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = m_Camera->GetEyeAddress();
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
 	//AQUI
 	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
@@ -740,6 +751,7 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(6, 1, g_SpecularBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
 
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
@@ -747,6 +759,7 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(6, 1, g_SpecularBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif

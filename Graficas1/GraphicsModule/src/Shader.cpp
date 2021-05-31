@@ -10,7 +10,7 @@ Shader::~Shader()
 }
 
 #if defined(DX11)
-HRESULT Shader::CompileShaderFromFile(const char* szFileName, const D3D10_SHADER_MACRO* _Macros, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
+HRESULT Shader::CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
 {
 	//std::ofstream outfile("test.txt");
 	//
@@ -31,7 +31,7 @@ HRESULT Shader::CompileShaderFromFile(const char* szFileName, const D3D10_SHADER
 #endif
 
 	ID3DBlob* pErrorBlob;
-	hr = D3DX11CompileFromFileA(szFileName, _Macros, NULL, szEntryPoint, szShaderModel,
+	hr = D3DX11CompileFromFileA(szFileName, m_vMacros.data(), NULL, szEntryPoint, szShaderModel,
 		dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
 	if (FAILED(hr))
 	{
@@ -80,13 +80,13 @@ void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelSha
 {
 	ID3DBlob* pPSBlob = NULL;
 
-	const D3D10_SHADER_MACRO Defines[] =
-	{
-		m_MacroName.c_str(), m_MacroValue.c_str(),
-		NULL, NULL
-	};
+	//const D3D10_SHADER_MACRO Defines[] =
+	//{
+	//	m_MacroName.c_str(), m_MacroValue.c_str(),
+	//	NULL, NULL
+	//};
 
-	_hr = CompileShaderFromFile("Tutorial07.fx", Defines, "PS", "ps_4_0", &pPSBlob);
+	_hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
 	if (FAILED(_hr))
 	{
 		MessageBox(NULL,
@@ -107,10 +107,19 @@ void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelSha
 		std::cout << "Fallo hr en crear el piksel cheider" << std::endl;
 	}
 }
-void Shader::SetMacros(std::string _DefineName, std::string _DefineValue)
+void Shader::SetMacros(const vector<tuple<string, string>> _Macros)
 {
-	m_MacroName = _DefineName;
-	m_MacroValue = _DefineValue;
+	//tuple<string, string> tup;
+	//tup = {"as", "asa"};
+	for (unsigned int i = 0; i < _Macros.size(); ++i)
+	{
+		//tuple<string, string> tup = _Macros[i];
+		m_vMacros.push_back( { _strdup(std::get<0>(_Macros[i]).c_str()), _strdup(std::get<1>(_Macros[i]).c_str()) } );
+		//m_vMacros[i].Name = std::get<0>(_Macros[i]).c_str();
+		//m_vMacros[i].Definition = std::get<1>(_Macros[i]).c_str();
+	}
+
+	m_vMacros.push_back( { NULL, NULL } );
 }
 #endif
 
@@ -120,13 +129,13 @@ void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout
 	HRESULT hr = S_OK;
 	ID3DBlob* pVSBlob = NULL;
 
-	const D3D10_SHADER_MACRO Defines[] =
-	{
-		m_MacroName.c_str(), m_MacroValue.c_str(),
-		NULL, NULL
-	};
+	//const D3D10_SHADER_MACRO Defines[] =
+	//{
+	//	m_MacroName.c_str(), m_MacroValue.c_str(),
+	//	NULL, NULL
+	//};
 
-	hr = CompileShaderFromFile("Tutorial07.fx", Defines, "VS", "vs_4_0", &pVSBlob);
+	hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
