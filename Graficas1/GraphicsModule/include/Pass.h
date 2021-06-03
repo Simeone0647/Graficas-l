@@ -6,21 +6,26 @@
 #include "ShaderReflection.h"
 #include "InputLayout.h"
 
+
+
 class Pass
 {
 public:
 	Pass();
-	Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name, int _ID);
+	Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name);
 	~Pass();
 
 	void Render(HWND _hwnd, vector<Model>& _Models);
 	void CleanUpShaders();
 	inline string GetName() { return m_Name; }
 	inline int GetID() { return m_ID; }
+
+
 private:
 	Shader m_Shader;
 
 	string m_Name;
+	string m_ShaderFilename;
 
 	int m_ID;
 
@@ -29,6 +34,7 @@ private:
 	PixelShader m_PixelShader;
 	ShaderReflection m_ShaderReflection;
 	InputLayout m_InputLayout;
+	RenderTargetView m_RenderTarget;
 	#endif
 };
 

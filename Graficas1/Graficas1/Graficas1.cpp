@@ -36,7 +36,6 @@ std::vector<Tech> m_vTechs;
 std::vector<Effect> m_vEffects;
 
 int ModelNum = 0;
-int g_PassNum = 0;
 //------------------------- LIGHTS -------------------------------------------------------
 static float DirectionLightDir[3] { 0.0f, 0.0f, 0.0f };
 
@@ -69,6 +68,9 @@ static bool NormalMap = false;
 bool g_NewEffect;
 bool g_NewPass;
 int g_LastFeature = 0;
+
+bool g_ForwardRender = false;
+bool g_DeferredRender = false;
 
 static bool LightModelSelected[2] = { false, false };
 
@@ -313,7 +315,7 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 			HRESULT hr;
 
-			m_Obj.g_SimeRenderTargetView.GetRTV()->Release();
+			//m_Obj.g_SimeRenderTargetView.GetRTV()->Release();
 
 			hr = GraphicsModule::GetManagerObj(_hwnd).GetSwapChain().GetDXSC()->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
 
@@ -1207,29 +1209,22 @@ void UIRender()
 	{
 		AccessModels();
 	}
+
+	if (ImGui::CollapsingHeader("Render Targets"))
+	{
+		for (unsigned int i = 0; i < m_Obj.g_GBufferRTV.GetRTVNum(); ++i)
+		{
+			ImGui::ImageButton((void*)m_Obj.g_GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 8, 1080 / 8));
+			ImGui::SameLine();
+		}
+	}
+
+
 	ImGui::End();
 
 	ImGui::Begin("Enviroment", NULL, 0);
 	if (ImGui::CollapsingHeader("Lights"))
 	{
-		if (ImGui::DragFloat("kAmbient", &kAmbient, 0.01f, 0.0f, 100.0f))
-		{
-			#if defined(DX11)
-			m_Obj.g_Ambient.kAmbient = XMFLOAT4(kAmbient, 0.0f, 0.0f, 0.0f);
-			#endif
-			#if defined(OGL)
-			#endif
-		}
-		if (ImGui::ColorPicker4("Ambient Color##4", (float*)&AmbientLightColor, Flags))
-		{
-			#if defined(DX11)
-			m_Obj.g_Ambient.AmbientColor = XMFLOAT4(AmbientLightColor.x, AmbientLightColor.y, AmbientLightColor.z, AmbientLightColor.w);
-			#endif
-			#if defined(OGL)
-
-			#endif
-		}
-
 		if (ImGui::DragFloat("kDiffuse", &kDiffuse, 0.01f, 0.0f, 100.0f))
 		{
 			#if defined(DX11)
@@ -1256,6 +1251,27 @@ void UIRender()
 		}
 		ImGui::Separator();
 
+		if (ImGui::TreeNode("Ambient Light"))
+		{
+			if (ImGui::DragFloat("kAmbient", &kAmbient, 0.01f, 0.0f, 100.0f))
+			{
+				#if defined(DX11)
+				m_Obj.g_Ambient.kAmbient = XMFLOAT4(kAmbient, 0.0f, 0.0f, 0.0f);
+				#endif
+				#if defined(OGL)
+				#endif
+			}
+			if (ImGui::ColorPicker4("Ambient Color##4", (float*)&AmbientLightColor, Flags))
+			{
+				#if defined(DX11)
+				m_Obj.g_Ambient.AmbientColor = XMFLOAT4(AmbientLightColor.x, AmbientLightColor.y, AmbientLightColor.z, AmbientLightColor.w);
+				#endif
+				#if defined(OGL)
+
+				#endif
+			}
+			ImGui::TreePop();
+		}
 		if (ImGui::TreeNode("Directional Light"))
 		{
 			if (ImGui::DragFloat3("Direction", DirectionLightDir, 0.001f, -1.0f, 1.0f))
@@ -1434,6 +1450,26 @@ void UIRender()
 		ImGui::Separator();
 		ImGui::Text("Lighting Model");
 		ImGui::ListBox("", &CurrentLightingModels, LightingModels, IM_ARRAYSIZE(LightingModels), 4);
+
+		ImGui::Separator();
+		ImGui::Text("Render Technique");
+		if (ImGui::Checkbox("Forward", &g_ForwardRender))
+		{
+			if (g_DeferredRender)
+			{
+				g_DeferredRender = false;
+			}
+		}
+		ImGui::SameLine();
+
+		
+		if (ImGui::Checkbox("Deferred", &g_DeferredRender))
+		{
+			if (g_ForwardRender)
+			{
+				g_ForwardRender = false;
+			}
+		}
 		//static int currentlighting = 0;
 		//ImGui::Combo("", &currentlighting, "Vertex Shader\0Pixel Shader\0\0");
 		//ImGui::Separator();
@@ -1533,11 +1569,18 @@ void Update()
 void Render()
 {
 #if defined(DX11)
+
 	for (int i = 0; i < m_vEffects.size(); ++i)
 	{
 		m_vEffects[i].Render(g_hwnd, m_vModels);
 	}
 	m_Obj.Render();
+	//for (int i = 0; i < m_vEffects.size(); ++i)
+	//{
+	//	m_vEffects[i].Render(g_hwnd, m_vModels);
+	//}
+	//m_Obj.Render();
+
 	UIRender();
 	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain().CPresent(0, 0);
 #endif
@@ -1628,10 +1671,19 @@ int main()
 	// main loop
 	MSG msg = { 0 };
 
-	for (unsigned int i = 0; i < 11; ++i)
+	for (unsigned int j = 0; j < 2; j++)
 	{
-		m_vTechs.push_back(Tech(i, g_hwnd, g_PassNum));
+		TechDesc TDesc;
+		TDesc.DeferredFlags = j;
+		TDesc.hwnd = g_hwnd;
+		TDesc.PassNum = 2;
+		for (unsigned int i = 0; i < 11; ++i)
+		{
+			TDesc.TechTypesFlag = i;
+			m_vTechs.push_back(TDesc);
+		}
 	}
+
 
 	while (WM_QUIT != msg.message)
 	{

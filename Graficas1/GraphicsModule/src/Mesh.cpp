@@ -352,6 +352,7 @@ void Mesh::LoadTexture(HWND _hwnd)
 		{
 			std::cout << "Error en el srv dx" << std::endl;
 		}
+
 		m_Material->OneMoreTex();
 	}
 	#endif

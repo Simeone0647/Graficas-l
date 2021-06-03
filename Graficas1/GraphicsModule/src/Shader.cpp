@@ -76,7 +76,7 @@ void Shader::CreateInputLayout(HRESULT& _hr, ID3DBlob* _pVSBlob, HWND _hwnd, Inp
 	_ShaderReflection.GetDXShaderReflection()->Release();
 }
 
-void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelShader)
+void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelShader, string _Filename)
 {
 	ID3DBlob* pPSBlob = NULL;
 
@@ -86,7 +86,15 @@ void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelSha
 	//	NULL, NULL
 	//};
 
-	_hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
+	if (_Filename == "GBuffer")
+	{
+		string Filename = _Filename + "PS.hlsl";
+		_hr = CompileShaderFromFile(&Filename[0], "PS", "ps_4_0", &pPSBlob);
+	}
+	else if (_Filename == "Tutorial07.fx")
+	{
+		_hr = CompileShaderFromFile(&_Filename[0], "PS", "ps_4_0", &pPSBlob);
+	}
 	if (FAILED(_hr))
 	{
 		MessageBox(NULL,
@@ -123,7 +131,7 @@ void Shader::SetMacros(const vector<tuple<string, string>> _Macros)
 }
 #endif
 
-void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader)
+void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader, string _Filename)
 {
 #if defined(DX11)
 	HRESULT hr = S_OK;
@@ -135,7 +143,15 @@ void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout
 	//	NULL, NULL
 	//};
 
-	hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
+	if (_Filename == "GBuffer")
+	{ 
+		string Filename = _Filename + "VS.hlsl";
+		hr = CompileShaderFromFile(&Filename[0], "VS", "vs_4_0", &pVSBlob);
+	}
+	else if (_Filename == "Tutorial07.fx")
+	{
+		hr = CompileShaderFromFile(&_Filename[0], "VS", "vs_4_0", &pVSBlob);
+	}
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
@@ -157,6 +173,6 @@ void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout
 	}
 
 	CreateInputLayout(hr, pVSBlob, _hwnd, _InputLayout, _ShaderReflection);
-	CompilePixelShader(hr, _hwnd, _PixelShader);
+	CompilePixelShader(hr, _hwnd, _PixelShader, _Filename);
 #endif
 }

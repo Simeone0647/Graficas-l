@@ -4,6 +4,7 @@ Effect::Effect(vector<Tech>* _Techs, string _Name)
 {
 	m_Name = _strdup(&_Name[0]);
 	m_vTechs = _Techs;
+
 	m_ImGuiNormalMap = false;
 	m_ImGuiSpecularMap = false;
 }

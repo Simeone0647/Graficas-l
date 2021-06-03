@@ -1,8 +1,11 @@
 #pragma once
-
 #include "Pass.h"
 
-using std::vector;
+enum DeferredDefines
+{
+	kNormalVertex = 0,
+	kNormalMap
+};
 
 enum TechTypes
 {
@@ -37,19 +40,23 @@ enum TechTypes
 struct TechDesc
 {
 	int TechTypesFlag;
+	int DeferredFlags;
+	HWND hwnd;
+	int PassNum;
+
 };
 
 class Tech
 {
 public:
-	Tech(const int _Flags, HWND _hwnd, int& _PassNum);
+	Tech(const TechDesc _Desc);
 	~Tech();
 
 	inline void SetDesc(const int _Flags) { m_Desc.TechTypesFlag = _Flags; } 
 
 	void Render(HWND _hwnd, vector<Model>& _Models);
 	//void CleanUpResources();
-	inline vector<Pass> GetPasses() { return m_Passes; }
+	inline vector<Pass> GetPasses() { return m_vPasses; }
 	inline string GetName() { return m_Name; }
 	inline int GetLightingTech() { return m_Desc.TechTypesFlag; }
 	inline void Activate() { m_Active = true; }
@@ -57,13 +64,15 @@ public:
 	bool IsActivated() { return m_Active; }
 	inline int GetTechType() { return m_Desc.TechTypesFlag; }
 
-	inline void AddPass(Pass _Pass) { m_Passes.push_back(_Pass); m_PassNum++; }
+	inline void AddPass(Pass _Pass) { m_vPasses.push_back(_Pass); m_PassNum++; }
 	inline int GetPassNum() { return m_PassNum; }
-	inline string GetPassName(const int _j) { return m_Passes[_j].GetName(); }
-	inline int GetPassID(const int _j) { return m_Passes[_j].GetID(); }
+	inline string GetPassName(const int _j) { return m_vPasses[_j].GetName(); }
+	inline int GetPassID(const int _j) { return m_vPasses[_j].GetID(); }
 private:
-	vector<Pass> m_Passes;	
-	vector<tuple<string, string>> m_vDefines;
+
+	vector<Pass> m_vPasses;	
+	vector<vector<tuple<string, string>>> m_vDefines;
+	vector<string> m_vPassesNames;
 	TechDesc m_Desc;
 	bool m_Active;
 	int m_PassNum;
