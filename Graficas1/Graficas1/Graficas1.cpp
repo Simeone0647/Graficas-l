@@ -84,8 +84,19 @@ const char* LightingPlaces[] = { "Vertex Shader", "Pixel Shader"};
 static int CurrentLightingPlaces = 0;
 const char* LightingPlacesLabel = LightingPlaces[CurrentLightingPlaces];
 
+const char* Normals[] = { "Vertex Normal", "Normal Map" };
+static int CurrentNormal = 0;
+const char* NormalLabel = Normals[CurrentNormal];
+
+const char* RenderTechs[] = { "Forward Rendering", "Deferred Rendering" };
+static int CurrentTech = 0;
+const char* TechLabel = RenderTechs[CurrentTech];
+
 std::string NewEffectName = "";
 std::string NewPassName = "";
+
+SetTechDesc TDesc;
+
 #endif
 #if defined(OGL)
 bool OnW = false;
@@ -337,12 +348,12 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			hr = GraphicsModule::GetManagerObj(_hwnd).GetSwapChain().CGetBuffer(0, __uuidof(ID3D11Texture2D),(void**)&pBuffer);
 			// Perform error handling here!
 
-			hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateRenderTargetView(pBuffer, NULL, m_Obj.g_SimeRenderTargetView.GetRTVAdress());
+			//hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateRenderTargetView(pBuffer, NULL, m_Obj.g_SimeRenderTargetView.GetRTVAdress());
 
 			// Perform error handling here!
 			pBuffer->Release();
 
-			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().COMSetRenderTargets(1, m_Obj.g_SimeRenderTargetView.GetRTVAdress(), NULL);
+			//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().COMSetRenderTargets(1, m_Obj.g_SimeRenderTargetView.GetRTVAdress(), NULL);
 
 			// Set up the viewport.
 			RECT rc;
@@ -683,6 +694,52 @@ void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[]
 	ModelNum++;
 }
 
+void LoadSAQ(const int _Flags[])
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\SAQ.obj", aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_CalcTangentSpace);
+	if (!scene)
+	{
+		std::cout << "Error importing the model" << std::endl;
+	}
+	else
+	{
+
+		//Usar string
+		char Drive[_MAX_DRIVE];
+		char Directory[_MAX_DIR];
+		char Fname[_MAX_FNAME];
+		char Ext[_MAX_EXT];
+
+		std::string Filename = "";
+
+		_splitpath_s("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\SAQ.obj", Drive, _MAX_DRIVE, Directory, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
+
+		Filename = Fname;
+		Filename += Ext;
+
+		for (unsigned int i = 0; i < ModelNum; ++i)
+		{
+			if (Filename == m_vModels[i].GetName())
+			{
+				if (m_vModels[i].GetPassID(0))
+				{
+					std::cout << "Model Already Imported!" << std::endl;
+					return;
+				}
+				else
+				{
+					m_vModels[i].SetPassID(0);
+					return;
+				}
+			}
+		}
+
+		std::cout << "Archivo importado correctamente" << std::endl;
+		LoadModel(scene, Filename, _Flags, 0);
+	}
+}
+
 void OpenMeshMenu(const int _Flags[], const int _PassID)
 {
 	std::string wideStringBuffer = "";
@@ -1013,34 +1070,359 @@ void PassesMenu(const int _i)
 	}
 }
 
+
+void ForwardMenu(const int _i)
+{
+	if (m_vEffects[_i].GetActiveTech() > kVertexBlinnPhong)
+	{
+		LightingPlacesLabel = LightingPlaces[1];
+	}
+	else
+	{
+		LightingPlacesLabel = LightingPlaces[0];
+	}
+
+	if (ImGui::BeginCombo("Light Calculation", LightingPlacesLabel, NULL))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(LightingPlaces); n++)
+		{
+			const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
+			if (ImGui::Selectable(LightingPlaces[n], IsSelected))
+			{
+				CurrentLightingPlaces = n;
+				m_vEffects[_i].DeactivateTech();
+
+				TDesc.Features = 0;
+				TDesc.LightingPlace = CurrentLightingPlaces;
+				TDesc.LightingModel = CurrentLightingModels;
+
+				m_vEffects[_i].ActivateTech(TDesc);
+				//m_vTechs[CurrentLightingModel].Activate();
+				//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
+			}
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (IsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	LightingModelsLabel = LightingModels[CurrentLightingModels];
+	if (ImGui::BeginCombo("Lighting Models", LightingModelsLabel, NULL))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
+		{
+			const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
+			if (ImGui::Selectable(LightingModels[n], IsSelected))
+			{
+				CurrentLightingModels = n;
+				m_vEffects[_i].DeactivateTech();
+				m_vEffects[_i].m_ImGuiNormalMap = false;
+				m_vEffects[_i].m_ImGuiSpecularMap = false;
+
+				TDesc.Features = 0;
+				TDesc.LightingPlace = CurrentLightingPlaces;
+				TDesc.LightingModel = CurrentLightingModels;
+
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (IsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	if (m_vEffects[_i].GetActiveTech() > kVertexBlinnPhong)
+	{
+		if (ImGui::Checkbox("Normal Map", &m_vEffects[_i].m_ImGuiNormalMap))
+		{
+			if (m_vEffects[_i].m_ImGuiNormalMap)
+			{
+				if (m_vEffects[_i].GetActiveTech() == kPixel)
+				{
+					m_vEffects[_i].DeactivateTech();
+					g_LastFeature = kPixelNM;
+
+					TDesc.Features = kPixelNM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelNM)
+				{
+					m_vEffects[_i].DeactivateTech();
+					g_LastFeature = kPixel;
+
+					TDesc.Features = kPixel;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelPhong)
+				{
+					m_vEffects[_i].DeactivateTech();
+					g_LastFeature = kPixelPhongNM;
+
+					TDesc.Features = kPixelPhongNM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
+				{
+					m_vEffects[_i].DeactivateTech();
+					g_LastFeature = kPixelPhong;
+
+					TDesc.Features = kPixelPhong;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhong)
+				{
+					m_vEffects[_i].DeactivateTech();
+					g_LastFeature = kPixelBlinnPhongNM;
+
+					TDesc.Features = kPixelBlinnPhongNM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
+				{
+					m_vEffects[_i].DeactivateTech();
+					g_LastFeature = kPixelBlinnPhong;
+
+					TDesc.Features = kPixelBlinnPhong;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+			}
+			else
+			{
+				m_vEffects[_i].DeactivateTech();
+
+				TDesc.Features = 0;
+				TDesc.LightingPlace = CurrentLightingPlaces;
+				TDesc.LightingModel = CurrentLightingModels;
+
+				m_vEffects[_i].ActivateTech(TDesc);
+				m_vEffects[_i].m_ImGuiSpecularMap = false;
+			}
+		}
+	}
+
+	if (m_vEffects[_i].GetActiveTech() > kPixelBlinnPhong)
+	{
+		if (ImGui::Checkbox("Specular Map", &m_vEffects[_i].m_ImGuiSpecularMap))
+		{
+			if (m_vEffects[_i].m_ImGuiSpecularMap)
+			{
+				if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
+				{
+					m_vEffects[_i].DeactivateTech();
+
+					TDesc.Features = kPixelPhongNMSM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNMSM)
+				{
+					m_vEffects[_i].DeactivateTech();
+
+					TDesc.Features = kPixelPhongNM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
+				{
+					m_vEffects[_i].DeactivateTech();
+
+					TDesc.Features = kPixelBlinnPhongNMSM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+				else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNMSM)
+				{
+					m_vEffects[_i].DeactivateTech();
+
+					TDesc.Features = kPixelBlinnPhongNM;
+					TDesc.LightingPlace = CurrentLightingPlaces;
+					TDesc.LightingModel = CurrentLightingModels;
+
+					m_vEffects[_i].ActivateTech(TDesc);
+				}
+			}
+			else
+			{
+				m_vEffects[_i].DeactivateTech();
+
+				TDesc.Features = g_LastFeature;
+				TDesc.LightingPlace = CurrentLightingPlaces;
+				TDesc.LightingModel = CurrentLightingModels;
+
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+		}
+	}
+}
+
+void DeferredMenu(const int _i)
+{
+	LightingModelsLabel = LightingModels[CurrentLightingModels];
+	if (ImGui::BeginCombo("Lighting Models", LightingModelsLabel, NULL))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
+		{
+			const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
+			if (ImGui::Selectable(LightingModels[n], IsSelected))
+			{
+				CurrentLightingModels = n;
+				m_vEffects[_i].DeactivateTech();
+				m_vEffects[_i].m_ImGuiNormalMap = false;
+				m_vEffects[_i].m_ImGuiSpecularMap = false;
+
+				TDesc.Features = 0;
+				TDesc.LightingModel = CurrentLightingModels;
+
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (IsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	NormalLabel = Normals[CurrentNormal];
+	if (ImGui::BeginCombo("Normals", NormalLabel, NULL))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(Normals); n++)
+		{
+			const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
+			if (ImGui::Selectable(Normals[n], IsSelected))
+			{
+				CurrentNormal = n;
+				m_vEffects[_i].DeactivateTech();
+
+				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.NormalCalc = CurrentNormal;
+
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+
+			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (IsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	if (CurrentLightingModels != 0)
+	{
+		if (ImGui::Checkbox("Specular Map", &m_vEffects[_i].ImGuiDefSM))
+		{
+			if (m_vEffects[_i].ImGuiDefSM)
+			{
+				m_vEffects[_i].DeactivateTech();
+
+				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.Specular = true;
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+			else
+			{
+				m_vEffects[_i].DeactivateTech();
+
+				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.Specular = false;
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+		}
+	}
+}
+
 void EffectsMenu(const int _i)
 {
 	if (ImGui::TreeNode(m_vEffects[_i].GetName().c_str()))
 	{
-		if (m_vEffects[_i].GetActiveTech() > kVertexBlinnPhong)
+		TechLabel = RenderTechs[m_vEffects[_i].GetActiveRenderTech()];
+		if (ImGui::BeginCombo("Render Techs", TechLabel, NULL))
 		{
-			LightingPlacesLabel = LightingPlaces[1];
-		}
-		else 
-		{
-			LightingPlacesLabel = LightingPlaces[0];
-		}
-
-		if (ImGui::BeginCombo("Light Calculation", LightingPlacesLabel, NULL))
-		{
-			for (int n = 0; n < IM_ARRAYSIZE(LightingPlaces); n++)
+			for (int n = 0; n < IM_ARRAYSIZE(RenderTechs); n++)
 			{
-				const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
-				if (ImGui::Selectable(LightingPlaces[n], IsSelected))
+				const bool IsSelected = (CurrentTech == n);
+				if (ImGui::Selectable(RenderTechs[n], IsSelected))
 				{
-					CurrentLightingPlaces = n;
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, 0);
-					//m_vTechs[CurrentLightingModel].Activate();
-					//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
+					CurrentTech = n;
+					TechLabel = RenderTechs[n];
+
+					if (CurrentTech == 0)
+					{
+						m_vEffects[_i].DeactivateTech();
+						m_vEffects[_i].SetRenderTech(0);
+
+						TDesc.Features = 0;
+						TDesc.LightingModel = 0;
+						TDesc.LightingPlace = 0;
+
+						LightingPlacesLabel = LightingPlaces[0];
+						CurrentLightingPlaces = 0;
+
+						LightingModelsLabel = LightingModels[0];
+						CurrentLightingModels = 0;
+
+
+						m_vEffects[_i].ActivateTech(TDesc);
+					}
+					else if (CurrentTech == 1)
+					{
+						m_vEffects[_i].DeactivateTech();
+						m_vEffects[_i].SetRenderTech(1);
+
+						TDesc.Features = 0;
+						TDesc.LightingModel = 0;
+						TDesc.LightingPlace = 0;
+						TDesc.NormalCalc = 0;
+
+						LightingPlacesLabel = LightingPlaces[0];
+						CurrentLightingPlaces = 0;
+
+						LightingModelsLabel = LightingModels[0];
+						CurrentLightingModels = 0;
+
+						NormalLabel = Normals[0];
+						CurrentNormal = 0;
+
+						m_vEffects[_i].ActivateTech(TDesc);
+					}
 				}
 
-				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 				if (IsSelected)
 				{
 					ImGui::SetItemDefaultFocus();
@@ -1049,115 +1431,14 @@ void EffectsMenu(const int _i)
 			ImGui::EndCombo();
 		}
 
-		LightingModelsLabel = LightingModels[CurrentLightingModels];
-		if (ImGui::BeginCombo("Lighting Models", LightingModelsLabel, NULL))
-		{
-			for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
-			{
-				const bool IsSelected = (m_vEffects[_i].GetActiveTech() == n);
-				if (ImGui::Selectable(LightingModels[n], IsSelected))
-				{
-					CurrentLightingModels = n;
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].m_ImGuiNormalMap = false;
-					m_vEffects[_i].m_ImGuiSpecularMap = false;
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, 0);
-				}
 
-				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-				if (IsSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-			ImGui::EndCombo();
+		if (m_vEffects[_i].GetActiveRenderTech() == 0)
+		{
+			ForwardMenu(_i);
 		}
-
-		if (m_vEffects[_i].GetActiveTech() > kVertexBlinnPhong)
+		else if (m_vEffects[_i].GetActiveRenderTech() == 1)
 		{
-			if (ImGui::Checkbox("Normal Map", &m_vEffects[_i].m_ImGuiNormalMap))
-			{
-				if (m_vEffects[_i].m_ImGuiNormalMap)
-				{
-					if (m_vEffects[_i].GetActiveTech() == kPixel)
-					{
-						m_vEffects[_i].DeactivateTech();
-						g_LastFeature = kPixelNM;
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelNM);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelNM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						g_LastFeature = kPixel;
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixel);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelPhong)
-					{
-						m_vEffects[_i].DeactivateTech();
-						g_LastFeature = kPixelPhongNM;
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNM);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						g_LastFeature = kPixelPhong;
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhong);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhong)
-					{
-						m_vEffects[_i].DeactivateTech();
-						g_LastFeature = kPixelBlinnPhongNM;
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNM);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						g_LastFeature = kPixelBlinnPhong;
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhong);
-					}
-				}
-				else
-				{
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, 0);
-					m_vEffects[_i].m_ImGuiSpecularMap = false;
-				}
-			}
-		}
-
-		if (m_vEffects[_i].GetActiveTech() > kPixelBlinnPhong)
-		{
-			if (ImGui::Checkbox("Specular Map", &m_vEffects[_i].m_ImGuiSpecularMap))
-			{
-				if (m_vEffects[_i].m_ImGuiSpecularMap)
-				{
-					if (m_vEffects[_i].GetActiveTech() == kPixelPhongNM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNMSM);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelPhongNMSM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelPhongNM);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNMSM);
-					}
-					else if (m_vEffects[_i].GetActiveTech() == kPixelBlinnPhongNMSM)
-					{
-						m_vEffects[_i].DeactivateTech();
-						m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, kPixelBlinnPhongNM);
-					}
-				}
-				else
-				{
-					m_vEffects[_i].DeactivateTech();
-					m_vEffects[_i].ActivateTech(CurrentLightingPlaces, CurrentLightingModels, g_LastFeature);
-				}
-			}
+			DeferredMenu(_i);
 		}
 
 		if (ImGui::TreeNode("Passes"))
@@ -1209,13 +1490,15 @@ void UIRender()
 	{
 		AccessModels();
 	}
-
-	if (ImGui::CollapsingHeader("Render Targets"))
+	
+	if (m_vEffects.size() != 0 && m_vEffects[0].GetActiveRenderTech() == 1)
 	{
-		for (unsigned int i = 0; i < m_Obj.g_GBufferRTV.GetRTVNum(); ++i)
+		if (ImGui::CollapsingHeader("Render Targets"))
 		{
-			ImGui::ImageButton((void*)m_Obj.g_GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 8, 1080 / 8));
-			ImGui::SameLine();
+			for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum(); ++i)
+			{
+				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+			}
 		}
 	}
 
@@ -1423,28 +1706,53 @@ void UIRender()
 
 		ImGui::Separator();
 
-		ImGui::Text("Where the light will be calculated?");
+		ImGui::Text("Render Technique");
 
-		if (ImGui::BeginCombo("", LightingPlacesLabel, NULL))
+		if (ImGui::Checkbox("Forward", &TDesc.ForwardRender))
 		{
-			for (int n = 0; n < IM_ARRAYSIZE(LightingPlaces); n++)
+			if (TDesc.DeferredRender)
 			{
-				const bool IsSelected = (CurrentLightingPlaces == n);
-				if (ImGui::Selectable(LightingPlaces[n], IsSelected))
-				{
-					CurrentLightingPlaces = n;
-					LightingPlacesLabel = LightingPlaces[n];
-					//m_vTechs[CurrentLightingModel].Activate();
-					//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
-				}
-		
-				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-				if (IsSelected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
+				TDesc.DeferredRender = false;
 			}
-			ImGui::EndCombo();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Checkbox("Deferred", &TDesc.DeferredRender))
+		{
+			if (TDesc.ForwardRender)
+			{
+				TDesc.ForwardRender = false;
+			}
+		}
+
+		if (TDesc.ForwardRender)
+		{
+			ImGui::Separator();
+
+			ImGui::Text("Where the light will be calculated?");
+
+			if (ImGui::BeginCombo("", LightingPlacesLabel, NULL))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(LightingPlaces); n++)
+				{
+					const bool IsSelected = (CurrentLightingPlaces == n);
+					if (ImGui::Selectable(LightingPlaces[n], IsSelected))
+					{
+						CurrentLightingPlaces = n;
+						LightingPlacesLabel = LightingPlaces[n];
+						//m_vTechs[CurrentLightingModel].Activate();
+						//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
+					}
+			
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+					if (IsSelected)
+					{
+						ImGui::SetItemDefaultFocus();
+					}
+				}
+				ImGui::EndCombo();
+			}
 		}
 
 		ImGui::Separator();
@@ -1452,63 +1760,16 @@ void UIRender()
 		ImGui::ListBox("", &CurrentLightingModels, LightingModels, IM_ARRAYSIZE(LightingModels), 4);
 
 		ImGui::Separator();
-		ImGui::Text("Render Technique");
-		if (ImGui::Checkbox("Forward", &g_ForwardRender))
-		{
-			if (g_DeferredRender)
-			{
-				g_DeferredRender = false;
-			}
-		}
-		ImGui::SameLine();
-
-		
-		if (ImGui::Checkbox("Deferred", &g_DeferredRender))
-		{
-			if (g_ForwardRender)
-			{
-				g_ForwardRender = false;
-			}
-		}
-		//static int currentlighting = 0;
-		//ImGui::Combo("", &currentlighting, "Vertex Shader\0Pixel Shader\0\0");
-		//ImGui::Separator();
-		//ImGui::Text("Lighting Model");
-
-		//if (ImGui::BeginCombo("", LightingModelsLabel, NULL))
-		//{
-		//	for (int n = 0; n < IM_ARRAYSIZE(LightingModels); n++)
-		//	{
-		//		const bool IsSelectedModel = (CurrentLightingModels == n);
-		//		if (ImGui::Selectable(LightingModels[n], IsSelectedModel))
-		//		{
-		//			CurrentLightingModels = n;
-		//			//m_vTechs[CurrentLightingModel].Activate();
-		//			//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
-		//		}
-		//
-		//		// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-		//		if (IsSelectedModel)
-		//		{
-		//			ImGui::SetItemDefaultFocus();
-		//		}
-		//	}
-		//	ImGui::EndCombo();
-		//}
-		//static int currentmodel = 0;
-		//ImGui::Selectable("Phong", &LightModelSelected[0]);
-		//ImGui::Selectable("Blinn-Phong", &LightModelSelected[1]);
-
-		ImGui::Separator();
 
 		if (ImGui::Button("Ok"))
 		{
-			int LightingPlace = CurrentLightingPlaces;
-			int LightingModel = CurrentLightingModels;
+			TDesc.LightingPlace = CurrentLightingPlaces;
+			TDesc.LightingModel = CurrentLightingModels;
+			TDesc.Features = 0;
 
-			m_vEffects.push_back(Effect(&m_vTechs, NewEffectName));
+			m_vEffects.push_back(Effect(&m_vTechs, NewEffectName, TDesc));
 
-			m_vEffects.back().ActivateTech(LightingPlace, LightingModel, 0);
+			m_vEffects.back().ActivateTech(TDesc);
 			NewEffectName = "";
 			g_NewEffect = false;
 		}
@@ -1582,6 +1843,8 @@ void Render()
 	//m_Obj.Render();
 
 	UIRender();
+
+	RM::GetRenderManager().SetBackBufferCleaned(false);
 	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain().CPresent(0, 0);
 #endif
 #if defined(OGL)
@@ -1671,19 +1934,48 @@ int main()
 	// main loop
 	MSG msg = { 0 };
 
-	for (unsigned int j = 0; j < 2; j++)
-	{
+	int Flags[2] = { 0, 3 };
+
+	LoadSAQ(Flags);
+
+	//Effects
+	for (unsigned int k = 0; k < 2; k++)
+	{ 
 		TechDesc TDesc;
-		TDesc.DeferredFlags = j;
+		TDesc.EffectNum = 2;
+		TDesc.ActualEffect = k;
 		TDesc.hwnd = g_hwnd;
-		TDesc.PassNum = 2;
-		for (unsigned int i = 0; i < 11; ++i)
+		if (k == 0)
 		{
-			TDesc.TechTypesFlag = i;
-			m_vTechs.push_back(TDesc);
+			TDesc.PassNum = 2;
+			for (unsigned int j = 0; j < 10; ++j)
+			{
+				if (j < 4)
+				{
+					TDesc.DefLightFlags = 0;
+				}
+				else if (j >= 4 && j < 8)
+				{
+					TDesc.DefLightFlags = 1;
+				}
+				else if (j >= 8)
+				{
+					TDesc.DefLightFlags = 2;
+				}
+				TDesc.DeferredFlags = j;
+				m_vTechs.push_back(TDesc);
+			}
+		}
+		else if (k == 1)
+		{
+			TDesc.PassNum = 1;
+			for (unsigned int i = 10; i < 21; ++i)
+			{
+				TDesc.TechTypesFlag = i;
+				m_vTechs.push_back(TDesc);
+			}
 		}
 	}
-
 
 	while (WM_QUIT != msg.message)
 	{

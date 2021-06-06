@@ -545,6 +545,8 @@
     <ClInclude Include="include\Pass.h" />
     <ClInclude Include="include\PixelShader.h" />
     <ClInclude Include="include\Quaternion.h" />
+    <ClInclude Include="include\RasterizerState.h" />
+    <ClInclude Include="include\RenderManager.h" />
     <ClInclude Include="include\RenderTargetView.h" />
     <ClInclude Include="include\SamplerState.h" />
     <ClInclude Include="include\Shader.h" />
@@ -578,6 +580,8 @@
     <ClCompile Include="src\Pass.cpp" />
     <ClCompile Include="src\PixelShader.cpp" />
     <ClCompile Include="src\Quaternion.cpp" />
+    <ClCompile Include="src\RasterizerState.cpp" />
+    <ClCompile Include="src\RenderManager.cpp" />
     <ClCompile Include="src\RenderTargetView.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
     <ClCompile Include="src\Shader.cpp" />

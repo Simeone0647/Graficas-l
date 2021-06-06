@@ -1,4 +1,5 @@
 #include "test.h"
+#include "RenderManager.h"
 
 namespace GraphicsModule
 {
@@ -216,9 +217,10 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 			return hr;
 		
-		g_SimeRenderTargetView.AddRTV();
+		RM::GetRenderManager().BackBufferRTV.AddRTV();
+		//g_SimeRenderTargetView.AddRTV();
 
-		hr = GetManagerObj(hwnd).GetDevice().CCreateRenderTargetView(BackBuffer.GetTexture(), NULL, g_SimeRenderTargetView.GetLastElementAddress());
+		hr = GetManagerObj(hwnd).GetDevice().CCreateRenderTargetView(BackBuffer.GetTexture(), NULL, RM::GetRenderManager().BackBufferRTV.GetLastElementAddress());
 		BackBuffer.GetTexture()->Release();
 		if (FAILED(hr))
 			return hr;
@@ -235,19 +237,19 @@ HRESULT test::InitDevice(HWND hwnd)
 		g_DepthDesc.CPUAccessFlags = 0;
 		g_DepthDesc.MiscFlags = 0;
 
-		g_SimeDepthStencil.SetDescDepth(g_DepthDesc);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateTexture2D(g_SimeDepthStencil.GetDescDepthAddress(), NULL, g_SimeDepthStencil.GetTextureAddress());
+		RM::GetRenderManager().DepthStencil.SetDescDepth(g_DepthDesc);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().DepthStencil.GetDescDepthAddress(), NULL, RM::GetRenderManager().DepthStencil.GetTextureAddress());
 		if (FAILED(hr))
 			return hr;
 
-		g_SimeDepthStencilView.SetDescDSV(SIME_FORMAT_D32_FLOAT, SIME_DSV_DIMENSION_TEXTURE2D, 0);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateDepthStencilView(g_SimeDepthStencil.GetTexture(), g_SimeDepthStencilView.GetDescDSVAddress(),																   g_SimeDepthStencilView.GetDSVAddress());
+		RM::GetRenderManager().DSView.SetDescDSV(SIME_FORMAT_D32_FLOAT, SIME_DSV_DIMENSION_TEXTURE2D, 0);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateDepthStencilView(RM::GetRenderManager().DepthStencil.GetTexture(), RM::GetRenderManager().DSView.GetDescDSVAddress(), RM::GetRenderManager().DSView.GetDSVAddress());
 		if (FAILED(hr))
 			return hr;
 
-		g_SimeDepthStencilSRV.SetDesc(SIME_FORMAT_R32_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateShaderResourceView(g_SimeDepthStencil.GetTexture(), g_SimeDepthStencilSRV.GetDXSRVDescAddress(),
-																	   g_SimeDepthStencilSRV.GetDXSRVAddress());
+		RM::GetRenderManager().DepthStencilSRV.SetDesc(SIME_FORMAT_R32_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DepthStencil.GetTexture(), RM::GetRenderManager().DepthStencilSRV.GetDXSRVDescAddress(),
+																	   RM::GetRenderManager().DepthStencilSRV.GetDXSRVAddress());
 		if (FAILED(hr))
 			return hr;
 
@@ -348,7 +350,7 @@ HRESULT test::InitDevice(HWND hwnd)
 		RTDescStruct.Height = height;
 		RTDescStruct.MipLevels = 1;
 		RTDescStruct.Arraysize = 1;
-		RTDescStruct.Format = SIME_FORMAT_R32G32B32A32_FLOAT;
+		RTDescStruct.Format = SIME_FORMAT_R16G16B16A16_FLOAT;
 		RTDescStruct.Count = 1;
 		RTDescStruct.Quality = 0;
 		RTDescStruct.Usage = SIME_USAGE_DEFAULT;
@@ -358,24 +360,57 @@ HRESULT test::InitDevice(HWND hwnd)
 
 		for (unsigned int i = 0; i < 4; ++i)
 		{
-			g_GBufferRTV.AddRTV();
+			RM::GetRenderManager().GBufferRTV.AddRTV();
+			//g_GBufferRTV.AddRTV();
 
-			g_GBufferTextures[i].SetDescRT(RTDescStruct);
-			hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(g_GBufferTextures[i].GetDescDepthAddress(), NULL, g_GBufferTextures[i].GetTextureAddress());
+			RM::GetRenderManager().GBufferTextures[i].SetDescRT(RTDescStruct);
+			//g_GBufferTextures[i].SetDescRT(RTDescStruct);
+			hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[i].GetDescDepthAddress(), NULL,
+							   RM::GetRenderManager().GBufferTextures[i].GetTextureAddress());
 			if (FAILED(hr))
 			{
 				cout << "Error tekstur 2d" << endl;
 			}
 
-			g_GBufferSRV[i].SetDesc(SIME_FORMAT_R32G32B32A32_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+			RM::GetRenderManager().GBufferSRV[i].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
 
-			hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(g_GBufferTextures[i].GetTexture(), g_GBufferSRV[i].GetDXSRVDescAddress(), g_GBufferSRV[i].GetDXSRVAddress());
+			hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[i].GetTexture(), RM::GetRenderManager().GBufferSRV[i].GetDXSRVDescAddress(),
+																			 RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
 			if (FAILED(hr))
 			{
 				cout << "Error cheiderresoursviu" << endl;
 			}
 
-			hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(g_GBufferTextures[i].GetTexture(), NULL, g_GBufferRTV.GetLastElementAddress());
+			hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[i].GetTexture(), NULL,
+																		   RM::GetRenderManager().GBufferRTV.GetLastElementAddress());
+		}
+
+		SetRasterizerStruct RasterStruct;
+		RasterStruct.Fill = SIME11_FILL_SOLID;
+		RasterStruct.Cull = SIME11_CULL_BACK;
+		RasterStruct.FrontCCW = false;
+
+		RM::GetRenderManager().GBufferRasterState.SetRasterizerDesc(RasterStruct);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().GBufferRasterState.GetRSDescAddress(),
+																	  RM::GetRenderManager().GBufferRasterState.GetRSAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo en crear el Rasterizer" << endl;
+		}
+
+		SetRasterizerStruct RasterStructGBufferLight;
+		RasterStructGBufferLight.Fill = SIME11_FILL_SOLID;
+		RasterStructGBufferLight.Cull = SIME11_CULL_NONE;
+		RasterStructGBufferLight.FrontCCW = false;
+
+		RM::GetRenderManager().GBufferLightRasterState.SetRasterizerDesc(RasterStructGBufferLight);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().GBufferLightRasterState.GetRSDescAddress(),
+			RM::GetRenderManager().GBufferLightRasterState.GetRSAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo en crear el RasterizerLight" << endl;
 		}
 		//g_TextureRenderTarget2;
 		//g_TextureRenderTarget2.SetDescRT(width, height, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
@@ -444,21 +479,22 @@ void test::Update()
 		t = (dwTimeCur - dwTimeStart) / 1000.0f;
 	}
 
-	GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(g_GBufferRTV.GetRTVNum(), g_GBufferRTV.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
+	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(RM::GetRenderManager().GBufferRTV.GetRTVNum(),
+	//															 RM::GetRenderManager().GBufferRTV.GetRTVAdress(), RM::GetRenderManager().DSView.GetDSV());
 	//
 	// Clear the back buffer
 	//
 	//float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
-	float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
-
-	for (unsigned int i = 0; i < g_GBufferRTV.GetRTVNum(); ++i)
-	{
-		GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_GBufferRTV.GetRTV(i), ClearColor);
-	}
+	//float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
+	//
+	//for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum(); ++i)
+	//{
+	//	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(RM::GetRenderManager().GBufferRTV.GetRTV(i), ClearColor);
+	//}
 	//GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SimeRenderTargetView.GetRTV(), ClearColor);
 
 	ClearDepthStencilViewStruct ClearDSVStruct;
-	ClearDSVStruct.pDepthStencilView = g_SimeDepthStencilView.GetDSV();
+	ClearDSVStruct.pDepthStencilView = RM::GetRenderManager().DSView.GetDSV();
 	ClearDSVStruct.ClearFlags = SIME_CLEAR_DEPTH;
 	ClearDSVStruct.Depth = 1.0f;
 	ClearDSVStruct.Stencil = 0;
@@ -705,19 +741,13 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
-
-	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
-	GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
-	ClearDSVStruct.pDepthStencilView = g_SimeDepthStencilView.GetDSV();
-	ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
-	ClearDSVStruct.Depth = 1.0f;
-	ClearDSVStruct.Stencil = 0;
-
-	GraphicsModule::GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SimeRenderTargetView.GetRTV(0), ClearColor);
-	GraphicsModule::GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
-	GraphicsModule::GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(g_SimeRenderTargetView.GetRTVNum(), g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
+	if (!RM::GetRenderManager().IsBackBufferCleaned())
+	{
+		RM::GetRenderManager().SetBackBuffer();
+		RM::GetRenderManager().SetBackBufferCleaned(true);
+	}
 #endif
 }
 
@@ -739,23 +769,23 @@ void test::CleanupDevice()
 		//if (g_SimeInputLayout.GetDXInputLayout()) g_SimeInputLayout.GetDXInputLayout()->Release();
 		//if (g_SimeVertexShader.GetDXVertexShader()) g_SimeVertexShader.GetDXVertexShader()->Release();
 		//if (g_SimePixelShader.GetDXPixelShader()) g_SimePixelShader.GetDXPixelShader()->Release();
-		if (g_SimeDepthStencil.GetTexture()) g_SimeDepthStencil.GetTexture()->Release();
-		if (g_SimeDepthStencilView.GetDSV()) g_SimeDepthStencilView.GetDSV()->Release();
+		if (RM::GetRenderManager().DepthStencil.GetTexture()) RM::GetRenderManager().DepthStencil.GetTexture()->Release();
+		if (RM::GetRenderManager().DSView.GetDSV()) RM::GetRenderManager().DSView.GetDSV()->Release();
 		//if (g_SimeRenderTargetView.GetRTV()) g_SimeRenderTargetView.GetRTV()->Release();
 		//if (g_PositionRTV.GetRTV()) g_PositionRTV.GetRTV()->Release();
 
-		for (unsigned int i = 0; i < g_GBufferRTV.GetRTVNum(); ++i)
+		for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum(); ++i)
 		{
-			if (g_GBufferRTV.GetRTV(i))
+			if (RM::GetRenderManager().GBufferRTV.GetRTV(i))
 			{
-				g_GBufferRTV.GetRTV(i)->Release();
+				RM::GetRenderManager().GBufferRTV.GetRTV(i)->Release();
 			}
 		}
-		for (unsigned int i = 0; i < g_SimeRenderTargetView.GetRTVNum(); ++i)
+		for (unsigned int i = 0; i < RM::GetRenderManager().BackBufferRTV.GetRTVNum(); ++i)
 		{
-			if (g_SimeRenderTargetView.GetRTV(i))
+			if (RM::GetRenderManager().BackBufferRTV.GetRTV(i))
 			{
-				g_SimeRenderTargetView.GetRTV(i)->Release();
+				RM::GetRenderManager().BackBufferRTV.GetRTV(i)->Release();
 			}
 		}
 		if (GetManagerObj(m_hwnd).GetSwapChain().GetDXSC()) GetManagerObj(m_hwnd).GetSwapChain().GetDXSC()->Release();

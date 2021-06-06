@@ -74,7 +74,5 @@ namespace GraphicsModule
 			* @brief...This variable is MY SwapChain. It will have and call different SwapChains and functions depending on which API is in use.
 		*/
 		SwapChain m_SwapChain;
-
-		
 	};
 }

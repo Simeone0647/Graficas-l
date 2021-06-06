@@ -5,6 +5,9 @@
 #include <d3dcompiler.h>
 #include <xnamath.h>
 #endif
+#include <vector>
+
+using std::vector;
 
 class SamplerState
 {
@@ -13,8 +16,15 @@ public:
 	~SamplerState();
 
 #if defined(DX11)
-	inline ID3D11SamplerState* GetDXSamplerState() { return m_pSamplerLinear; }
-	inline ID3D11SamplerState** GetDXSamplerStateAddress() { return &m_pSamplerLinear; }
+	//inline ID3D11SamplerState* GetDXSamplerState() { return m_pSamplerLinear; }
+	//inline ID3D11SamplerState** GetDXSamplerStateAddress() { return &m_pSamplerLinear; }
+
+	inline ID3D11SamplerState** GetDXSamplerStateAddress() { return m_vSamplers.data(); }
+	inline ID3D11SamplerState** GetLastElementAddress() { return &m_vSamplers.back(); }
+	inline void AddSampler() { ID3D11SamplerState* NewSamp = NULL; m_vSamplers.push_back(NewSamp); m_SampNum++; }
+
+	inline int GetSamplerNum() { return m_SampNum; }
+	inline ID3D11SamplerState* GetSampler(const int _i) { return m_vSamplers[_i]; }
 
 	void SetDesc();
 
@@ -24,8 +34,11 @@ public:
 private:
 
 #if defined (DX11)
+	vector<ID3D11SamplerState*> m_vSamplers;	
 	ID3D11SamplerState* m_pSamplerLinear;
 	D3D11_SAMPLER_DESC m_sampDesc;
+
+	int m_SampNum;
 #endif
 };
 

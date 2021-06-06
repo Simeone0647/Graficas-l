@@ -5,8 +5,7 @@
 #include "PixelShader.h"
 #include "ShaderReflection.h"
 #include "InputLayout.h"
-
-
+#include "RasterizerState.h"
 
 class Pass
 {
@@ -15,7 +14,7 @@ public:
 	Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name);
 	~Pass();
 
-	void Render(HWND _hwnd, vector<Model>& _Models);
+	void Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ);
 	void CleanUpShaders();
 	inline string GetName() { return m_Name; }
 	inline int GetID() { return m_ID; }
@@ -34,7 +33,7 @@ private:
 	PixelShader m_PixelShader;
 	ShaderReflection m_ShaderReflection;
 	InputLayout m_InputLayout;
-	RenderTargetView m_RenderTarget;
+	RasterizerState m_Rasterizer;
 	#endif
 };
 

@@ -146,7 +146,7 @@ public:
 		* @bug.....No known bugs.
 		* @return..#ID3D11Device**: DX11Device's Address.
 	*/
-	inline ID3D11Device** GetDXDeviceAddress() { return &m_Device; }
+	inline ID3D11Device** GetDXDeviceAddress() { return &m_Device;}
 #endif
 private:
 #if defined(DX11)

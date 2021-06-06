@@ -21,3 +21,4 @@
 #include "Tech.h"
 #include "Pass.h"
 #include "Shader.h"
+#include "RenderManager.h"

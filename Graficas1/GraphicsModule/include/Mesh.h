@@ -129,7 +129,7 @@ private:
 
 	float m_MeshColor[3];
 
-	vector<SamplerState> m_vSamplers;
+	SamplerState m_Samplers;
 	#endif
 
 	#if defined(OGL)

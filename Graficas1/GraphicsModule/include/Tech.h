@@ -1,15 +1,25 @@
 #pragma once
 #include "Pass.h"
 
+enum Effects
+{
+	kDeferred = 0,
+	kForward
+};
+
 enum DeferredDefines
 {
 	kNormalVertex = 0,
-	kNormalMap
+	kNormalMap,
+	kNVSM,
+	kNMSM,
+	kDefPhong,
+	kDefBlinnPhong
 };
 
 enum TechTypes
 {
-	kVertex = 0,
+	kVertex = 10,
 	kVertexPhong,
 	kVertexBlinnPhong,
 	kPixel,
@@ -20,7 +30,6 @@ enum TechTypes
 	kPixelPhongNMSM,
 	kPixelBlinnPhongNM,
 	kPixelBlinnPhongNMSM
-
 };
 
 //inline TechTypes operator|(TechTypes a, TechTypes b)
@@ -41,9 +50,23 @@ struct TechDesc
 {
 	int TechTypesFlag;
 	int DeferredFlags;
+	int DefLightFlags;
 	HWND hwnd;
 	int PassNum;
+	int EffectNum;
+	int ActualEffect;
+};
 
+struct SetTechDesc
+{
+	bool ForwardRender = false;
+	int LightingPlace;
+
+	bool DeferredRender = false;
+	int LightingModel;
+	int NormalCalc;
+	bool Specular;
+	int Features;
 };
 
 class Tech
@@ -75,6 +98,7 @@ private:
 	vector<string> m_vPassesNames;
 	TechDesc m_Desc;
 	bool m_Active;
+	bool m_IsDef;
 	int m_PassNum;
 	string m_Name;
 };

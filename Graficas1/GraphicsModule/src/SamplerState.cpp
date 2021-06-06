@@ -4,6 +4,7 @@ SamplerState::SamplerState()
 {
 #if defined(DX11)
 	m_pSamplerLinear = NULL;
+	m_SampNum = 0;
 #endif
 }
 

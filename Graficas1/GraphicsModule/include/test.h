@@ -385,6 +385,19 @@ namespace GraphicsModule
 		SIME_DSV_DIMENSION_TEXTURE2DMS = 5,
 		SIME_DSV_DIMENSION_TEXTURE2DMSARRAY = 6
 	};
+
+	enum SIME_CULL_MODE
+	{
+		SIME11_CULL_NONE = 1,
+		SIME11_CULL_FRONT = 2,
+		SIME11_CULL_BACK = 3
+	};
+
+	enum SIME_FILL_MODE
+	{
+		SIME11_FILL_WIREFRAME = 2,
+		SIME11_FILL_SOLID = 3
+	};
 //---------------------------STRUCTS------------------------------------
 
 	struct SimpleVertex
@@ -589,6 +602,13 @@ namespace GraphicsModule
 		UINT StructureBytestride;
 	};
 
+	struct SetRasterizerStruct
+	{
+		SIME_CULL_MODE Cull;
+		SIME_FILL_MODE Fill;
+		bool FrontCCW;
+	};
+
 	struct SetRTDescStruct
 	{
 		UINT Width;
@@ -664,7 +684,7 @@ namespace GraphicsModule
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;
-		ShaderResourceView					g_SimeDepthStencilSRV;
+		
 		SamplerState						g_SimeSamplerState;
 		DirLight							g_DirLightBufferDesc;
 		Buffer								g_DirLightBuffer;
@@ -678,7 +698,7 @@ namespace GraphicsModule
 		ConstantBuffer						g_SimeCBChangeOnResize;
 		ConstantBuffer						g_SimeCBChangesEveryFrame;
 		Viewport							g_SimeViewport;
-		Texture2D							g_SimeDepthStencil;
+		
 		Texture2D							g_PositionTex;
 		ShaderResourceView					g_PositionSRV;
 		Texture2D							g_AlbedoTex;
@@ -688,11 +708,7 @@ namespace GraphicsModule
 		Texture2D							g_SpecularTex;
 		ShaderResourceView					g_SpecularSRV;
 		CreateDevAndSCDesc					g_DeviceAndSwapChainDesc;
-		DepthStencilView					g_SimeDepthStencilView;
-		ShaderResourceView					g_GBufferSRV[4];
-		Texture2D							g_GBufferTextures[4];
-		RenderTargetView					g_GBufferRTV;
-		RenderTargetView					g_SimeRenderTargetView;
+
 		SIME_DRIVER_TYPE                    g_driverType = SIME_DRIVER_TYPE_NULL;
 		Camera                              m_PerspectiveCamera;
 		Camera                              m_OrtographicCamera;
@@ -700,7 +716,7 @@ namespace GraphicsModule
 		LPPOINT                             MouseInitPos = new POINT;
 		LPPOINT                             MouseFinalPos = new POINT;
 		LPPOINT                             MouseDirection = new POINT;
-		unsigned int* CubeVertexIndex =   new unsigned int[36];
+		unsigned int* CubeVertexIndex =     new unsigned int[36];
 		bool                                m_IsPerspectiveActive = true;
 		bool                                m_IsFirstFrame = false;
 		bool                                m_IsFirstPosStored = false;

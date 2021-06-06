@@ -118,10 +118,13 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
-	for (unsigned int i = 0; i < m_vSamplers.size(); ++i)
+	//for (unsigned int i = 0; i < m_vSamplers.size(); ++i)
+	//{
+	if (m_Material->GetTexNum() > 0)
 	{
-		GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetSamplers(i, 1, m_vSamplers[i].GetDXSamplerStateAddress());
+		GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetSamplers(0, m_Samplers.GetSamplerNum(), m_Samplers.GetDXSamplerStateAddress());
 	}
+	//}
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CDrawIndexed(m_VertexIndexNum, 0, 0);
 
 #endif
@@ -285,10 +288,13 @@ void Mesh::LoadTexture(HWND _hwnd)
 		#if defined(DX11)
 		HRESULT hr;
 
-		m_vSamplers.push_back(SamplerState());
-		m_vSamplers[i].SetDesc();
+		//m_vSamplers.push_back(SamplerState());
+		//m_vSamplers[i].SetDesc();
 
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_vSamplers[i].GetDXSamplerDescAddress(), m_vSamplers[i].GetDXSamplerStateAddress());
+		m_Samplers.AddSampler();
+		m_Samplers.SetDesc();
+
+		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(), m_Samplers.GetLastElementAddress());
 
 		if (FAILED(hr))
 		{
@@ -400,11 +406,11 @@ void Mesh::CleanUpDXResources()
 			m_Material->GetSRVTexture(i)->GetDXSRV()->Release();
 		}
 	}
-	for (unsigned int i = 0; i < m_vSamplers.size(); ++i)
+	for (unsigned int i = 0; i < m_Samplers.GetSamplerNum(); ++i)
 	{
-		if (m_vSamplers[i].GetDXSamplerState())
+		if (m_Samplers.GetSampler(i))
 		{
-			m_vSamplers[i].GetDXSamplerState()->Release();
+			m_Samplers.GetSampler(i)->Release();
 		}
 	}
 	if (m_MeshCB.GetCBChangesEveryFrame())

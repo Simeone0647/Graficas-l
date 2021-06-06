@@ -30,7 +30,7 @@ public:
 
 	inline ID3D11RenderTargetView** GetLastElementAddress() { return &m_vRTVs.back(); }
 
-	inline void AddRTV() { ID3D11RenderTargetView* NewRTV = NULL; m_vRTVs.push_back( NewRTV );  m_RTVNum++; }
+	inline void AddRTV() { ID3D11RenderTargetView* RTV = NULL; m_vRTVs.push_back(RTV); m_RTVNum++; }
 
 	inline ID3D11RenderTargetView* GetRTV(const int _i) { return m_vRTVs[_i]; }
 
