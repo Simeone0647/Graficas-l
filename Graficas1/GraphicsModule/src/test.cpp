@@ -316,6 +316,10 @@ HRESULT test::InitDevice(HWND hwnd)
 		BDStruct.ByteWidth = sizeof(Vector3);
 		g_CameraFrontBuffer.BUpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_CameraFrontBuffer.BGetBDAddress(), NULL, g_CameraFrontBuffer.BGetBufferAddress());
+
+		BDStruct.ByteWidth = sizeof(Expossure);
+		g_ExpossureBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_ExpossureBuffer.BGetBDAddress(), NULL, g_ExpossureBuffer.BGetBufferAddress());
 		// Load the Texture
 		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
 		if (FAILED(hr))
@@ -385,6 +389,54 @@ HRESULT test::InitDevice(HWND hwnd)
 																		   RM::GetRenderManager().GBufferRTV.GetLastElementAddress());
 		}
 
+		RM::GetRenderManager().GBufferToneMapRTV.AddRTV();
+
+		RM::GetRenderManager().GBufferTextures[4].SetDescRT(RTDescStruct);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[4].GetDescDepthAddress(), NULL,
+			RM::GetRenderManager().GBufferTextures[4].GetTextureAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error tekstur 2d" << endl;
+		}
+
+		RM::GetRenderManager().GBufferSRV[4].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[4].GetTexture(), RM::GetRenderManager().GBufferSRV[4].GetDXSRVDescAddress(),
+			RM::GetRenderManager().GBufferSRV[4].GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error cheiderresoursviu" << endl;
+		}
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[4].GetTexture(), NULL,
+			RM::GetRenderManager().GBufferToneMapRTV.GetLastElementAddress());
+		
+
+
+		RM::GetRenderManager().GBufferCopyRTV.AddRTV();
+
+		RM::GetRenderManager().GBufferTextures[5].SetDescRT(RTDescStruct);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[5].GetDescDepthAddress(), NULL,
+			RM::GetRenderManager().GBufferTextures[5].GetTextureAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error tekstur 2d" << endl;
+		}
+
+		RM::GetRenderManager().GBufferSRV[5].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[5].GetTexture(), RM::GetRenderManager().GBufferSRV[5].GetDXSRVDescAddress(),
+			RM::GetRenderManager().GBufferSRV[5].GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error cheiderresoursviu" << endl;
+		}
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[5].GetTexture(), NULL,
+			RM::GetRenderManager().GBufferCopyRTV.GetLastElementAddress());
+
 		SetRasterizerStruct RasterStruct;
 		RasterStruct.Fill = SIME11_FILL_SOLID;
 		RasterStruct.Cull = SIME11_CULL_BACK;
@@ -412,25 +464,63 @@ HRESULT test::InitDevice(HWND hwnd)
 		{
 			cout << "Fallo en crear el RasterizerLight" << endl;
 		}
-		//g_TextureRenderTarget2;
-		//g_TextureRenderTarget2.SetDescRT(width, height, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_USAGE_DEFAULT, 0, 0);
-		//hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(g_TextureRenderTarget2.GetDescDepthAddress(), NULL, g_TextureRenderTarget2.GetTextureAddress());
-		//if (FAILED(hr))
-		//	return hr;
-		//
-		//D3D11_SHADER_RESOURCE_VIEW_DESC descViewRT2;
-		//ZeroMemory(&descViewRT2, sizeof(descViewRT2));
-		//descViewRT2.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		//descViewRT2.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		//descViewRT2.Texture2D.MostDetailedMip = 0;
-		//descViewRT2.Texture2D.MipLevels = 1;
-		//hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(g_TextureRenderTarget2.GetTexture(), &descViewRT2, &g_pViewRT3);
-		//if (FAILED(hr))
-		//	return hr;
-		//
-		//hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(g_TextureRenderTarget2.GetTexture(), NULL, g_SecondSimeRenderTargetView.GetRTVAdress());
-		//if (FAILED(hr))
-		//	return hr;
+
+		RM::GetRenderManager().ToneRasterizer.SetRasterizerDesc(RasterStructGBufferLight);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().ToneRasterizer.GetRSDescAddress(),
+			RM::GetRenderManager().ToneRasterizer.GetRSAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo en crear el RasterizerLight" << endl;
+		}
+
+		RM::GetRenderManager().CopyRasterizer.SetRasterizerDesc(RasterStructGBufferLight);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().CopyRasterizer.GetRSDescAddress(),
+			RM::GetRenderManager().CopyRasterizer.GetRSAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo en crear el RasterizerLight" << endl;
+		}
+		
+		//FORWARD RENDER
+		for (unsigned int i = 0; i < 2; ++i)
+		{
+			RM::GetRenderManager().ForwardTextures[i].SetDescRT(RTDescStruct);
+
+			hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().ForwardTextures[i].GetDescDepthAddress(), NULL,
+				RM::GetRenderManager().ForwardTextures[i].GetTextureAddress());
+
+			if (FAILED(hr))
+			{
+				cout << "Error tekstur 2d" << endl;
+			}
+
+			RM::GetRenderManager().ForwardSRV[i].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+
+			hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().ForwardTextures[i].GetTexture(), RM::GetRenderManager().ForwardSRV[i].GetDXSRVDescAddress(),
+				RM::GetRenderManager().ForwardSRV[i].GetDXSRVAddress());
+			if (FAILED(hr))
+			{
+				cout << "Error cheiderresoursviu" << endl;
+			}
+		}
+
+		RM::GetRenderManager().ForwardLightRTV.AddRTV();
+		RM::GetRenderManager().ForwardToneMapRTV.AddRTV();
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().ForwardTextures[0].GetTexture(), NULL,
+			RM::GetRenderManager().ForwardLightRTV.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error Render Target" << endl;
+		}
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().ForwardTextures[1].GetTexture(), NULL,
+			RM::GetRenderManager().ForwardToneMapRTV.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error Render Target" << endl;
+		}
 #endif
 		return S_OK;
 }
@@ -716,6 +806,14 @@ void test::Render()
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
+	UpdateSRStruct.pDstResource = g_ExpossureBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_Expossure;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
 	//AQUI
 	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_PositionRTV.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
@@ -741,6 +839,7 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(10, 1, g_ExpossureBuffer.BGetBufferAddress());
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 	if (!RM::GetRenderManager().IsBackBufferCleaned())

@@ -1,6 +1,13 @@
 #pragma once
 #include "Pass.h"
 
+enum ColorCorrection
+{
+	kBasic = 0,
+	kReinhard,
+	kBurgessDowson
+};
+
 enum Effects
 {
 	kDeferred = 0,
@@ -19,7 +26,7 @@ enum DeferredDefines
 
 enum TechTypes
 {
-	kVertex = 10,
+	kVertex = 30,
 	kVertexPhong,
 	kVertexBlinnPhong,
 	kPixel,
@@ -55,6 +62,7 @@ struct TechDesc
 	int PassNum;
 	int EffectNum;
 	int ActualEffect;
+	int ColorCorr;
 };
 
 struct SetTechDesc
@@ -67,6 +75,7 @@ struct SetTechDesc
 	int NormalCalc;
 	bool Specular;
 	int Features;
+	int ColorCorr;
 };
 
 class Tech

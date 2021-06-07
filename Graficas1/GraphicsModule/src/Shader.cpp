@@ -86,7 +86,7 @@ void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelSha
 	//	NULL, NULL
 	//};
 
-	if (_Filename == "GBuffer" || _Filename == "GBufferLight")
+	if (_Filename == "GBuffer" || _Filename == "GBufferLight" || _Filename == "ToneMap" || _Filename == "Copy")
 	{
 		string Filename = _Filename + "PS.hlsl";
 		_hr = CompileShaderFromFile(&Filename[0], "PS", "ps_4_0", &pPSBlob);
@@ -143,7 +143,7 @@ void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout
 	//	NULL, NULL
 	//};
 
-	if (_Filename == "GBuffer" || _Filename == "GBufferLight")
+	if (_Filename == "GBuffer" || _Filename == "GBufferLight" || _Filename == "ToneMap" || _Filename == "Copy")
 	{ 
 		string Filename = _Filename + "VS.hlsl";
 		hr = CompileShaderFromFile(&Filename[0], "VS", "vs_4_0", &pVSBlob);

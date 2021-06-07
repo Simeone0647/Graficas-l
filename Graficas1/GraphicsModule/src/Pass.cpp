@@ -52,10 +52,19 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 
 		m_ShaderFilename = "GBufferLight";
 	}
+	else if (m_Name == "ToneMap" || m_Name == "ForwardToneMap")
+	{
+		m_ShaderFilename = "ToneMap";
+	}
+	else if (m_Name == "Copy" || m_Name == "ForwardCopy")
+	{
+		m_ShaderFilename = "Copy";
+	}
 	else if (m_Name == "Light")
 	{
 		m_ShaderFilename = "Tutorial07.fx";
 	}
+
 	m_Shader.SetMacros(_Macros);
 	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader, m_ShaderFilename);
 }
@@ -79,15 +88,36 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
 	{
 		if (_Models.size() > 1)
 		{ 
-			for (unsigned int i = 0; i < 4; ++i)
-			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
-			}
-			//for (unsigned int i = 0; i < RM::GetRenderManager().vGBufferSamplers.size(); ++i)
-			//{
+			if (m_Name == "GBufferLight")
+			{ 
+				for (unsigned int i = 0; i < 4; ++i)
+				{
+					GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
+				}
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, RM::GetRenderManager().vGBufferSamplers.GetSamplerNum(),
 																					   RM::GetRenderManager().vGBufferSamplers.GetDXSamplerStateAddress());
-			//}
+			}
+			else if (m_Name == "ToneMap")
+			{
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().GBufferSRV[4].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(4));
+			}
+			else if (m_Name == "Copy")
+			{
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().GBufferSRV[5].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(5));
+			}
+			else if (m_Name == "ForwardToneMap")
+			{
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[0].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(0));
+			}
+			else if (m_Name == "ForwardCopy")
+			{
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[1].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(1));
+			}
+
 			_Models[0].Render(_hwnd);
 		}
 	}

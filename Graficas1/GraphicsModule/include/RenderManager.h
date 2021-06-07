@@ -18,11 +18,19 @@ namespace RM
 
 		void SetGBufferRTV();
 
+		void SetGBufferToneRTV();
+
+		void SetGBufferCopyRTV();
+
+		void SetForwardLightRTV();
+
+		void SetForwardToneMapRTV();
+
 		inline void SetBackBufferCleaned(bool _value) { m_BackBufferCleaned = _value; }
 		inline bool IsBackBufferCleaned() { return m_BackBufferCleaned; }
-		Texture2D GBufferTextures[4];
+		Texture2D GBufferTextures[6];
 
-		ShaderResourceView GBufferSRV[4];
+		ShaderResourceView GBufferSRV[6];
 
 		RenderTargetView BackBufferRTV;
 		RenderTargetView GBufferRTV;
@@ -35,6 +43,19 @@ namespace RM
 		RasterizerState GBufferLightRasterState;
 
 		SamplerState vGBufferSamplers;
+
+		RenderTargetView GBufferToneMapRTV;
+		RasterizerState ToneRasterizer;
+
+		RenderTargetView GBufferCopyRTV;
+		RasterizerState CopyRasterizer;
+
+		RenderTargetView ForwardLightRTV;
+		Texture2D ForwardTextures[2];
+		ShaderResourceView ForwardSRV[2];
+		SamplerState ForwardSamplers;
+
+		RenderTargetView ForwardToneMapRTV;
 
 	private:
 		bool m_BackBufferCleaned;

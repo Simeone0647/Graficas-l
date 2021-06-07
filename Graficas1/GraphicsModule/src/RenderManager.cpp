@@ -5,12 +5,20 @@ namespace RM
 {
 	RenderManager::RenderManager()
 	{
-		for (unsigned int i = 0; i < 4; ++i)
+		HWND hwnd = NULL;
+		HRESULT hr;
+
+		for (unsigned int i = 0; i < 6; ++i)
 		{
-			HWND hwnd = NULL;
-			HRESULT hr;
 			vGBufferSamplers.AddSampler();
-			vGBufferSamplers.SetDesc();
+			if (i < 4)
+			{ 
+			vGBufferSamplers.SetDesc(false);
+			}
+			else
+			{
+				vGBufferSamplers.SetDesc(true);
+			}
 			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(vGBufferSamplers.GetDXSamplerDescAddress(), vGBufferSamplers.GetLastElementAddress());
 			if (FAILED(hr))
 			{
@@ -18,6 +26,18 @@ namespace RM
 			}
 		}
 
+		for (unsigned int i = 0; i < 2; ++i)
+		{
+			ForwardSamplers.AddSampler();
+			ForwardSamplers.SetDesc(true);
+
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(ForwardSamplers.GetDXSamplerDescAddress(), ForwardSamplers.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
+		}
+		
 		m_BackBufferCleaned = false;
 	}
 	
@@ -65,6 +85,86 @@ namespace RM
 
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(GBufferRTV.GetRTVNum(), GBufferRTV.GetRTVAdress(), DSView.GetDSV());
+	}
+
+	void RenderManager::SetGBufferToneRTV()
+	{
+		HWND hwnd = NULL;
+		GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+		ClearDSVStruct.pDepthStencilView = DSView.GetDSV();
+		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+		ClearDSVStruct.Depth = 1.0f;
+		ClearDSVStruct.Stencil = 0;
+
+		float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(GBufferToneMapRTV.GetRTV(0), ClearColor);
+
+		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(GBufferToneMapRTV.GetRTVNum(), GBufferToneMapRTV.GetRTVAdress(), DSView.GetDSV());
+	}
+
+	void RenderManager::SetGBufferCopyRTV()
+	{
+		HWND hwnd = NULL;
+		GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+		ClearDSVStruct.pDepthStencilView = DSView.GetDSV();
+		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+		ClearDSVStruct.Depth = 1.0f;
+		ClearDSVStruct.Stencil = 0;
+
+		float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(GBufferCopyRTV.GetRTV(0), ClearColor);
+
+		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(GBufferCopyRTV.GetRTVNum(), GBufferCopyRTV.GetRTVAdress(), DSView.GetDSV());
+	}
+
+	void RenderManager::SetForwardLightRTV()
+	{
+		HWND hwnd = NULL;
+		GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+		ClearDSVStruct.pDepthStencilView = DSView.GetDSV();
+		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+		ClearDSVStruct.Depth = 1.0f;
+		ClearDSVStruct.Stencil = 0;
+
+		float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(ForwardLightRTV.GetRTV(0), ClearColor);
+
+		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(ForwardLightRTV.GetRTVNum(), ForwardLightRTV.GetRTVAdress(), DSView.GetDSV());
+	}
+
+	void RenderManager::SetForwardToneMapRTV()
+	{
+		HWND hwnd = NULL;
+		GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+		ClearDSVStruct.pDepthStencilView = DSView.GetDSV();
+		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+		ClearDSVStruct.Depth = 1.0f;
+		ClearDSVStruct.Stencil = 0;
+
+		float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(ForwardToneMapRTV.GetRTV(0), ClearColor);
+
+		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(ForwardToneMapRTV.GetRTVNum(), ForwardToneMapRTV.GetRTVAdress(), DSView.GetDSV());
 	}
 	
 	extern RenderManager& GetRenderManager()

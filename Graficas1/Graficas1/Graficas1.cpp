@@ -52,6 +52,7 @@ static float kAmbient = 0.0f;
 static float kSpecular = 0.0f;
 static float kDiffuse = 0.0f;
 static float Shininess = 0.0f;
+static float Expossure = 0.0f;
 
 static ImVec4 DirLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 PointLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
@@ -91,6 +92,10 @@ const char* NormalLabel = Normals[CurrentNormal];
 const char* RenderTechs[] = { "Forward Rendering", "Deferred Rendering" };
 static int CurrentTech = 0;
 const char* TechLabel = RenderTechs[CurrentTech];
+
+const char* ColorCorrections[] = { "Basic", "Reinhard", "Burgess Dowson" };
+static int CurrentCorrection = 0;
+const char* CorrectionLabel = ColorCorrections[CurrentCorrection];
 
 std::string NewEffectName = "";
 std::string NewPassName = "";
@@ -1073,13 +1078,14 @@ void PassesMenu(const int _i)
 
 void ForwardMenu(const int _i)
 {
-	if (m_vEffects[_i].GetActiveTech() > kVertexBlinnPhong)
+	if ((m_vEffects[_i].GetActiveTech() > 29 && m_vEffects[_i].GetActiveTech() < 33) || (m_vEffects[_i].GetActiveTech() > 40 && m_vEffects[_i].GetActiveTech() < 44)
+		|| (m_vEffects[_i].GetActiveTech() > 51 && m_vEffects[_i].GetActiveTech() < 55))
 	{
-		LightingPlacesLabel = LightingPlaces[1];
+		LightingPlacesLabel = LightingPlaces[0];
 	}
 	else
 	{
-		LightingPlacesLabel = LightingPlaces[0];
+		LightingPlacesLabel = LightingPlaces[1];
 	}
 
 	if (ImGui::BeginCombo("Light Calculation", LightingPlacesLabel, NULL))
@@ -1139,6 +1145,34 @@ void ForwardMenu(const int _i)
 		ImGui::EndCombo();
 	}
 
+	CorrectionLabel = ColorCorrections[CurrentCorrection];
+	if (ImGui::BeginCombo("Color Correction", CorrectionLabel, NULL))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(ColorCorrections); n++)
+		{
+			const bool IsSelected = (CurrentCorrection == n);
+			if (ImGui::Selectable(ColorCorrections[n], IsSelected))
+			{
+				CurrentCorrection = n;
+				CorrectionLabel = ColorCorrections[n];
+
+				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.NormalCalc = CurrentNormal;
+				TDesc.LightingPlace = CurrentLightingPlaces;
+				TDesc.ColorCorr = CurrentCorrection;
+
+				m_vEffects[_i].DeactivateTech();
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+
+			if (IsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
 	if (m_vEffects[_i].GetActiveTech() > kVertexBlinnPhong)
 	{
 		if (ImGui::Checkbox("Normal Map", &m_vEffects[_i].m_ImGuiNormalMap))
@@ -1153,6 +1187,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelNM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1164,6 +1199,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixel;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1175,6 +1211,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelPhongNM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1186,6 +1223,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelPhong;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1197,6 +1235,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelBlinnPhongNM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1208,6 +1247,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelBlinnPhong;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1219,6 +1259,7 @@ void ForwardMenu(const int _i)
 				TDesc.Features = 0;
 				TDesc.LightingPlace = CurrentLightingPlaces;
 				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.ColorCorr = CurrentCorrection;
 
 				m_vEffects[_i].ActivateTech(TDesc);
 				m_vEffects[_i].m_ImGuiSpecularMap = false;
@@ -1239,6 +1280,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelPhongNMSM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1249,6 +1291,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelPhongNM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1259,6 +1302,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelBlinnPhongNMSM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1269,6 +1313,7 @@ void ForwardMenu(const int _i)
 					TDesc.Features = kPixelBlinnPhongNM;
 					TDesc.LightingPlace = CurrentLightingPlaces;
 					TDesc.LightingModel = CurrentLightingModels;
+					TDesc.ColorCorr = CurrentCorrection;
 
 					m_vEffects[_i].ActivateTech(TDesc);
 				}
@@ -1280,6 +1325,7 @@ void ForwardMenu(const int _i)
 				TDesc.Features = g_LastFeature;
 				TDesc.LightingPlace = CurrentLightingPlaces;
 				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.ColorCorr = CurrentCorrection;
 
 				m_vEffects[_i].ActivateTech(TDesc);
 			}
@@ -1334,7 +1380,33 @@ void DeferredMenu(const int _i)
 				m_vEffects[_i].ActivateTech(TDesc);
 			}
 
-			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+			if (IsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	CorrectionLabel = ColorCorrections[CurrentCorrection];
+	if (ImGui::BeginCombo("Color Correction", CorrectionLabel, NULL))
+	{
+		for (int n = 0; n < IM_ARRAYSIZE(ColorCorrections); n++)
+		{
+			const bool IsSelected = (CurrentCorrection == n);
+			if (ImGui::Selectable(ColorCorrections[n], IsSelected))
+			{
+				CurrentCorrection = n;
+				CorrectionLabel = ColorCorrections[n];
+
+				TDesc.LightingModel = CurrentLightingModels;
+				TDesc.NormalCalc = CurrentNormal;
+				TDesc.ColorCorr = CurrentCorrection;
+
+				m_vEffects[_i].DeactivateTech();
+				m_vEffects[_i].ActivateTech(TDesc);
+			}
+
 			if (IsSelected)
 			{
 				ImGui::SetItemDefaultFocus();
@@ -1397,6 +1469,8 @@ void EffectsMenu(const int _i)
 						LightingModelsLabel = LightingModels[0];
 						CurrentLightingModels = 0;
 
+						CorrectionLabel = ColorCorrections[0];
+						CurrentCorrection = 0;
 
 						m_vEffects[_i].ActivateTech(TDesc);
 					}
@@ -1409,12 +1483,16 @@ void EffectsMenu(const int _i)
 						TDesc.LightingModel = 0;
 						TDesc.LightingPlace = 0;
 						TDesc.NormalCalc = 0;
+						TDesc.ColorCorr = 0;
 
 						LightingPlacesLabel = LightingPlaces[0];
 						CurrentLightingPlaces = 0;
 
 						LightingModelsLabel = LightingModels[0];
 						CurrentLightingModels = 0;
+
+						CorrectionLabel = ColorCorrections[0];
+						CurrentCorrection = 0;
 
 						NormalLabel = Normals[0];
 						CurrentNormal = 0;
@@ -1491,13 +1569,23 @@ void UIRender()
 		AccessModels();
 	}
 	
-	if (m_vEffects.size() != 0 && m_vEffects[0].GetActiveRenderTech() == 1)
+	if (m_vEffects.size() != 0)
 	{
 		if (ImGui::CollapsingHeader("Render Targets"))
 		{
-			for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum(); ++i)
+			if (m_vEffects[0].GetActiveRenderTech() == 1)
 			{
-				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum() + 2; ++i)
+				{
+					ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				}
+			}
+			else if (m_vEffects[0].GetActiveRenderTech() == 0)
+			{
+				for (unsigned int i = 0; i < 2; ++i)
+				{
+					ImGui::ImageButton((void*)RM::GetRenderManager().ForwardSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				}
 			}
 		}
 	}
@@ -1528,6 +1616,14 @@ void UIRender()
 		{
 			#if defined(DX11)
 			m_Obj.g_Specular.Shininess = XMFLOAT4(Shininess, 0.0f, 0.0f, 0.0f);
+			#endif
+			#if defined(OGL)
+			#endif
+		}
+		if (ImGui::DragFloat("Expossure", &Expossure, 0.01f, 0.0f, 100.0f))
+		{
+			#if defined(DX11)
+			m_Obj.g_Expossure.Expo = XMFLOAT4(Expossure, 0.0f, 0.0f, 0.0f);
 			#endif
 			#if defined(OGL)
 			#endif
@@ -1726,6 +1822,8 @@ void UIRender()
 			}
 		}
 
+
+
 		if (TDesc.ForwardRender)
 		{
 			ImGui::Separator();
@@ -1741,11 +1839,8 @@ void UIRender()
 					{
 						CurrentLightingPlaces = n;
 						LightingPlacesLabel = LightingPlaces[n];
-						//m_vTechs[CurrentLightingModel].Activate();
-						//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
 					}
 			
-					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 					if (IsSelected)
 					{
 						ImGui::SetItemDefaultFocus();
@@ -1761,10 +1856,31 @@ void UIRender()
 
 		ImGui::Separator();
 
+		if (ImGui::BeginCombo("Color Correction", CorrectionLabel, NULL))
+		{
+			for (int n = 0; n < IM_ARRAYSIZE(ColorCorrections); n++)
+			{
+				const bool IsSelected = (CurrentCorrection == n);
+				if (ImGui::Selectable(ColorCorrections[n], IsSelected))
+				{
+					CurrentCorrection = n;
+					CorrectionLabel = ColorCorrections[n];
+				}
+
+				if (IsSelected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+
 		if (ImGui::Button("Ok"))
 		{
 			TDesc.LightingPlace = CurrentLightingPlaces;
 			TDesc.LightingModel = CurrentLightingModels;
+			TDesc.ColorCorr = CurrentCorrection;
+
 			TDesc.Features = 0;
 
 			m_vEffects.push_back(Effect(&m_vTechs, NewEffectName, TDesc));
@@ -1945,34 +2061,97 @@ int main()
 		TDesc.EffectNum = 2;
 		TDesc.ActualEffect = k;
 		TDesc.hwnd = g_hwnd;
+		TDesc.ColorCorr = 0;
+
+		int Counter = 0;
+		int CounterLoop = 0;
+
 		if (k == 0)
 		{
-			TDesc.PassNum = 2;
-			for (unsigned int j = 0; j < 10; ++j)
+			TDesc.PassNum = 4;
+
+			for (unsigned int j = 0; j < 30; ++j)
 			{
-				if (j < 4)
+				if (j < 12)
 				{
 					TDesc.DefLightFlags = 0;
 				}
-				else if (j >= 4 && j < 8)
+				else if (j >= 12 && j < 24)
 				{
 					TDesc.DefLightFlags = 1;
 				}
-				else if (j >= 8)
+				else if (j >= 24)
 				{
 					TDesc.DefLightFlags = 2;
 				}
+
 				TDesc.DeferredFlags = j;
+
 				m_vTechs.push_back(TDesc);
+
+				if (j >= 24)
+				{
+					if (Counter == 1)
+					{
+						TDesc.ColorCorr++;
+						if (TDesc.ColorCorr >= 3)
+						{
+							TDesc.ColorCorr = 2;
+						}
+						Counter = 0;
+					}
+					else
+					{
+						Counter++;
+					}
+				}
+
+				else
+				{
+					if (Counter == 3)
+					{
+						TDesc.ColorCorr++;
+						if (TDesc.ColorCorr >= 3)
+						{
+							TDesc.ColorCorr = 2;
+						}
+						Counter = 0;
+					}
+					else
+					{ 
+						Counter++;
+					}
+				}
+				if (CounterLoop == 11 || CounterLoop == 23)
+				{
+					CounterLoop = 0;
+					Counter = 0;
+					TDesc.ColorCorr = 0;
+				}
+				else
+				{ 
+					CounterLoop++;
+				}
 			}
 		}
 		else if (k == 1)
 		{
-			TDesc.PassNum = 1;
-			for (unsigned int i = 10; i < 21; ++i)
+			TDesc.PassNum = 3;
+			for (unsigned int i = 30; i < 63; ++i)
 			{
 				TDesc.TechTypesFlag = i;
+
 				m_vTechs.push_back(TDesc);
+
+				if (Counter == 10)
+				{
+					TDesc.ColorCorr++;
+					Counter = 0;
+				}
+				else
+				{ 
+					Counter++;
+				}
 			}
 		}
 	}

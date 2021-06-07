@@ -13,10 +13,17 @@ SamplerState::~SamplerState()
 }
 
 #if defined(DX11)
-void SamplerState::SetDesc()
+void SamplerState::SetDesc(const bool _Value)
 {
 	ZeroMemory(&m_sampDesc, sizeof(m_sampDesc));
-	m_sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	if (_Value)
+	{
+		m_sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	}
+	else
+	{ 
+		m_sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	}
 	m_sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	m_sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	m_sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;

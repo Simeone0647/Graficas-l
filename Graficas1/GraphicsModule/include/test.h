@@ -513,6 +513,14 @@ namespace GraphicsModule
 		#endif
 	};
 
+	struct Expossure
+	{
+		#if defined(DX11)
+		XMFLOAT4 Expo;
+		#endif
+		#if defined(OGL)
+		#endif
+	};
 	//struct CBChangesEveryFrame
 	//{
 	//#if defined(DX11)
@@ -672,7 +680,8 @@ namespace GraphicsModule
 	public:
 
 		unsigned int programID = 0;
-
+		Buffer								g_ExpossureBuffer;
+		Expossure							g_Expossure;
 		CameraFront							g_Front;
 		Buffer								g_CameraFrontBuffer;
 		Buffer								g_AmbientBuffer;

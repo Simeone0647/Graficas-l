@@ -292,7 +292,7 @@ void Mesh::LoadTexture(HWND _hwnd)
 		//m_vSamplers[i].SetDesc();
 
 		m_Samplers.AddSampler();
-		m_Samplers.SetDesc();
+		m_Samplers.SetDesc(false);
 
 		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(), m_Samplers.GetLastElementAddress());
 

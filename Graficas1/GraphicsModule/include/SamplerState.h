@@ -25,8 +25,8 @@ public:
 
 	inline int GetSamplerNum() { return m_SampNum; }
 	inline ID3D11SamplerState* GetSampler(const int _i) { return m_vSamplers[_i]; }
-
-	void SetDesc();
+	inline ID3D11SamplerState** GetSamplerAddress(const int _i) { return &m_vSamplers[_i]; }
+	void SetDesc(const bool _Value);
 
 	inline D3D11_SAMPLER_DESC GetDXSamplerDesc() { return m_sampDesc; }
 	inline D3D11_SAMPLER_DESC* GetDXSamplerDescAddress() { return &m_sampDesc; }
