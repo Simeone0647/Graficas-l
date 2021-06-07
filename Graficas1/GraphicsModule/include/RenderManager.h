@@ -26,14 +26,20 @@ namespace RM
 
 		void SetForwardToneMapRTV();
 
+		void SetDefSSAORTV();
+
 		inline void SetBackBufferCleaned(bool _value) { m_BackBufferCleaned = _value; }
 		inline bool IsBackBufferCleaned() { return m_BackBufferCleaned; }
-		Texture2D GBufferTextures[6];
+		Texture2D GBufferTextures[7];
 
-		ShaderResourceView GBufferSRV[6];
+		ShaderResourceView GBufferSRV[7];
 
 		RenderTargetView BackBufferRTV;
+
 		RenderTargetView GBufferRTV;
+		RenderTargetView GBufferToneMapRTV;
+		RenderTargetView GBufferCopyRTV;
+		RenderTargetView DefSSAORTV;
 
 		Texture2D DepthStencil;
 		DepthStencilView DSView;
@@ -44,10 +50,10 @@ namespace RM
 
 		SamplerState vGBufferSamplers;
 
-		RenderTargetView GBufferToneMapRTV;
+		
 		RasterizerState ToneRasterizer;
 
-		RenderTargetView GBufferCopyRTV;
+		
 		RasterizerState CopyRasterizer;
 
 		RenderTargetView ForwardLightRTV;
@@ -56,6 +62,9 @@ namespace RM
 		SamplerState ForwardSamplers;
 
 		RenderTargetView ForwardToneMapRTV;
+
+		
+		SamplerState DefSSAOSampler;
 
 	private:
 		bool m_BackBufferCleaned;

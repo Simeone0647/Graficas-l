@@ -52,7 +52,7 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 
 		m_ShaderFilename = "GBufferLight";
 	}
-	else if (m_Name == "ToneMap" || m_Name == "ForwardToneMap")
+	else if (m_Name == "ToneMap")
 	{
 		m_ShaderFilename = "ToneMap";
 	}
@@ -60,10 +60,19 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 	{
 		m_ShaderFilename = "Copy";
 	}
+	else if (m_Name == "ForwardToneMap")
+	{
+		m_ShaderFilename = "ForwardToneMap";
+	}
 	else if (m_Name == "Light")
 	{
 		m_ShaderFilename = "Tutorial07.fx";
 	}
+	else if (m_Name == "SSAO")
+	{
+		m_ShaderFilename = "SSAO";
+	}
+
 
 	m_Shader.SetMacros(_Macros);
 	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader, m_ShaderFilename);
@@ -94,13 +103,14 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
 				{
 					GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
 				}
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, RM::GetRenderManager().vGBufferSamplers.GetSamplerNum(),
-																					   RM::GetRenderManager().vGBufferSamplers.GetDXSamplerStateAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 4, RM::GetRenderManager().vGBufferSamplers.GetDXSamplerStateAddress());
 			}
 			else if (m_Name == "ToneMap")
 			{
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().GBufferSRV[4].GetDXSRVAddress());
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(4));
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(1, 1, RM::GetRenderManager().GBufferSRV[6].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(1, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(6));
 			}
 			else if (m_Name == "Copy")
 			{
@@ -116,6 +126,15 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
 			{
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[1].GetDXSRVAddress());
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(1));
+			}
+			else if (m_Name == "SSAO")
+			{
+				for (unsigned int i = 0; i < 2; ++i)
+				{
+					GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
+				}
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, RM::GetRenderManager().DefSSAOSampler.GetSamplerNum(),
+																					   RM::GetRenderManager().DefSSAOSampler.GetDXSamplerStateAddress());
 			}
 
 			_Models[0].Render(_hwnd);

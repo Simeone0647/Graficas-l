@@ -41,7 +41,7 @@ private:
 	#endif
 
 	#if defined(DX11)
-	ShaderResourceView* m_SRVTexture[3];
+	ShaderResourceView* m_SRVTexture[4];
 	#endif
 };
 

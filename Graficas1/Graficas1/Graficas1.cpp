@@ -54,6 +54,12 @@ static float kDiffuse = 0.0f;
 static float Shininess = 0.0f;
 static float Expossure = 0.0f;
 
+static float AORadius = 0.0f;
+static float AOScale = 0.0f;
+static float AOBias = 0.0f;
+static float AOIntensity = 0.0f;
+static int AOIterations = 0;
+
 static ImVec4 DirLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 PointLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 SpotLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
@@ -1459,6 +1465,8 @@ void EffectsMenu(const int _i)
 						m_vEffects[_i].DeactivateTech();
 						m_vEffects[_i].SetRenderTech(0);
 
+						RM::GetRenderManager().SetBackBuffer();
+
 						TDesc.Features = 0;
 						TDesc.LightingModel = 0;
 						TDesc.LightingPlace = 0;
@@ -1575,7 +1583,7 @@ void UIRender()
 		{
 			if (m_vEffects[0].GetActiveRenderTech() == 1)
 			{
-				for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum() + 2; ++i)
+				for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum() + 3; ++i)
 				{
 					ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 				}
@@ -1594,6 +1602,7 @@ void UIRender()
 	ImGui::End();
 
 	ImGui::Begin("Enviroment", NULL, 0);
+
 	if (ImGui::CollapsingHeader("Lights"))
 	{
 		if (ImGui::DragFloat("kDiffuse", &kDiffuse, 0.01f, 0.0f, 100.0f))
@@ -1627,6 +1636,57 @@ void UIRender()
 			#endif
 			#if defined(OGL)
 			#endif
+		}
+		if (m_vEffects[0].GetActiveRenderTech() == 1)
+		{
+			if (ImGui::TreeNode("SSAO"))
+			{
+				if (ImGui::DragFloat("Radius", &AORadius, 0.01f, 0.0f, 1.0f))
+				{
+					#if defined(DX11)
+					m_Obj.g_AO.Radius = AORadius;
+					#endif
+					#if defined(OGL)
+					#endif
+				}
+
+				if (ImGui::DragFloat("Bias", &AOBias, 0.01f, 0.0f, 1.0f))
+				{
+					#if defined(DX11)
+					m_Obj.g_AO.Bias = AOBias;
+					#endif
+					#if defined(OGL)
+					#endif
+				}
+
+				if (ImGui::DragFloat("Scale", &AOScale, 0.01f, 0.0f, 1.0f))
+				{
+					#if defined(DX11)
+					m_Obj.g_AO.Scale = AOScale;
+					#endif
+					#if defined(OGL)
+					#endif
+				}
+
+				if (ImGui::DragFloat("Intensity", &AOIntensity, 0.01f, 0.0f, 10.0f))
+				{
+					#if defined(DX11)
+					m_Obj.g_AO.Intensity = AOIntensity;
+					#endif
+					#if defined(OGL)
+					#endif
+				}
+
+				if (ImGui::DragInt("Iterations", &AOIterations, 1.0f, 0, 10))
+				{
+					#if defined(DX11)
+					m_Obj.g_AO.Iterations = AOIterations;
+					#endif
+					#if defined(OGL)
+					#endif
+				}
+				ImGui::TreePop();
+			}
 		}
 		ImGui::Separator();
 

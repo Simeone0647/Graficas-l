@@ -8,7 +8,7 @@ namespace RM
 		HWND hwnd = NULL;
 		HRESULT hr;
 
-		for (unsigned int i = 0; i < 6; ++i)
+		for (unsigned int i = 0; i < 7; ++i)
 		{
 			vGBufferSamplers.AddSampler();
 			if (i < 4)
@@ -32,6 +32,15 @@ namespace RM
 			ForwardSamplers.SetDesc(true);
 
 			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(ForwardSamplers.GetDXSamplerDescAddress(), ForwardSamplers.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
+
+			DefSSAOSampler.AddSampler();
+			DefSSAOSampler.SetDesc(true);
+
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(DefSSAOSampler.GetDXSamplerDescAddress(), DefSSAOSampler.GetLastElementAddress());
 			if (FAILED(hr))
 			{
 				cout << "Fallo sampler" << endl;
@@ -165,6 +174,26 @@ namespace RM
 
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(ForwardToneMapRTV.GetRTVNum(), ForwardToneMapRTV.GetRTVAdress(), DSView.GetDSV());
+	}
+
+	void RenderManager::SetDefSSAORTV()
+	{
+		HWND hwnd = NULL;
+		GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+		ClearDSVStruct.pDepthStencilView = DSView.GetDSV();
+		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+		ClearDSVStruct.Depth = 1.0f;
+		ClearDSVStruct.Stencil = 0;
+
+		float ClearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f }; // red, green, blue, alpha
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(DefSSAORTV.GetRTV(0), ClearColor);
+
+		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(DefSSAORTV.GetRTVNum(), DefSSAORTV.GetRTVAdress(), DSView.GetDSV());
 	}
 	
 	extern RenderManager& GetRenderManager()

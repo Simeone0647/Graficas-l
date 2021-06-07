@@ -320,6 +320,10 @@ HRESULT test::InitDevice(HWND hwnd)
 		BDStruct.ByteWidth = sizeof(Expossure);
 		g_ExpossureBuffer.BUpdateBD(BDStruct);
 		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_ExpossureBuffer.BGetBDAddress(), NULL, g_ExpossureBuffer.BGetBufferAddress());
+
+		BDStruct.ByteWidth = sizeof(AmbientOcclusion);
+		g_AOBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_AOBuffer.BGetBDAddress(), NULL, g_AOBuffer.BGetBufferAddress());
 		// Load the Texture
 		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
 		if (FAILED(hr))
@@ -436,6 +440,29 @@ HRESULT test::InitDevice(HWND hwnd)
 
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[5].GetTexture(), NULL,
 			RM::GetRenderManager().GBufferCopyRTV.GetLastElementAddress());
+		
+		RM::GetRenderManager().DefSSAORTV.AddRTV();
+
+		RM::GetRenderManager().GBufferTextures[6].SetDescRT(RTDescStruct);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[6].GetDescDepthAddress(), NULL,
+			RM::GetRenderManager().GBufferTextures[6].GetTextureAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error tekstur 2d" << endl;
+		}
+
+		RM::GetRenderManager().GBufferSRV[6].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[6].GetTexture(), RM::GetRenderManager().GBufferSRV[6].GetDXSRVDescAddress(),
+			RM::GetRenderManager().GBufferSRV[6].GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error cheiderresoursviu" << endl;
+		}
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[6].GetTexture(), NULL,
+			RM::GetRenderManager().DefSSAORTV.GetLastElementAddress());
 
 		SetRasterizerStruct RasterStruct;
 		RasterStruct.Fill = SIME11_FILL_SOLID;
@@ -814,6 +841,14 @@ void test::Render()
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
+	UpdateSRStruct.pDstResource = g_AOBuffer.BGetBuffer();
+	UpdateSRStruct.DstSubresource = 0;
+	UpdateSRStruct.pDstBox = NULL;
+	UpdateSRStruct.pSrcData = &g_AO;
+	UpdateSRStruct.SrcRowPitch = 0;
+	UpdateSRStruct.SrcDepthPitch = 0;
+	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+
 	//AQUI
 	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_PositionRTV.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
@@ -840,6 +875,7 @@ void test::Render()
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(10, 1, g_ExpossureBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(11, 1, g_AOBuffer.BGetBufferAddress());
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
 	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
 	if (!RM::GetRenderManager().IsBackBufferCleaned())

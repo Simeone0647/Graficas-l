@@ -399,7 +399,19 @@ namespace GraphicsModule
 		SIME11_FILL_SOLID = 3
 	};
 //---------------------------STRUCTS------------------------------------
-
+	struct AmbientOcclusion
+	{
+		#if defined(DX11)
+		float Radius;
+		float Scale;
+		float Bias;
+		float Intensity;
+		int Iterations;
+		int Unused1 = 0;
+		int Unused2 = 0;
+		int Unused3 = 0;
+		#endif
+	};
 	struct SimpleVertex
 	{
 	#if defined(DX11)
@@ -680,6 +692,8 @@ namespace GraphicsModule
 	public:
 
 		unsigned int programID = 0;
+		AmbientOcclusion					g_AO;
+		Buffer								g_AOBuffer;
 		Buffer								g_ExpossureBuffer;
 		Expossure							g_Expossure;
 		CameraFront							g_Front;
