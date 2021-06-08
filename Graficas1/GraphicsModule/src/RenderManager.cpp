@@ -47,6 +47,25 @@ namespace RM
 			}
 		}
 		
+		//std::ofstream outfile("AQUI.txt");
+		//
+		//outfile << "my text here!" << std::endl;
+		//
+		//outfile.close();
+
+		//hr = D3DX11CreateShaderResourceViewFromFile(GraphicsModule::GetManagerObj(hwnd).GetDevice().GetDXDevice(), "seafloor.dds", NULL, NULL, SkyBoxSRV.GetDXSRVAddress(), NULL);
+		//if (FAILED(hr))
+		//{
+		//	cout << "fallo skybox srv" << endl;
+		//}
+		DefSkyboxSam.AddSampler();
+		DefSkyboxSam.SetDesc(false);
+		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(DefSkyboxSam.GetDXSamplerDescAddress(), DefSkyboxSam.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo sampler" << endl;
+		}
+
 		m_BackBufferCleaned = false;
 	}
 	
@@ -104,10 +123,6 @@ namespace RM
 		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
 		ClearDSVStruct.Depth = 1.0f;
 		ClearDSVStruct.Stencil = 0;
-
-		float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
-
-		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(GBufferToneMapRTV.GetRTV(0), ClearColor);
 
 		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
@@ -194,6 +209,23 @@ namespace RM
 
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(DefSSAORTV.GetRTVNum(), DefSSAORTV.GetRTVAdress(), DSView.GetDSV());
+	}
+
+	void RenderManager::SetDefSkyboxRTV()
+	{
+		HWND hwnd = NULL;
+		GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+		ClearDSVStruct.pDepthStencilView = DSView.GetDSV();
+		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+		ClearDSVStruct.Depth = 1.0f;
+		ClearDSVStruct.Stencil = 0;
+
+		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().COMSetRenderTargets(DefSkyboxRTV.GetRTVNum(), DefSkyboxRTV.GetRTVAdress(), DSView.GetDSV());
 	}
 	
 	extern RenderManager& GetRenderManager()

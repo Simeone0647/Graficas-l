@@ -750,7 +750,51 @@ void LoadSAQ(const int _Flags[])
 		LoadModel(scene, Filename, _Flags, 0);
 	}
 }
+void LoadSphere(const int _Flags[])
+{
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\Sphere.3ds", aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_CalcTangentSpace);
+	if (!scene)
+	{
+		std::cout << "Error importing the model" << std::endl;
+	}
+	else
+	{
 
+		//Usar string
+		char Drive[_MAX_DRIVE];
+		char Directory[_MAX_DIR];
+		char Fname[_MAX_FNAME];
+		char Ext[_MAX_EXT];
+
+		std::string Filename = "";
+
+		_splitpath_s("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\Sphere.3ds", Drive, _MAX_DRIVE, Directory, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
+
+		Filename = Fname;
+		Filename += Ext;
+
+		for (unsigned int i = 0; i < ModelNum; ++i)
+		{
+			if (Filename == m_vModels[i].GetName())
+			{
+				if (m_vModels[i].GetPassID(0))
+				{
+					std::cout << "Model Already Imported!" << std::endl;
+					return;
+				}
+				else
+				{
+					m_vModels[i].SetPassID(0);
+					return;
+				}
+			}
+		}
+
+		std::cout << "Archivo importado correctamente" << std::endl;
+		LoadModel(scene, Filename, _Flags, 0);
+	}
+}
 void OpenMeshMenu(const int _Flags[], const int _PassID)
 {
 	std::string wideStringBuffer = "";
@@ -1583,10 +1627,15 @@ void UIRender()
 		{
 			if (m_vEffects[0].GetActiveRenderTech() == 1)
 			{
-				for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum() + 3; ++i)
+				for (unsigned int i = 0; i < 4; ++i)
 				{
 					ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 				}
+				ImGui::ImageButton((void*)RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				//ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[4].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[6].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[5].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				//ImGui::ImageButton((void*)RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 			}
 			else if (m_vEffects[0].GetActiveRenderTech() == 0)
 			{
@@ -2113,6 +2162,7 @@ int main()
 	int Flags[2] = { 0, 3 };
 
 	LoadSAQ(Flags);
+	LoadSphere(Flags);
 
 	//Effects
 	for (unsigned int k = 0; k < 2; k++)

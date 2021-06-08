@@ -4,6 +4,8 @@
 #include "DepthStencilView.h"
 #include "RasterizerState.h"
 #include "SamplerState.h"
+//#include <iostream>
+//#include <fstream>  
 
 namespace RM
 { 
@@ -27,6 +29,8 @@ namespace RM
 		void SetForwardToneMapRTV();
 
 		void SetDefSSAORTV();
+
+		void SetDefSkyboxRTV();
 
 		inline void SetBackBufferCleaned(bool _value) { m_BackBufferCleaned = _value; }
 		inline bool IsBackBufferCleaned() { return m_BackBufferCleaned; }
@@ -62,10 +66,16 @@ namespace RM
 		SamplerState ForwardSamplers;
 
 		RenderTargetView ForwardToneMapRTV;
-
 		
 		SamplerState DefSSAOSampler;
 
+		RenderTargetView DefSkyboxRTV;
+		Texture2D DefSkyboxTex;
+		Texture2D DefSkyboxTexRTV;
+		ShaderResourceView DefSkyboxSRV;
+		ShaderResourceView DefSkyboxSRVOutput;
+		SamplerState DefSkyboxSam;
+		RasterizerState DefSkyboxRaster;
 	private:
 		bool m_BackBufferCleaned;
 	};

@@ -366,6 +366,24 @@ HRESULT test::InitDevice(HWND hwnd)
 		RTDescStruct.MiscFlags = 0;
 		RTDescStruct.BindFlags = SIME_BIND_SHADER_RESOURCE | SIME_BIND_RENDER_TARGET;
 
+		RM::GetRenderManager().DefSkyboxTexRTV.SetDescRT(RTDescStruct);
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().DefSkyboxTexRTV.GetDescDepthAddress(), NULL,
+			RM::GetRenderManager().DefSkyboxTexRTV.GetTextureAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error tekstur 2d" << endl;
+		}
+
+		RM::GetRenderManager().DefSkyboxSRVOutput.SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefSkyboxTexRTV.GetTexture(), RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVDescAddress(),
+			RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error cheiderresoursviu" << endl;
+		}
+
+
+
 		for (unsigned int i = 0; i < 4; ++i)
 		{
 			RM::GetRenderManager().GBufferRTV.AddRTV();
@@ -547,6 +565,59 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 		{
 			cout << "Error Render Target" << endl;
+		}
+
+
+
+		RM::GetRenderManager().DefSkyboxRTV.AddRTV();
+
+		D3DX11_IMAGE_LOAD_INFO loadMSInfo;
+		loadMSInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+		hr = D3DX11CreateTextureFromFile(GetManagerObj(m_hwnd).GetDevice().GetDXDevice(), "Mars.dds", NULL, 0,
+										(ID3D11Resource**)RM::GetRenderManager().DefSkyboxTex.GetTextureAddress(), 0);
+		if (FAILED(hr))
+		{
+			cout << "Error tekstur 2d" << endl;
+		}
+
+		//std::ofstream outfile("AQUI.txt");
+		//
+		//outfile << "my text here!" << std::endl;
+		//
+		//outfile.close();
+
+		D3D11_TEXTURE2D_DESC SMTextureDesc;
+		RM::GetRenderManager().DefSkyboxTex.GetTexture()->GetDesc(&SMTextureDesc);
+
+		RM::GetRenderManager().DefSkyboxSRV.SetDesc((SIME_FORMAT)SMTextureDesc.Format, SIME11_SRV_DIMENSION_TEXTURECUBE, SMTextureDesc.MipLevels);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefSkyboxTex.GetTexture(), RM::GetRenderManager().DefSkyboxSRV.GetDXSRVDescAddress(),
+			RM::GetRenderManager().DefSkyboxSRV.GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error cheiderresoursviu" << endl;
+		}
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().DefSkyboxTexRTV.GetTexture(), NULL, RM::GetRenderManager().DefSkyboxRTV.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error Render Target" << endl;
+		}
+
+		//BACK
+		SetRasterizerStruct RasterStructSkybox;
+		RasterStructSkybox.Fill = SIME11_FILL_SOLID;
+		RasterStructSkybox.Cull = SIME11_CULL_BACK;
+		RasterStructSkybox.FrontCCW = true;
+
+		RM::GetRenderManager().DefSkyboxRaster.SetRasterizerDesc(RasterStructSkybox);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().DefSkyboxRaster.GetRSDescAddress(),
+			RM::GetRenderManager().DefSkyboxRaster.GetRSAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo en crear el RasterizerSkybox" << endl;
 		}
 #endif
 		return S_OK;

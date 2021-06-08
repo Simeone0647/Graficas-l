@@ -35,7 +35,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
+#include <iostream>
 #if defined(OGL)
 #include "FreeImage.h"
 #include <glm.hpp>

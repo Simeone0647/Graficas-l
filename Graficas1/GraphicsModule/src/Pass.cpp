@@ -72,7 +72,10 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 	{
 		m_ShaderFilename = "SSAO";
 	}
-
+	else if (m_Name == "Skybox")
+	{
+		m_ShaderFilename = "Skybox";
+	}
 
 	m_Shader.SetMacros(_Macros);
 	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader, m_ShaderFilename);
@@ -82,7 +85,7 @@ Pass::~Pass()
 {
 }
 
-void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
+void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ, bool _ReadSkybox)
 {
 	//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(m_Rasterizer.GetRS());
 
@@ -95,7 +98,7 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
 
 	if (_ReadSAQ)
 	{
-		if (_Models.size() > 1)
+		if (_Models.size() > 2)
 		{ 
 			if (m_Name == "GBufferLight")
 			{ 
@@ -107,7 +110,8 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
 			}
 			else if (m_Name == "ToneMap")
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().GBufferSRV[4].GetDXSRVAddress());
+				//AQUI
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVAddress());
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(4));
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(1, 1, RM::GetRenderManager().GBufferSRV[6].GetDXSRVAddress());
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(1, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(6));
@@ -142,12 +146,18 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ)
 	}
 	else
 	{ 
-		for (unsigned int i = 1; i < _Models.size(); ++i)
+		if (_ReadSkybox)
 		{
-			//if (_Models[i].GetPassID(m_ID))
-			//{ 
+			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().DefSkyboxSRV.GetDXSRVAddress());
+			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().DefSkyboxSam.GetSamplerAddress(0));
+			_Models[1].Render(_hwnd);
+		}
+		else
+		{ 
+			for (unsigned int i = 2; i < _Models.size(); ++i)
+			{
 				_Models[i].Render(_hwnd);
-			//}
+			}
 		}
 	}
 }

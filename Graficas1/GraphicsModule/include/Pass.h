@@ -14,7 +14,7 @@ public:
 	Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name);
 	~Pass();
 
-	void Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ);
+	void Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ, bool _ReadSkybox);
 	void CleanUpShaders();
 	inline string GetName() { return m_Name; }
 	inline int GetID() { return m_ID; }
