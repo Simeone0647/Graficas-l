@@ -76,6 +76,9 @@ namespace RM
 		ShaderResourceView DefSkyboxSRVOutput;
 		SamplerState DefSkyboxSam;
 		RasterizerState DefSkyboxRaster;
+
+		Texture2D DiffuseSkyBoxTex;
+		ShaderResourceView DiffuseSkyBoxSRV;
 	private:
 		bool m_BackBufferCleaned;
 	};

@@ -499,500 +499,556 @@ Tech::Tech(const TechDesc _Desc)
 		m_vPassesNames.push_back("Light");
 		m_vPassesNames.push_back("ForwardToneMap");
 		m_vPassesNames.push_back("ForwardCopy");
+		m_vPassesNames.push_back("Skybox");
 
 		if (m_Desc.TechTypesFlag == kVertex || m_Desc.TechTypesFlag == 41 || m_Desc.TechTypesFlag == 52)
 		{
+			vFourthPassDefines.push_back({"", ""});
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "VERTEX_LIGHT", "TRUE" });
 			m_vDefines.push_back(Defines);
 			m_Name = "Vertex Lighting";
 
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE"});
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kVertexPhong || m_Desc.TechTypesFlag == 42 || m_Desc.TechTypesFlag == 53)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "VERTEX_LIGHT", "TRUE" });
 			Defines.push_back({ "PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kVertexBlinnPhong || m_Desc.TechTypesFlag == 43 || m_Desc.TechTypesFlag == 54)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "VERTEX_LIGHT", "TRUE" });
 			Defines.push_back({ "BLINN_PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixel || m_Desc.TechTypesFlag == 44 || m_Desc.TechTypesFlag == 55)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "PIXEL_LIGHT", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelPhong || m_Desc.TechTypesFlag == 45 || m_Desc.TechTypesFlag == 56)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelBlinnPhong || m_Desc.TechTypesFlag == 46 || m_Desc.TechTypesFlag == 57)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "BLINN_PHONG", "TRUE" });
 			Defines.push_back({ "PIXEL_LIGHT", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelNM || m_Desc.TechTypesFlag == 47 || m_Desc.TechTypesFlag == 58)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelPhongNM || m_Desc.TechTypesFlag == 48 || m_Desc.TechTypesFlag == 59)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelPhongNMSM || m_Desc.TechTypesFlag == 49 || m_Desc.TechTypesFlag == 60)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "SPECULAR_MAP_PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelBlinnPhongNM || m_Desc.TechTypesFlag == 50 || m_Desc.TechTypesFlag == 61)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "BLINN_PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 		else if (m_Desc.TechTypesFlag == kPixelBlinnPhongNMSM || m_Desc.TechTypesFlag == 51 || m_Desc.TechTypesFlag == 62)
 		{
+			vFourthPassDefines.push_back({ "", "" });
+			m_vDefines.push_back(vFourthPassDefines);
+
+			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[3]));
+
 			Defines.push_back({ "NORMAL_MAP_PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "SPECULAR_MAP_PIXEL_LIGHT", "TRUE" });
 			Defines.push_back({ "BLINN_PHONG", "TRUE" });
 			m_vDefines.push_back(Defines);
 			
-			m_vPasses.push_back(Pass(m_vDefines[0], _Desc.hwnd, m_vPassesNames[0]));
+			m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[0]));
 
 			if (m_Desc.ColorCorr == kBasic)
 			{
 				vSecondPassDefines.push_back({ "BASIC", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kReinhard)
 			{
 				vSecondPassDefines.push_back({ "REINHARD", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 			else if (m_Desc.ColorCorr == kBurgessDowson)
 			{
 				vSecondPassDefines.push_back({ "BURGESS_DOWSON", "TRUE" });
 				m_vDefines.push_back(vSecondPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[1], _Desc.hwnd, m_vPassesNames[1]));
+				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[1]));
 
 				vThirdPassDefines.push_back({ "", "" });
 				m_vDefines.push_back(vThirdPassDefines);
 
-				m_vPasses.push_back(Pass(m_vDefines[2], _Desc.hwnd, m_vPassesNames[2]));
+				m_vPasses.push_back(Pass(m_vDefines[3], _Desc.hwnd, m_vPassesNames[2]));
 			}
 		}
 	}
@@ -1024,7 +1080,6 @@ void Tech::Render(HWND _hwnd, vector<Model>& _Models)
 			}
 			else if (i == 2)
 			{
-				//RM::GetRenderManager().SetGBufferToneRTV();
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().GBufferLightRasterState.GetRS());
 				m_vPasses[i].Render(_hwnd, _Models, true, false);
 			}
@@ -1055,18 +1110,26 @@ void Tech::Render(HWND _hwnd, vector<Model>& _Models)
 		{ 
 			if (i == 0)
 			{
+				
 				RM::GetRenderManager().SetForwardLightRTV();
-				m_vPasses[i].Render(_hwnd, _Models, false, false);
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().DefSkyboxRaster.GetRS());
+				m_vPasses[i].Render(_hwnd, _Models, false, true);
 			}
 			else if (i == 1)
 			{
-				RM::GetRenderManager().SetForwardToneMapRTV();
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
+
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(3, 1, RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(3, 1, RM::GetRenderManager().DefSkyboxSam.GetSamplerAddress(1));
+				m_vPasses[i].Render(_hwnd, _Models, false, false);
+			}
+			else if (i == 2)
+			{
+				RM::GetRenderManager().SetForwardToneMapRTV();
 				m_vPasses[i].Render(_hwnd, _Models, true, false);
 			}
 			else if (i == m_PassNum - 1)
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
 				if (!RM::GetRenderManager().IsBackBufferCleaned())
 				{
 					RM::GetRenderManager().SetBackBuffer();

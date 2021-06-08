@@ -58,14 +58,16 @@ namespace RM
 		//{
 		//	cout << "fallo skybox srv" << endl;
 		//}
-		DefSkyboxSam.AddSampler();
-		DefSkyboxSam.SetDesc(false);
-		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(DefSkyboxSam.GetDXSamplerDescAddress(), DefSkyboxSam.GetLastElementAddress());
-		if (FAILED(hr))
-		{
-			cout << "Fallo sampler" << endl;
+		for (unsigned int i = 0; i < 2; ++i)
+		{ 
+			DefSkyboxSam.AddSampler();
+			DefSkyboxSam.SetDesc(false);
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(DefSkyboxSam.GetDXSamplerDescAddress(), DefSkyboxSam.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
 		}
-
 		m_BackBufferCleaned = false;
 	}
 	
@@ -159,10 +161,6 @@ namespace RM
 		ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
 		ClearDSVStruct.Depth = 1.0f;
 		ClearDSVStruct.Stencil = 0;
-
-		float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
-
-		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearRenderTargetView(ForwardLightRTV.GetRTV(0), ClearColor);
 
 		ID3D11ShaderResourceView* const pSRV[1] = { NULL };
 		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, pSRV);

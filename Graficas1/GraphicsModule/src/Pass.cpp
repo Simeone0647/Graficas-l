@@ -107,10 +107,12 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ, bool _ReadS
 					GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
 				}
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 4, RM::GetRenderManager().vGBufferSamplers.GetDXSamplerStateAddress());
+
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(4, 1, RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(4, 1, RM::GetRenderManager().DefSkyboxSam.GetSamplerAddress(1));
 			}
 			else if (m_Name == "ToneMap")
 			{
-				//AQUI
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVAddress());
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(4));
 				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(1, 1, RM::GetRenderManager().GBufferSRV[6].GetDXSRVAddress());

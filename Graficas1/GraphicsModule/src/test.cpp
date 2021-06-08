@@ -571,9 +571,6 @@ HRESULT test::InitDevice(HWND hwnd)
 
 		RM::GetRenderManager().DefSkyboxRTV.AddRTV();
 
-		D3DX11_IMAGE_LOAD_INFO loadMSInfo;
-		loadMSInfo.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
 		hr = D3DX11CreateTextureFromFile(GetManagerObj(m_hwnd).GetDevice().GetDXDevice(), "Mars.dds", NULL, 0,
 										(ID3D11Resource**)RM::GetRenderManager().DefSkyboxTex.GetTextureAddress(), 0);
 		if (FAILED(hr))
@@ -604,6 +601,33 @@ HRESULT test::InitDevice(HWND hwnd)
 		{
 			cout << "Error Render Target" << endl;
 		}
+
+		//SKYBOX DIFFUSE
+		hr = D3DX11CreateTextureFromFile(GetManagerObj(m_hwnd).GetDevice().GetDXDevice(), "Diffuse_Mars.dds", NULL, 0,
+			(ID3D11Resource**)RM::GetRenderManager().DiffuseSkyBoxTex.GetTextureAddress(), 0);
+		if (FAILED(hr))
+		{
+			cout << "Error tekstur 2d" << endl;
+		}
+
+		//std::ofstream outfile("AQUI.txt");
+		//
+		//outfile << "my text here!" << std::endl;
+		//
+		//outfile.close();
+
+		D3D11_TEXTURE2D_DESC SMTextureDesc2;
+		RM::GetRenderManager().DiffuseSkyBoxTex.GetTexture()->GetDesc(&SMTextureDesc2);
+
+		RM::GetRenderManager().DiffuseSkyBoxSRV.SetDesc((SIME_FORMAT)SMTextureDesc2.Format, SIME11_SRV_DIMENSION_TEXTURECUBE, SMTextureDesc2.MipLevels);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DiffuseSkyBoxTex.GetTexture(), RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVDescAddress(),
+			RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error cheiderresoursviu" << endl;
+		}
+
 
 		//BACK
 		SetRasterizerStruct RasterStructSkybox;

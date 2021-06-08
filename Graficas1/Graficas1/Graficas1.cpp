@@ -51,14 +51,14 @@ static float OuterRadius = 0.0f;
 static float kAmbient = 0.0f;
 static float kSpecular = 0.0f;
 static float kDiffuse = 0.0f;
-static float Shininess = 0.0f;
-static float Expossure = 0.0f;
+static float Shininess = 1.0f;
+static float Expossure = 1.0f;
 
 static float AORadius = 0.0f;
 static float AOScale = 0.0f;
 static float AOBias = 0.0f;
 static float AOIntensity = 0.0f;
-static int AOIterations = 0;
+static int AOIterations = 1;
 
 static ImVec4 DirLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 PointLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
@@ -1632,10 +1632,8 @@ void UIRender()
 					ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 				}
 				ImGui::ImageButton((void*)RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
-				//ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[4].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[6].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[5].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
-				//ImGui::ImageButton((void*)RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
 			}
 			else if (m_vEffects[0].GetActiveRenderTech() == 0)
 			{
@@ -1670,7 +1668,7 @@ void UIRender()
 			#if defined(OGL)
 			#endif
 		}
-		if (ImGui::DragFloat("Shininess", &Shininess, 0.01f, 0.0f, 100.0f))
+		if (ImGui::DragFloat("Shininess", &Shininess, 0.01f, 1.0f, 100.0f))
 		{
 			#if defined(DX11)
 			m_Obj.g_Specular.Shininess = XMFLOAT4(Shininess, 0.0f, 0.0f, 0.0f);
@@ -1678,7 +1676,7 @@ void UIRender()
 			#if defined(OGL)
 			#endif
 		}
-		if (ImGui::DragFloat("Expossure", &Expossure, 0.01f, 0.0f, 100.0f))
+		if (ImGui::DragFloat("Expossure", &Expossure, 0.01f, 1.0f, 100.0f))
 		{
 			#if defined(DX11)
 			m_Obj.g_Expossure.Expo = XMFLOAT4(Expossure, 0.0f, 0.0f, 0.0f);
@@ -1726,7 +1724,7 @@ void UIRender()
 					#endif
 				}
 
-				if (ImGui::DragInt("Iterations", &AOIterations, 1.0f, 0, 10))
+				if (ImGui::DragInt("Iterations", &AOIterations, 1.0f, 1, 10))
 				{
 					#if defined(DX11)
 					m_Obj.g_AO.Iterations = AOIterations;
