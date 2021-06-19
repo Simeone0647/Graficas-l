@@ -1,12 +1,17 @@
 #pragma once
 #include "Camera.h"
-#include "test.h"
+#include "RenderManager.h"
 
 Camera::Camera()
 {
 	m_ProjectionMatrix = new float[16];
 	m_TranslationMatrix = new float[16];
 	m_ViewMatrix = new float[16];
+
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		m_FakeEye[i] = 0.0f;
+	}
 }
 
 Camera::~Camera()
@@ -91,7 +96,7 @@ void Camera::UpdateViewMatrix()
 	//				 -CVector3::DotProduct(xaxis, m_eye), -CVector3::DotProduct(yaxis, m_eye), -CVector3::DotProduct(zaxis, m_eye),  1.0f };
 }
 
-void Camera::UpdatePerspectiveProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct)
+void Camera::UpdatePerspectiveProjectionMatrix(RM::UpdateProjectionMatrixStruct _PMStruct)
 {
 	float HalfAngle = _PMStruct.AngleY / 2;
 	float SinHalfAngle = sin(HalfAngle);
@@ -148,7 +153,7 @@ void Camera::UpdatePerspectiveProjectionMatrix(GraphicsModule::UpdateProjectionM
 
 }
 
-void Camera::UpdateOrtographicProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct)
+void Camera::UpdateOrtographicProjectionMatrix(RM::UpdateProjectionMatrixStruct _PMStruct)
 {
 	float X = 2.0f / (_PMStruct.Width / 100);
 	float Y = 2.0f / (_PMStruct.Height / 100);
@@ -212,6 +217,10 @@ void Camera::MoveCamera(Vector3& _Mov)
 	m_At.m_X += _Mov.m_X;
 	m_At.m_Y += _Mov.m_Y;
 	m_At.m_Z += _Mov.m_Z;
+
+	m_FakeEye[0] = m_Eye.m_X;
+	m_FakeEye[1] = m_Eye.m_Y;
+	m_FakeEye[2] = m_Eye.m_Z;
 }
 
 void Camera::RotateCamera(const float _X, const float _Y, const float _Z)
@@ -219,13 +228,16 @@ void Camera::RotateCamera(const float _X, const float _Y, const float _Z)
 	if (_X != 0)
 	{
 		m_Eye.m_X = m_Eye.m_X + _X;
+		m_FakeEye[0] = m_Eye.m_X;
 	}
 	if (_Y != 0)
 	{
 		m_Eye.m_Y = m_Eye.m_Y + _Y;
+		m_FakeEye[1] = m_Eye.m_Y;
 	}
 	if (_Z != 0)
 	{
 		m_Eye.m_Z = m_Eye.m_Z + _Z;
+		m_FakeEye[2] = m_Eye.m_Z;
 	}
 }

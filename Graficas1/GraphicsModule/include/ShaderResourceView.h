@@ -5,6 +5,9 @@
 #include <d3dcompiler.h>
 #include <xnamath.h>
 #endif
+#include <vector>
+
+using std::vector;
 
 namespace GraphicsModule
 {

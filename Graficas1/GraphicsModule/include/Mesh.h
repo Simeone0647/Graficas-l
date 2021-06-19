@@ -31,7 +31,7 @@ class Mesh
 {
 public:
 
-	Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name, unsigned int _ShaderID);
+	Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name);
 	~Mesh();
 
 	/*
@@ -71,7 +71,7 @@ public:
 	#endif
 
 	#if defined(OGL)
-	inline unsigned int GetTexID() { return m_TexID; }
+	inline unsigned int GetTexID(const unsigned int _i) { return m_vTexID[_i]; }
 
 	inline float* GetMVPMatrix() { return m_MVP; }
 
@@ -144,7 +144,7 @@ private:
 
 	unsigned int m_ShaderID;
 
-	unsigned int m_TexID = 0;
+	vector<unsigned int> m_vTexID;
 	#endif
 	//topologia 
 };

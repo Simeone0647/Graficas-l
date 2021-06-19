@@ -9,8 +9,8 @@ Material::Material()
 	{ 
 		m_SRVTexture[i] = new ShaderResourceView;
 	}
-	m_TexturesNum = 0;
 	#endif
+	m_TexturesNum = 0;
 }
 
 Material::~Material()

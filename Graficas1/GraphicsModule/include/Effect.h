@@ -12,7 +12,7 @@ public:
 	Effect(std::vector<Tech>* _Techs, string _Name, const SetTechDesc _TechDesc);
 	~Effect();
 
-	void Render(HWND _hwnd, vector<Model>& _Models);
+	void Render();
 	inline string GetName() { return m_Name; }
 	void ActivateIlumTechPlace(const int _LightPlace); 
 	void ActivateTech(const SetTechDesc _TechDesc);

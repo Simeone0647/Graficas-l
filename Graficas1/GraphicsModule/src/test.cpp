@@ -3,162 +3,259 @@
 
 namespace GraphicsModule
 {
-#if defined(DX11)
-	HRESULT test::CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
-{
-		HRESULT hr = S_OK;
-
-		DWORD dwShaderFlags = SIMECOMPILE_ENABLE_STRICTNESS;
-
-		#if defined( DEBUG ) || defined( _DEBUG )
-		// Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
-		// Setting this flag improves the shader debugging experience, but still allows 
-		// the shaders to be optimized and to run exactly the way they will run in 
-		// the release configuration of this program.
-		dwShaderFlags |= SIMECOMPILE_DEBUG;
-		#endif
-
-		ID3DBlob* pErrorBlob;
-		hr = D3DX11CompileFromFileA(szFileName, NULL, NULL, szEntryPoint, szShaderModel,
-			dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
-		if (FAILED(hr))
-		{
-			if (pErrorBlob != NULL)
-				OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			if (pErrorBlob) pErrorBlob->Release();
-			return hr;
-		}
-		if (pErrorBlob) pErrorBlob->Release();
-
-		return S_OK;
-
-}
-#endif
-#if defined(OGL)
-	GLuint test::LoadShaders(const char* vertex_file_path, const char* fragment_file_path)
+	
+	HRESULT test::InitDevice(HWND hwnd)
 	{
-		// Crear los shaders
-		GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-		GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-		// Leer el Vertex Shader desde archivo
-		std::string VertexShaderCode;
-		std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
-		if (VertexShaderStream.is_open()) {
-			std::stringstream sstr;
-			sstr << VertexShaderStream.rdbuf();
-			VertexShaderCode = sstr.str();
-			VertexShaderStream.close();
-		}
-		else {
-			printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
-			getchar();
-			return 0;
-		}
-
-		// Leer el Fragment Shader desde archivo
-		std::string FragmentShaderCode;
-		std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-		if (FragmentShaderStream.is_open()) {
-			std::stringstream sstr;
-			sstr << FragmentShaderStream.rdbuf();
-			FragmentShaderCode = sstr.str();
-			FragmentShaderStream.close();
-		}
-
-		GLint Result = GL_FALSE;
-		GLint InfoLogLength;
-
-
-		// Compilar Vertex Shader
-		printf("Compiling shader : %s\n", vertex_file_path);
-		char const* VertexSourcePointer = VertexShaderCode.c_str();
-		glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
-		glCompileShader(VertexShaderID);
-
-		// Revisar Vertex Shader
-		glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-		glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-		if (InfoLogLength > 0) {
-			std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
-			glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-			printf("%s\n", &VertexShaderErrorMessage[0]);
-		}
-
-		// Compilar Fragment Shader
-		printf("Compiling shader : %s\n", fragment_file_path);
-		char const* FragmentSourcePointer = FragmentShaderCode.c_str();
-		glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
-		glCompileShader(FragmentShaderID);
-
-		// Revisar Fragment Shader
-		glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-		glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-		if (InfoLogLength > 0) {
-			std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
-			glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-			printf("%s\n", &FragmentShaderErrorMessage[0]);
-		}
-
-		// Vincular el programa por medio del ID
-		printf("Linking program\n");
-		GLuint ProgramID = glCreateProgram();
-		glAttachShader(ProgramID, VertexShaderID);
-		glAttachShader(ProgramID, FragmentShaderID);
-		glLinkProgram(ProgramID);
-
-		// Revisar el programa
-		glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-		glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-		if (InfoLogLength > 0) {
-			std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
-			glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-			printf("%s\n", &ProgramErrorMessage[0]);
-		}
-
-
-		glDetachShader(ProgramID, VertexShaderID);
-		glDetachShader(ProgramID, FragmentShaderID);
-
-		glDeleteShader(VertexShaderID);
-		glDeleteShader(FragmentShaderID);
-
-		return ProgramID;
-	}
-#endif
-
-HRESULT test::InitDevice(HWND hwnd)
-{
-#if defined(OGL)
-
-	programID = LoadShaders("SimpleVertexShader.txt", "SimpleFragmentShader.txt");
-
-	glUseProgram(programID);
-
+	#if defined(OGL)
 	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_STENCIL_TEST);
 
-	UpdateProjectionMatrixStruct PMStruct;
-	PMStruct.AngleY = SIME_PIDIV4;
-	PMStruct.Ratio = 1024 / (FLOAT)768;
-	PMStruct.NearPlane = 0.01f;
-	PMStruct.FarPlane = 1000.0f;
-	PMStruct.Width = 1024;
-	PMStruct.Height = 768;
+	// The framebuffer, which regroups 0, 1, or more textures, and 0 or 1 depth buffer. Framebuffer is the RenderTarget.
+	//There's a default framebuffer that is the backbuffer.
+	RM::GetRenderManager().FrameBuffer1 = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().FrameBuffer1);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().FrameBuffer1);
 
-	m_PerspectiveCamera.SetEye(0.0f, 3.0f, -6.0f);
-	m_PerspectiveCamera.SetAt(0.0f, 0.0f, 0.0f);
-	m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
-	m_PerspectiveCamera.UpdateViewMatrix();
-	m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().SkyboxTexOGL);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SkyboxTexOGL);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
-	m_OrtographicCamera.SetEye(0.0f, 2.0f, 0.0f);
-	m_OrtographicCamera.SetAt(0.0f, 0.0f, -4.0f);
-	m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
-	m_OrtographicCamera.UpdateViewMatrix();
-	m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	m_Camera = &m_PerspectiveCamera;
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().DepthBuffer1);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().DepthBuffer1);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().DepthBuffer1);
 
+
+	RM::GetRenderManager().FrameBuffer2 = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().FrameBuffer2);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().FrameBuffer2);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().LightTexOGL);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().LightTexOGL);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().DepthBuffer2);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().DepthBuffer2);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().DepthBuffer2);
+	
+	//DEFERRED
+	//ALBEDO
+	RM::GetRenderManager().AlbedoFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().AlbedoFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().AlbedoFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().AlbedoTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().AlbedoTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().AlbedoDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().AlbedoDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().AlbedoDepth);
+
+	//NORMAL
+	RM::GetRenderManager().NormalFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().NormalFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().NormalFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().NormalTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().NormalTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().NormalDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().NormalDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().NormalDepth);
+	//SPECULAR
+	RM::GetRenderManager().SpecularFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().SpecularFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().SpecularFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().SpecularTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SpecularTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().SpecularDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().SpecularDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().SpecularDepth);
+	//POSITION
+	RM::GetRenderManager().PositionFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().PositionFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().PositionFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().PositionTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().PositionTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().PositionDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().PositionDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().PositionDepth);
+	//SKYBOX
+	RM::GetRenderManager().DefSkyboxFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().DefSkyboxFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().DefSkyboxFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().DefSkyboxTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().DefSkyboxTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().DefSkyboxDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().DefSkyboxDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().DefSkyboxDepth);
+	//SSAO
+	RM::GetRenderManager().SSAOFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().SSAOFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().SSAOFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().SSAOTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SSAOTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().SSAODepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().SSAODepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().SSAODepth);
+	//TONE
+	RM::GetRenderManager().ToneFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().ToneFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().ToneFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().ToneTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().ToneTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().ToneDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().ToneDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().ToneDepth);
+	//LOAD THE SKYBOX
+	vector <string> Faces;
+	Faces.push_back("right.jpg");
+	Faces.push_back("left.jpg");
+	Faces.push_back("top.jpg");
+	Faces.push_back("bottom.jpg");
+	Faces.push_back("front.jpg");
+	Faces.push_back("back.jpg");
+
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	FIBITMAP* FirstDib;
+
+	float Width;
+	float Height;
+
+	const unsigned char* Bits(0);
+	for (unsigned int i = 0; i < Faces.size(); ++i)
+	{
+		FREE_IMAGE_FORMAT FIF = FIF_UNKNOWN;
+
+		FIF = FreeImage_GetFileType(Faces[i].c_str(), 0);
+		FirstDib = FreeImage_Load(FIF, Faces[i].c_str());
+
+		FIBITMAP* SecondDib;
+		SecondDib = FreeImage_ConvertTo32Bits(FirstDib);
+		Bits = FreeImage_GetBits(SecondDib);
+		Height = FreeImage_GetHeight(SecondDib);
+		Width = FreeImage_GetWidth(SecondDib);
+
+		if (!FirstDib)
+		{
+			std::cerr << "Error al cargar la imagen" << std::endl;
+		}
+		else
+		{
+
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Bits);
+
+			FreeImage_Unload(SecondDib);
+			FreeImage_Unload(FirstDib);
+		}
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	RM::GetRenderManager().SkyboxTexResourceOGL = textureID;
 #endif
 
 #if defined(DX11)
@@ -283,53 +380,43 @@ HRESULT test::InitDevice(HWND hwnd)
 		if (FAILED(hr))
 			return hr;
 
-		//BDStruct.ByteWidth = sizeof(CBChangesEveryFrame);
-		//g_SimeCBChangesEveryFrame.UpdateBD(BDStruct);
-		//hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SimeCBChangesEveryFrame.GetBDAddress(), NULL, g_SimeCBChangesEveryFrame.GetCBChangesEveryFrameAddress());
-		//if (FAILED(hr))
-		//	return hr;
+		BDStruct.ByteWidth = sizeof(RM::DirLight);
+		RM::GetRenderManager().g_DirLightBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_DirLightBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_DirLightBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(DirLight);
-		g_DirLightBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_DirLightBuffer.BGetBDAddress(), NULL, g_DirLightBuffer.BGetBufferAddress());
+		BDStruct.ByteWidth = sizeof(RM::PointLight);
+		RM::GetRenderManager().g_PointLightBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_PointLightBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_PointLightBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(PointLight);
-		g_PointLightBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_PointLightBuffer.BGetBDAddress(), NULL, g_PointLightBuffer.BGetBufferAddress());
+		BDStruct.ByteWidth = sizeof(RM::SpotLight);
+		RM::GetRenderManager().g_SpotLightBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_SpotLightBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_SpotLightBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(SpotLight);
-		g_SpotLightBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SpotLightBuffer.BGetBDAddress(), NULL, g_SpotLightBuffer.BGetBufferAddress());
+		BDStruct.ByteWidth = sizeof(RM::Diffuse);
+		RM::GetRenderManager().g_DiffuseBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_DiffuseBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_DiffuseBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(Diffuse);
-		g_DiffuseBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_DiffuseBuffer.BGetBDAddress(), NULL, g_DiffuseBuffer.BGetBufferAddress());
+		BDStruct.ByteWidth = sizeof(RM::Ambient);
+		RM::GetRenderManager().g_AmbientBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_AmbientBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_AmbientBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(Ambient);
-		g_AmbientBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_AmbientBuffer.BGetBDAddress(), NULL, g_AmbientBuffer.BGetBufferAddress());
-
-		BDStruct.ByteWidth = sizeof(Specular);
-		g_SpecularBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_SpecularBuffer.BGetBDAddress(), NULL, g_SpecularBuffer.BGetBufferAddress());
+		BDStruct.ByteWidth = sizeof(RM::Specular);
+		RM::GetRenderManager().g_SpecularBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_SpecularBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_SpecularBuffer.BGetBufferAddress());
 
 		BDStruct.ByteWidth = sizeof(Vector3);
-		g_CameraFrontBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_CameraFrontBuffer.BGetBDAddress(), NULL, g_CameraFrontBuffer.BGetBufferAddress());
+		RM::GetRenderManager().g_CameraFrontBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_CameraFrontBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_CameraFrontBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(Expossure);
-		g_ExpossureBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_ExpossureBuffer.BGetBDAddress(), NULL, g_ExpossureBuffer.BGetBufferAddress());
+		BDStruct.ByteWidth = sizeof(RM::Expossure);
+		RM::GetRenderManager().g_ExpossureBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_ExpossureBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_ExpossureBuffer.BGetBufferAddress());
 
-		BDStruct.ByteWidth = sizeof(AmbientOcclusion);
-		g_AOBuffer.BUpdateBD(BDStruct);
-		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(g_AOBuffer.BGetBDAddress(), NULL, g_AOBuffer.BGetBufferAddress());
-		// Load the Texture
-		//hr = D3DX11CreateShaderResourceViewFromFile(GetManagerObj(hwnd).GetDevice().GetDXDevice(), "base_albedo.dds", NULL, NULL, g_SimeTextureRV.GetDXSRVAddress(), NULL);
-		if (FAILED(hr))
-			std::cout << "Fallo spotlight";
+		BDStruct.ByteWidth = sizeof(RM::AmbientOcclusion);
+		RM::GetRenderManager().g_AOBuffer.BUpdateBD(BDStruct);
+		hr = GetManagerObj(hwnd).GetDevice().CCreateBuffer(RM::GetRenderManager().g_AOBuffer.BGetBDAddress(), NULL, RM::GetRenderManager().g_AOBuffer.BGetBufferAddress());
 
-		UpdateProjectionMatrixStruct PMStruct;
+		RM::UpdateProjectionMatrixStruct PMStruct;
 		PMStruct.AngleY = SIME_PIDIV4;
 		PMStruct.Ratio = width / (FLOAT)height;
 		PMStruct.NearPlane = 0.01f;
@@ -337,22 +424,21 @@ HRESULT test::InitDevice(HWND hwnd)
 		PMStruct.Width = width;
 		PMStruct.Height = height;
 
-		m_PerspectiveCamera.SetEye(0.0f, 3.0f, -6.0f);
-		m_PerspectiveCamera.SetAt(0.0f, 0.0f, 0.0f);
-		m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
-		m_PerspectiveCamera.UpdateViewMatrix();
-		m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
+		RM::GetRenderManager().m_PerspectiveCamera.SetEye(0.0f, 3.0f, -6.0f);
+		RM::GetRenderManager().m_PerspectiveCamera.SetAt(0.0f, 0.0f, 0.0f);
+		RM::GetRenderManager().m_PerspectiveCamera.SetUp(0.0f, 1.0f, 0.0f);
+		RM::GetRenderManager().m_PerspectiveCamera.UpdateViewMatrix();
+		RM::GetRenderManager().m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
 
-		m_OrtographicCamera.SetEye(0.0f, 3.0f, -6.0f);
-		m_OrtographicCamera.SetAt(0.0f, 0.0f, 0.0f);
-		m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
-		m_OrtographicCamera.UpdateViewMatrix();
-		m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
+		RM::GetRenderManager().m_OrtographicCamera.SetEye(0.0f, 3.0f, -6.0f);
+		RM::GetRenderManager().m_OrtographicCamera.SetAt(0.0f, 0.0f, 0.0f);
+		RM::GetRenderManager().m_OrtographicCamera.SetUp(0.0f, 1.0f, 0.0f);
+		RM::GetRenderManager().m_OrtographicCamera.UpdateViewMatrix();
+		RM::GetRenderManager().m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
 
-		m_Camera = &m_PerspectiveCamera;
+		RM::GetRenderManager().m_Camera = &RM::GetRenderManager().m_PerspectiveCamera;
 
-		/* FIRST RENDER TARGET TEXTURE
-			CREATE TEXTURE*/
+
 		SetRTDescStruct RTDescStruct;
 		RTDescStruct.Width = width;
 		RTDescStruct.Height = height;
@@ -366,36 +452,42 @@ HRESULT test::InitDevice(HWND hwnd)
 		RTDescStruct.MiscFlags = 0;
 		RTDescStruct.BindFlags = SIME_BIND_SHADER_RESOURCE | SIME_BIND_RENDER_TARGET;
 
-		RM::GetRenderManager().DefSkyboxTexRTV.SetDescRT(RTDescStruct);
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().DefSkyboxTexRTV.GetDescDepthAddress(), NULL,
-			RM::GetRenderManager().DefSkyboxTexRTV.GetTextureAddress());
+		//---------------------------- SKYBOX OUTPUT ----------------------------------- 
+		RM::GetRenderManager().SkyboxRTV.AddRTV();
+
+		RM::GetRenderManager().SkyboxTex.SetDescRT(RTDescStruct);
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().SkyboxTex.GetDescDepthAddress(), NULL,
+			RM::GetRenderManager().SkyboxTex.GetTextureAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error tekstur 2d" << endl;
+			cout << "Error TEXTURE2D" << endl;
 		}
 
-		RM::GetRenderManager().DefSkyboxSRVOutput.SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefSkyboxTexRTV.GetTexture(), RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVDescAddress(),
-			RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVAddress());
+		RM::GetRenderManager().SkyboxSRV.SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().SkyboxTex.GetTexture(), RM::GetRenderManager().SkyboxSRV.GetDXSRVDescAddress(),
+			RM::GetRenderManager().SkyboxSRV.GetDXSRVAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error cheiderresoursviu" << endl;
+			cout << "Error SRV" << endl;
 		}
 
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().SkyboxTex.GetTexture(), NULL, RM::GetRenderManager().SkyboxRTV.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error RT" << endl;
+		}
 
-
+		//------------------------------------ GBUFFER INIT -------------------------------------
 		for (unsigned int i = 0; i < 4; ++i)
 		{
 			RM::GetRenderManager().GBufferRTV.AddRTV();
-			//g_GBufferRTV.AddRTV();
 
 			RM::GetRenderManager().GBufferTextures[i].SetDescRT(RTDescStruct);
-			//g_GBufferTextures[i].SetDescRT(RTDescStruct);
 			hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[i].GetDescDepthAddress(), NULL,
 							   RM::GetRenderManager().GBufferTextures[i].GetTextureAddress());
 			if (FAILED(hr))
 			{
-				cout << "Error tekstur 2d" << endl;
+				cout << "Error TEXTURE2D" << endl;
 			}
 
 			RM::GetRenderManager().GBufferSRV[i].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
@@ -404,84 +496,148 @@ HRESULT test::InitDevice(HWND hwnd)
 																			 RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
 			if (FAILED(hr))
 			{
-				cout << "Error cheiderresoursviu" << endl;
+				cout << "Error SRV" << endl;
 			}
 
 			hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[i].GetTexture(), NULL,
 																		   RM::GetRenderManager().GBufferRTV.GetLastElementAddress());
+
+			RM::GetRenderManager().GBufferSamplers.AddSampler();
+			RM::GetRenderManager().GBufferSamplers.AddDesc();
+
+			RM::GetRenderManager().GBufferSamplers.SetDesc(false, i);
+
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(RM::GetRenderManager().GBufferSamplers.GetDXSamplerDescAddress(i),
+																					 RM::GetRenderManager().GBufferSamplers.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
 		}
 
-		RM::GetRenderManager().GBufferToneMapRTV.AddRTV();
+		//---------------------------------- DEF TONEMAP INIT ----------------------------------------------------
+		RM::GetRenderManager().DefToneMapRTV.AddRTV();
 
-		RM::GetRenderManager().GBufferTextures[4].SetDescRT(RTDescStruct);
+		RM::GetRenderManager().DefToneMapTex.SetDescRT(RTDescStruct);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[4].GetDescDepthAddress(), NULL,
-			RM::GetRenderManager().GBufferTextures[4].GetTextureAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().DefToneMapTex.GetDescDepthAddress(), NULL,
+															    RM::GetRenderManager().DefToneMapTex.GetTextureAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error tekstur 2d" << endl;
+			cout << "Error TEXTURE2D" << endl;
 		}
 
-		RM::GetRenderManager().GBufferSRV[4].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+		RM::GetRenderManager().DefToneMapSRV.SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[4].GetTexture(), RM::GetRenderManager().GBufferSRV[4].GetDXSRVDescAddress(),
-			RM::GetRenderManager().GBufferSRV[4].GetDXSRVAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefToneMapTex.GetTexture(), RM::GetRenderManager().DefToneMapSRV.GetDXSRVDescAddress(),
+																		 RM::GetRenderManager().DefToneMapSRV.GetDXSRVAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error cheiderresoursviu" << endl;
+			cout << "Error SRV" << endl;
 		}
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[4].GetTexture(), NULL,
-			RM::GetRenderManager().GBufferToneMapRTV.GetLastElementAddress());
-		
-
-
-		RM::GetRenderManager().GBufferCopyRTV.AddRTV();
-
-		RM::GetRenderManager().GBufferTextures[5].SetDescRT(RTDescStruct);
-
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[5].GetDescDepthAddress(), NULL,
-			RM::GetRenderManager().GBufferTextures[5].GetTextureAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().DefToneMapTex.GetTexture(), NULL,
+																	   RM::GetRenderManager().DefToneMapRTV.GetLastElementAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error tekstur 2d" << endl;
+			cout << "Error RTV" << endl;
 		}
 
-		RM::GetRenderManager().GBufferSRV[5].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+		for (unsigned int i = 0; i < 2; ++i)
+		{
+			RM::GetRenderManager().DefToneMapSamplers.AddSampler();
+			RM::GetRenderManager().DefToneMapSamplers.AddDesc();
+			RM::GetRenderManager().DefToneMapSamplers.SetDesc(true, i);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[5].GetTexture(), RM::GetRenderManager().GBufferSRV[5].GetDXSRVDescAddress(),
-			RM::GetRenderManager().GBufferSRV[5].GetDXSRVAddress());
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(RM::GetRenderManager().DefToneMapSamplers.GetDXSamplerDescAddress(i),
+				RM::GetRenderManager().DefToneMapSamplers.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
+		}
+
+		//----------------------------------- DEF COPY INIT ------------------------------------------------
+		RM::GetRenderManager().DefCopyRTV.AddRTV();
+
+		RM::GetRenderManager().DefCopyTex.SetDescRT(RTDescStruct);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().DefCopyTex.GetDescDepthAddress(), NULL,
+			RM::GetRenderManager().DefCopyTex.GetTextureAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error cheiderresoursviu" << endl;
+			cout << "Error TEXTURE2D" << endl;
 		}
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[5].GetTexture(), NULL,
-			RM::GetRenderManager().GBufferCopyRTV.GetLastElementAddress());
-		
+		RM::GetRenderManager().DefCopySRV.SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefCopyTex.GetTexture(), RM::GetRenderManager().DefCopySRV.GetDXSRVDescAddress(),
+																		 RM::GetRenderManager().DefCopySRV.GetDXSRVAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error SRV" << endl;
+		}
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().DefCopyTex.GetTexture(), NULL,
+			RM::GetRenderManager().DefCopyRTV.GetLastElementAddress());
+
+		if (FAILED(hr))
+		{
+			cout << "Error RTV" << endl;
+		}
+
+		RM::GetRenderManager().DefCopySamplers.AddSampler();
+		RM::GetRenderManager().DefCopySamplers.AddDesc();
+		RM::GetRenderManager().DefCopySamplers.SetDesc(true, 0);
+
+		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(RM::GetRenderManager().DefCopySamplers.GetDXSamplerDescAddress(0),
+			RM::GetRenderManager().DefCopySamplers.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Fallo sampler" << endl;
+		}
+		//---------------------------- DEF SSAO INIT ----------------------------------------------------------
 		RM::GetRenderManager().DefSSAORTV.AddRTV();
 
-		RM::GetRenderManager().GBufferTextures[6].SetDescRT(RTDescStruct);
+		RM::GetRenderManager().DefSSAOTex.SetDescRT(RTDescStruct);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().GBufferTextures[6].GetDescDepthAddress(), NULL,
-			RM::GetRenderManager().GBufferTextures[6].GetTextureAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateTexture2D(RM::GetRenderManager().DefSSAOTex.GetDescDepthAddress(), NULL,
+																RM::GetRenderManager().DefSSAOTex.GetTextureAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error tekstur 2d" << endl;
+			cout << "Error TEXTURE2D" << endl;
 		}
 
-		RM::GetRenderManager().GBufferSRV[6].SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
+		RM::GetRenderManager().DefSSAOSRV.SetDesc(SIME_FORMAT_R16G16B16A16_FLOAT, SIME11_SRV_DIMENSION_TEXTURE2D, 1);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().GBufferTextures[6].GetTexture(), RM::GetRenderManager().GBufferSRV[6].GetDXSRVDescAddress(),
-			RM::GetRenderManager().GBufferSRV[6].GetDXSRVAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefSSAOTex.GetTexture(), RM::GetRenderManager().DefSSAOSRV.GetDXSRVDescAddress(),
+																		 RM::GetRenderManager().DefSSAOSRV.GetDXSRVAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error cheiderresoursviu" << endl;
+			cout << "Error SRV" << endl;
 		}
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().GBufferTextures[6].GetTexture(), NULL,
-			RM::GetRenderManager().DefSSAORTV.GetLastElementAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().DefSSAOTex.GetTexture(), NULL,
+																	   RM::GetRenderManager().DefSSAORTV.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error RTV" << endl;
+		}
 
+		for (unsigned int i = 0; i < 2; ++i)
+		{
+			RM::GetRenderManager().DefSSAOSamplers.AddSampler();
+			RM::GetRenderManager().DefSSAOSamplers.AddDesc();
+			RM::GetRenderManager().DefSSAOSamplers.SetDesc(true, i);
+
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(RM::GetRenderManager().DefSSAOSamplers.GetDXSamplerDescAddress(i),
+																					 RM::GetRenderManager().DefSSAOSamplers.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
+		}
+		//----------------------------------------- GBUFFER RASTERIZER INIT ------------------------------------
 		SetRasterizerStruct RasterStruct;
 		RasterStruct.Fill = SIME11_FILL_SOLID;
 		RasterStruct.Cull = SIME11_CULL_BACK;
@@ -495,7 +651,7 @@ HRESULT test::InitDevice(HWND hwnd)
 		{
 			cout << "Fallo en crear el Rasterizer" << endl;
 		}
-
+		//--------------------------------------- LIGHT RASTERIZER INIT ------------------------------------------
 		SetRasterizerStruct RasterStructGBufferLight;
 		RasterStructGBufferLight.Fill = SIME11_FILL_SOLID;
 		RasterStructGBufferLight.Cull = SIME11_CULL_NONE;
@@ -510,6 +666,7 @@ HRESULT test::InitDevice(HWND hwnd)
 			cout << "Fallo en crear el RasterizerLight" << endl;
 		}
 
+		//--------------------------------------- TONE RASTERIZER INIT ---------------------------------------------
 		RM::GetRenderManager().ToneRasterizer.SetRasterizerDesc(RasterStructGBufferLight);
 
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().ToneRasterizer.GetRSDescAddress(),
@@ -519,6 +676,7 @@ HRESULT test::InitDevice(HWND hwnd)
 			cout << "Fallo en crear el RasterizerLight" << endl;
 		}
 
+		//------------------------------------------ COPY RASTERIZER INIT ----------------------------------------
 		RM::GetRenderManager().CopyRasterizer.SetRasterizerDesc(RasterStructGBufferLight);
 
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().CopyRasterizer.GetRSDescAddress(),
@@ -528,7 +686,7 @@ HRESULT test::InitDevice(HWND hwnd)
 			cout << "Fallo en crear el RasterizerLight" << endl;
 		}
 		
-		//FORWARD RENDER
+		// --------------------------- FORWARD RENDER --------------------------------------------------
 		for (unsigned int i = 0; i < 2; ++i)
 		{
 			RM::GetRenderManager().ForwardTextures[i].SetDescRT(RTDescStruct);
@@ -549,6 +707,17 @@ HRESULT test::InitDevice(HWND hwnd)
 			{
 				cout << "Error cheiderresoursviu" << endl;
 			}
+
+			RM::GetRenderManager().ForwardSamplers.AddSampler();
+			RM::GetRenderManager().ForwardSamplers.AddDesc();
+			RM::GetRenderManager().ForwardSamplers.SetDesc(true, i);
+
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(RM::GetRenderManager().ForwardSamplers.GetDXSamplerDescAddress(i),
+																					 RM::GetRenderManager().ForwardSamplers.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
 		}
 
 		RM::GetRenderManager().ForwardLightRTV.AddRTV();
@@ -567,81 +736,77 @@ HRESULT test::InitDevice(HWND hwnd)
 			cout << "Error Render Target" << endl;
 		}
 
-
-
-		RM::GetRenderManager().DefSkyboxRTV.AddRTV();
-
+		//----------------------------------- SKYBOX TEXTURE RESOURCE -----------------------------------------------
 		hr = D3DX11CreateTextureFromFile(GetManagerObj(m_hwnd).GetDevice().GetDXDevice(), "Mars.dds", NULL, 0,
-										(ID3D11Resource**)RM::GetRenderManager().DefSkyboxTex.GetTextureAddress(), 0);
+										(ID3D11Resource**)RM::GetRenderManager().SkyboxTexResource.GetTextureAddress(), 0);
 		if (FAILED(hr))
 		{
-			cout << "Error tekstur 2d" << endl;
+			cout << "Error TEXTURE2D" << endl;
 		}
-
-		//std::ofstream outfile("AQUI.txt");
-		//
-		//outfile << "my text here!" << std::endl;
-		//
-		//outfile.close();
 
 		D3D11_TEXTURE2D_DESC SMTextureDesc;
-		RM::GetRenderManager().DefSkyboxTex.GetTexture()->GetDesc(&SMTextureDesc);
+		RM::GetRenderManager().SkyboxTexResource.GetTexture()->GetDesc(&SMTextureDesc);
 
-		RM::GetRenderManager().DefSkyboxSRV.SetDesc((SIME_FORMAT)SMTextureDesc.Format, SIME11_SRV_DIMENSION_TEXTURECUBE, SMTextureDesc.MipLevels);
+		RM::GetRenderManager().SkyboxSRVResource.SetDesc((SIME_FORMAT)SMTextureDesc.Format, SIME11_SRV_DIMENSION_TEXTURECUBE, SMTextureDesc.MipLevels);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DefSkyboxTex.GetTexture(), RM::GetRenderManager().DefSkyboxSRV.GetDXSRVDescAddress(),
-			RM::GetRenderManager().DefSkyboxSRV.GetDXSRVAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().SkyboxTexResource.GetTexture(),
+																		 RM::GetRenderManager().SkyboxSRVResource.GetDXSRVDescAddress(),
+																		 RM::GetRenderManager().SkyboxSRVResource.GetDXSRVAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error cheiderresoursviu" << endl;
+			cout << "Error SRV" << endl;
 		}
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().DefSkyboxTexRTV.GetTexture(), NULL, RM::GetRenderManager().DefSkyboxRTV.GetLastElementAddress());
-		if (FAILED(hr))
-		{
-			cout << "Error Render Target" << endl;
-		}
-
-		//SKYBOX DIFFUSE
+		//--------------------------------- SKYBOX DIFFUSE RESOURCE ---------------------------------------------------
 		hr = D3DX11CreateTextureFromFile(GetManagerObj(m_hwnd).GetDevice().GetDXDevice(), "Diffuse_Mars.dds", NULL, 0,
-			(ID3D11Resource**)RM::GetRenderManager().DiffuseSkyBoxTex.GetTextureAddress(), 0);
+			(ID3D11Resource**)RM::GetRenderManager().DiffSkyBoxTexResource.GetTextureAddress(), 0);
 		if (FAILED(hr))
 		{
-			cout << "Error tekstur 2d" << endl;
+			cout << "Error TEXTURE2D" << endl;
 		}
 
-		//std::ofstream outfile("AQUI.txt");
-		//
-		//outfile << "my text here!" << std::endl;
-		//
-		//outfile.close();
 
 		D3D11_TEXTURE2D_DESC SMTextureDesc2;
-		RM::GetRenderManager().DiffuseSkyBoxTex.GetTexture()->GetDesc(&SMTextureDesc2);
+		RM::GetRenderManager().DiffSkyBoxTexResource.GetTexture()->GetDesc(&SMTextureDesc2);
 
-		RM::GetRenderManager().DiffuseSkyBoxSRV.SetDesc((SIME_FORMAT)SMTextureDesc2.Format, SIME11_SRV_DIMENSION_TEXTURECUBE, SMTextureDesc2.MipLevels);
+		RM::GetRenderManager().DiffSkyBoxSRVResource.SetDesc((SIME_FORMAT)SMTextureDesc2.Format, SIME11_SRV_DIMENSION_TEXTURECUBE, SMTextureDesc2.MipLevels);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DiffuseSkyBoxTex.GetTexture(), RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVDescAddress(),
-			RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateShaderResourceView(RM::GetRenderManager().DiffSkyBoxTexResource.GetTexture(),
+																		 RM::GetRenderManager().DiffSkyBoxSRVResource.GetDXSRVDescAddress(),
+																		 RM::GetRenderManager().DiffSkyBoxSRVResource.GetDXSRVAddress());
 		if (FAILED(hr))
 		{
-			cout << "Error cheiderresoursviu" << endl;
+			cout << "Error SRV" << endl;
 		}
 
 
-		//BACK
+		//------------------------------- SKYBOX RASTERIZER -------------------------------------------
 		SetRasterizerStruct RasterStructSkybox;
 		RasterStructSkybox.Fill = SIME11_FILL_SOLID;
 		RasterStructSkybox.Cull = SIME11_CULL_BACK;
 		RasterStructSkybox.FrontCCW = true;
 
-		RM::GetRenderManager().DefSkyboxRaster.SetRasterizerDesc(RasterStructSkybox);
+		RM::GetRenderManager().SkyboxRaster.SetRasterizerDesc(RasterStructSkybox);
 
-		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().DefSkyboxRaster.GetRSDescAddress(),
-			RM::GetRenderManager().DefSkyboxRaster.GetRSAddress());
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRasterizerState(RM::GetRenderManager().SkyboxRaster.GetRSDescAddress(),
+			RM::GetRenderManager().SkyboxRaster.GetRSAddress());
 		if (FAILED(hr))
 		{
-			cout << "Fallo en crear el RasterizerSkybox" << endl;
+			cout << "Error RASTERIZER" << endl;
+		}
+
+		//------------------------------- SKYBOX SAMPLERS ----------------------------------------------
+		for (unsigned int i = 0; i < 2; ++i)
+		{
+			RM::GetRenderManager().SkyboxSam.AddSampler();
+			RM::GetRenderManager().SkyboxSam.AddDesc();
+			RM::GetRenderManager().SkyboxSam.SetDesc(false, i);
+			hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(RM::GetRenderManager().SkyboxSam.GetDXSamplerDescAddress(i),
+																				   	 RM::GetRenderManager().SkyboxSam.GetLastElementAddress());
+			if (FAILED(hr))
+			{
+				cout << "Fallo sampler" << endl;
+			}
 		}
 #endif
 		return S_OK;
@@ -652,31 +817,6 @@ void test::Update()
 #if defined(DX11)
 	static float t = 0.0f;
 	int counter = 0;
-
-	//if (m_IsFirstFrame)
-	//{
-	//	if (!m_IsFirstPosStored)
-	//	{
-	//		GetCursorPos(MouseInitPos);
-	//		m_IsFirstPosStored = true;
-	//	}
-	//	else
-	//	{
-	//		GetCursorPos(MouseFinalPos);
-	//		LPPOINT Direction = new POINT;
-	//		Direction->x = MouseFinalPos->x - MouseInitPos->x;
-	//		Direction->y = MouseFinalPos->y - MouseInitPos->y;
-	//		Vector3 RotateVector;
-	//		RotateVector.SetValues(Direction->x, Direction->y, 0.0f);
-	//		m_Camera->RotateCamera(RotateVector);
-	//		m_Camera->UpdateViewMatrix();
-	//		m_IsFirstPosStored = false;
-	//		if (Direction != nullptr)
-	//		{
-	//			delete Direction;
-	//		}
-	//	}
-	//}
 
 	if (g_driverType == SIME_DRIVER_TYPE_REFERENCE)
 	{
@@ -691,20 +831,6 @@ void test::Update()
 		t = (dwTimeCur - dwTimeStart) / 1000.0f;
 	}
 
-	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(RM::GetRenderManager().GBufferRTV.GetRTVNum(),
-	//															 RM::GetRenderManager().GBufferRTV.GetRTVAdress(), RM::GetRenderManager().DSView.GetDSV());
-	//
-	// Clear the back buffer
-	//
-	//float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
-	//float ClearColor[4] = { 0.0f, 0.0f, 1.0f, 1.0f }; // red, green, blue, alpha
-	//
-	//for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum(); ++i)
-	//{
-	//	GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(RM::GetRenderManager().GBufferRTV.GetRTV(i), ClearColor);
-	//}
-	//GetManagerObj(m_hwnd).GetDeviceContext().CClearRenderTargetView(g_SimeRenderTargetView.GetRTV(), ClearColor);
-
 	ClearDepthStencilViewStruct ClearDSVStruct;
 	ClearDSVStruct.pDepthStencilView = RM::GetRenderManager().DSView.GetDSV();
 	ClearDSVStruct.ClearFlags = SIME_CLEAR_DEPTH;
@@ -714,7 +840,7 @@ void test::Update()
 	GetManagerObj(m_hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
 
 	CBNeverChanges cbNeverChanges;
-	cbNeverChanges.mView = XMMatrixTranspose(m_Camera->m_ViewMatrix);
+	cbNeverChanges.mView = XMMatrixTranspose(RM::GetRenderManager().m_Camera->m_ViewMatrix);
 
 	UpdateSubResourceStruct UpdateSBStruct;
 	UpdateSBStruct.pDstResource = g_SimeCBNeverChanges.GetCBNeverChanges();
@@ -726,14 +852,14 @@ void test::Update()
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 
 	CBChangeOnResize cbChangesOnResize;
-	cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
+	cbChangesOnResize.mProjection = XMMatrixTranspose(RM::GetRenderManager().m_Camera->m_ProjectionMatrix);
 	UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 	UpdateSBStruct.pSrcData = &cbChangesOnResize;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
 
 	if (m_IsPerspectiveActive)
 	{
-		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
+		cbChangesOnResize.mProjection = XMMatrixTranspose(RM::GetRenderManager().m_Camera->m_ProjectionMatrix);
 		UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 		UpdateSBStruct.pSrcData = &cbChangesOnResize;
 		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
@@ -741,7 +867,7 @@ void test::Update()
 	else
 	{
 		CBChangeOnResize cbChangesOnResize;
-		cbChangesOnResize.mProjection = XMMatrixTranspose(m_Camera->m_ProjectionMatrix);
+		cbChangesOnResize.mProjection = XMMatrixTranspose(RM::GetRenderManager().m_Camera->m_ProjectionMatrix);
 		UpdateSBStruct.pDstResource = g_SimeCBChangeOnResize.GetCBChangesOnResize();
 		UpdateSBStruct.pSrcData = &cbChangesOnResize;
 		GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
@@ -756,226 +882,117 @@ void test::Update()
 void test::Render()
 {
 #if defined(OGL)
-	//DIRECTIONAL LIGHT
-	const char* UniformNameLight;
-	int UniformLight;
-	UniformNameLight = "dirlight";
-	UniformLight = glGetUniformLocation(programID, UniformNameLight);
-	if (UniformLight == -1)
+	if (!RM::GetRenderManager().IsBackBufferCleaned())
 	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameLight);
-	}
-	glUniform4fv(UniformLight, 1, glm::value_ptr(glm::make_vec4(g_DirLightBufferDesc.Dir)));
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-	const char* UniformNameLightColor;
-	int UniformLightColor;
-	UniformNameLightColor = "dirlightcolor";
-	UniformLightColor = glGetUniformLocation(programID, UniformNameLightColor);
-	if (UniformLightColor == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameLightColor);
+		glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glViewport(0, 0, 1920, 1080);
+		RM::GetRenderManager().SetBackBufferCleaned(true);
 	}
-	glUniform4fv(UniformLightColor, 1, glm::value_ptr(glm::make_vec4(g_DirLightBufferDesc.Color)));
-
-	//POINTLIGHT
-	const char* UniformNamePointLightPos;
-	int UniformPointLightPos;
-	UniformNamePointLightPos = "PointLightPos";
-	UniformPointLightPos = glGetUniformLocation(programID, UniformNamePointLightPos);
-	if (UniformPointLightPos == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNamePointLightPos);
-	}
-	glUniform4fv(UniformPointLightPos, 1, glm::value_ptr(glm::make_vec4(g_PointLightBufferDesc.Position)));
-
-	const char* UniformNamePointLightColor;
-	int UniformPointLightColor;
-	UniformNamePointLightColor = "PointLightColor";
-	UniformPointLightColor = glGetUniformLocation(programID, UniformNamePointLightColor);
-	if (UniformPointLightColor == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNamePointLightColor);
-	}
-	glUniform4fv(UniformPointLightColor, 1, glm::value_ptr(glm::make_vec4(g_PointLightBufferDesc.Color)));
-
-	const char* UniformNamePointLightAttenuation;
-	int UniformPointLightAttenuation;
-	UniformNamePointLightAttenuation = "PointLightAttenuation";
-	UniformPointLightAttenuation = glGetUniformLocation(programID, UniformNamePointLightAttenuation);
-	if (UniformPointLightAttenuation == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNamePointLightAttenuation);
-	}
-	glUniform4fv(UniformPointLightAttenuation, 1, glm::value_ptr(glm::make_vec4(g_PointLightBufferDesc.Attenuation)));
-
-	//SPOTLIGHT
-	const char* UniformNameSpotLightDir;
-	int UniformSpotLightDir;
-	UniformNameSpotLightDir = "SpotLightDir";
-	UniformSpotLightDir = glGetUniformLocation(programID, UniformNameSpotLightDir);
-	if (UniformSpotLightDir == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightDir);
-	}
-	glUniform4fv(UniformSpotLightDir, 1, glm::value_ptr(glm::make_vec4(g_SpotLightBufferDesc.Dir)));
-
-	const char* UniformNameSpotLightPos;
-	int UniformSpotLightPos;
-	UniformNameSpotLightPos = "SpotLightPos";
-	UniformSpotLightPos = glGetUniformLocation(programID, UniformNameSpotLightPos);
-	if (UniformSpotLightPos == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightPos);
-	}
-	glUniform4fv(UniformSpotLightPos, 1, glm::value_ptr(glm::make_vec4(g_SpotLightBufferDesc.Pos)));
-
-	const char* UniformNameSpotLightColor;
-	int UniformSpotLightColor;
-	UniformNameSpotLightColor = "SpotLightColor";
-	UniformSpotLightColor = glGetUniformLocation(programID, UniformNameSpotLightColor);
-	if (UniformSpotLightColor == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightColor);
-	}
-	glUniform4fv(UniformSpotLightColor, 1, glm::value_ptr(glm::make_vec4(g_SpotLightBufferDesc.Color)));
-
-	const char* UniformNameSpotLightAttenuation;
-	int UniformSpotLightAttenuation;
-	UniformNameSpotLightAttenuation = "SpotLightAttenuation";
-	UniformSpotLightAttenuation = glGetUniformLocation(programID, UniformNameSpotLightAttenuation);
-	if (UniformSpotLightAttenuation == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightAttenuation);
-	}
-	glUniform1f(UniformSpotLightAttenuation, g_SpotLightBufferDesc.Attenuation);
-
-	const char* UniformNameSpotLightInner;
-	int UniformSpotLightInner;
-	UniformNameSpotLightInner = "SpotLightInner";
-	UniformSpotLightInner = glGetUniformLocation(programID, UniformNameSpotLightInner);
-	if (UniformSpotLightInner == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightInner);
-	}
-	glUniform1f(UniformSpotLightInner, g_SpotLightBufferDesc.InnerRadius);
-
-	const char* UniformNameSpotLightOuter;
-	int UniformSpotLightOuter;
-	UniformNameSpotLightOuter = "SpotLightOuter";
-	UniformSpotLightOuter = glGetUniformLocation(programID, UniformNameSpotLightOuter);
-	if (UniformSpotLightOuter == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformNameSpotLightOuter);
-	}
-	glUniform1f(UniformSpotLightOuter, g_SpotLightBufferDesc.OuterRadius);
-	
 #endif
 #if defined(DX11)
 	GraphicsModule::UpdateSubResourceStruct UpdateSRStruct;
-	UpdateSRStruct.pDstResource = g_DirLightBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_DirLightBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_DirLightBufferDesc;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_DirLightBufferDesc;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_PointLightBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_PointLightBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_PointLightBufferDesc;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_PointLightBufferDesc;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_SpotLightBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_SpotLightBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_SpotLightBufferDesc;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_SpotLightBufferDesc;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_AmbientBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_AmbientBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_Ambient;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_Ambient;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_DiffuseBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_DiffuseBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_Diffuse;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_Diffuse;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_SpecularBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_SpecularBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_Specular;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_Specular;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_CameraFrontBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_CameraFrontBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = m_Camera->GetEyeAddress();
+	UpdateSRStruct.pSrcData = RM::GetRenderManager().m_Camera->GetEyeAddress();
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_ExpossureBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_ExpossureBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_Expossure;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_Expossure;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	UpdateSRStruct.pDstResource = g_AOBuffer.BGetBuffer();
+	UpdateSRStruct.pDstResource = RM::GetRenderManager().g_AOBuffer.BGetBuffer();
 	UpdateSRStruct.DstSubresource = 0;
 	UpdateSRStruct.pDstBox = NULL;
-	UpdateSRStruct.pSrcData = &g_AO;
+	UpdateSRStruct.pSrcData = &RM::GetRenderManager().g_AO;
 	UpdateSRStruct.SrcRowPitch = 0;
 	UpdateSRStruct.SrcDepthPitch = 0;
 	GetManagerObj(m_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
-	//AQUI
-	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_PositionRTV.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
-	//GetManagerObj(m_hwnd).GetDeviceContext().COMSetRenderTargets(1, g_SimeRenderTargetView.GetRTVAdress(), g_SimeDepthStencilView.GetDSV());
 	GetManagerObj(m_hwnd).GetDeviceContext().CRSSetViewports(1, g_SimeViewport.GetViewportAddress());
-	//GetManagerObj(m_hwnd).GetDeviceContext().CIASetInputLayout(g_SimeInputLayout.GetDXInputLayout());
-	//
-	////LUEGO
-	//GetManagerObj(m_hwnd).GetDeviceContext().CVSSetShader(g_SimeVertexShader.GetDXVertexShader(), NULL, 0);
+
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(0, 1, g_SimeCBNeverChanges.GetCBNeverChangesAddress());
 	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(1, 1, g_SimeCBChangeOnResize.GetCBChangeOnResizeAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(6, 1, g_SpecularBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(3, 1, RM::GetRenderManager().g_DirLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(4, 1, RM::GetRenderManager().g_PointLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(5, 1, RM::GetRenderManager().g_SpotLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(6, 1, RM::GetRenderManager().g_SpecularBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(7, 1, RM::GetRenderManager().g_AmbientBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(8, 1, RM::GetRenderManager().g_DiffuseBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CVSSetConstantBuffers(9, 1, RM::GetRenderManager().g_CameraFrontBuffer.BGetBufferAddress());
 
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(3, 1, g_DirLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(4, 1, g_PointLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(5, 1, g_SpotLightBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(6, 1, g_SpecularBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(7, 1, g_AmbientBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, g_DiffuseBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(9, 1, g_CameraFrontBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(10, 1, g_ExpossureBuffer.BGetBufferAddress());
-	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(11, 1, g_AOBuffer.BGetBufferAddress());
-	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetShader(g_SimePixelShader.GetDXPixelShader(), NULL, 0);
-	//GetManagerObj(m_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, g_SimeSamplerState.GetDXSamplerStateAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(3, 1, RM::GetRenderManager().g_DirLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(4, 1, RM::GetRenderManager().g_PointLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(5, 1, RM::GetRenderManager().g_SpotLightBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(6, 1, RM::GetRenderManager().g_SpecularBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(7, 1, RM::GetRenderManager().g_AmbientBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(8, 1, RM::GetRenderManager().g_DiffuseBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(9, 1, RM::GetRenderManager().g_CameraFrontBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(10, 1, RM::GetRenderManager().g_ExpossureBuffer.BGetBufferAddress());
+	GetManagerObj(m_hwnd).GetDeviceContext().CPSSetConstantBuffers(11, 1, RM::GetRenderManager().g_AOBuffer.BGetBufferAddress());
+
 	if (!RM::GetRenderManager().IsBackBufferCleaned())
 	{
-		RM::GetRenderManager().SetBackBuffer();
+		float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+		RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().BackBufferRTV, RM::GetRenderManager().DSView);
 		RM::GetRenderManager().SetBackBufferCleaned(true);
 	}
 #endif
@@ -986,23 +1003,17 @@ void test::CleanupDevice()
 	#if defined(DX11)
 		if (GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()) GetManagerObj(m_hwnd).GetDeviceContext().GetDXDC()->ClearState();
 
-		//if (g_SimeSamplerState.GetDXSamplerState()) g_SimeSamplerState.GetDXSamplerState()->Release();
 		if (g_SimeTextureRV.GetDXSRV()) g_SimeTextureRV.GetDXSRV()->Release();
 		if (g_SimeCBNeverChanges.GetCBNeverChanges()) g_SimeCBNeverChanges.GetCBNeverChanges()->Release();
 		if (g_SimeCBChangeOnResize.GetCBChangesOnResize()) g_SimeCBChangeOnResize.GetCBChangesOnResize()->Release();
 		if (g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame()) g_SimeCBChangesEveryFrame.GetCBChangesEveryFrame()->Release();
-		if (g_DirLightBuffer.BGetBuffer()) g_DirLightBuffer.BGetBuffer()->Release();
-		if (g_PointLightBuffer.BGetBuffer()) g_PointLightBuffer.BGetBuffer()->Release();
-		if (g_SpotLightBuffer.BGetBuffer()) g_SpotLightBuffer.BGetBuffer()->Release();
+		if (RM::GetRenderManager().g_DirLightBuffer.BGetBuffer()) RM::GetRenderManager().g_DirLightBuffer.BGetBuffer()->Release();
+		if (RM::GetRenderManager().g_PointLightBuffer.BGetBuffer()) RM::GetRenderManager().g_PointLightBuffer.BGetBuffer()->Release();
+		if (RM::GetRenderManager().g_SpotLightBuffer.BGetBuffer()) RM::GetRenderManager().g_SpotLightBuffer.BGetBuffer()->Release();
 		if (g_SimeVertexBuffer.GetVertexBuffer()) g_SimeVertexBuffer.GetVertexBuffer()->Release();
 		if (g_SimeIndexBuffer.GetIndexBuffer()) g_SimeIndexBuffer.GetIndexBuffer()->Release();
-		//if (g_SimeInputLayout.GetDXInputLayout()) g_SimeInputLayout.GetDXInputLayout()->Release();
-		//if (g_SimeVertexShader.GetDXVertexShader()) g_SimeVertexShader.GetDXVertexShader()->Release();
-		//if (g_SimePixelShader.GetDXPixelShader()) g_SimePixelShader.GetDXPixelShader()->Release();
 		if (RM::GetRenderManager().DepthStencil.GetTexture()) RM::GetRenderManager().DepthStencil.GetTexture()->Release();
 		if (RM::GetRenderManager().DSView.GetDSV()) RM::GetRenderManager().DSView.GetDSV()->Release();
-		//if (g_SimeRenderTargetView.GetRTV()) g_SimeRenderTargetView.GetRTV()->Release();
-		//if (g_PositionRTV.GetRTV()) g_PositionRTV.GetRTV()->Release();
 
 		for (unsigned int i = 0; i < RM::GetRenderManager().GBufferRTV.GetRTVNum(); ++i)
 		{
@@ -1028,10 +1039,6 @@ void test::CleanupDevice()
 void test::UpdateOGL(GLFWwindow* _Window)
 {
 	int display_w, display_h;
-
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-	glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
 
 	glfwGetFramebufferSize(_Window, &display_w, &display_h);
 }

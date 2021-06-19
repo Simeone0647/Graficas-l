@@ -25,13 +25,13 @@ Effect::~Effect()
 {
 }
 
-void Effect::Render(HWND _hwnd, vector<Model>& _Models)
+void Effect::Render()
 {
 	for (unsigned int i = 0; i < m_vTechs[0].size(); ++i)
 	{
 		if (m_vTechs[0][i].IsActivated())
 		{
-			m_vTechs[0][i].Render(_hwnd, _Models);
+			m_vTechs[0][i].Render();
 			return;
 		}
 	}

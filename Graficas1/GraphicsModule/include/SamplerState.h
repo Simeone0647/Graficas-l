@@ -15,28 +15,25 @@ public:
 	SamplerState();
 	~SamplerState();
 
-#if defined(DX11)
-	//inline ID3D11SamplerState* GetDXSamplerState() { return m_pSamplerLinear; }
-	//inline ID3D11SamplerState** GetDXSamplerStateAddress() { return &m_pSamplerLinear; }
-
+	#if defined(DX11)
 	inline ID3D11SamplerState** GetDXSamplerStateAddress() { return m_vSamplers.data(); }
 	inline ID3D11SamplerState** GetLastElementAddress() { return &m_vSamplers.back(); }
 	inline void AddSampler() { ID3D11SamplerState* NewSamp = NULL; m_vSamplers.push_back(NewSamp); m_SampNum++; }
+	inline void AddDesc() { D3D11_SAMPLER_DESC Desc; m_vSampDesc.push_back(Desc); }
 
 	inline int GetSamplerNum() { return m_SampNum; }
 	inline ID3D11SamplerState* GetSampler(const int _i) { return m_vSamplers[_i]; }
 	inline ID3D11SamplerState** GetSamplerAddress(const int _i) { return &m_vSamplers[_i]; }
-	void SetDesc(const bool _Value);
+	void SetDesc(const bool _Value, const int _i);
 
-	inline D3D11_SAMPLER_DESC GetDXSamplerDesc() { return m_sampDesc; }
-	inline D3D11_SAMPLER_DESC* GetDXSamplerDescAddress() { return &m_sampDesc; }
-#endif
+	inline D3D11_SAMPLER_DESC GetDXSamplerDesc(const int _i) { return m_vSampDesc[_i]; }
+	inline D3D11_SAMPLER_DESC* GetDXSamplerDescAddress(const int _i) { return &m_vSampDesc[_i]; }
+	#endif
 private:
 
 #if defined (DX11)
 	vector<ID3D11SamplerState*> m_vSamplers;	
-	ID3D11SamplerState* m_pSamplerLinear;
-	D3D11_SAMPLER_DESC m_sampDesc;
+	vector<D3D11_SAMPLER_DESC> m_vSampDesc;
 
 	int m_SampNum;
 #endif

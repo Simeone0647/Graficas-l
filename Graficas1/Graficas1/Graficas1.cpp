@@ -31,7 +31,7 @@
 HWND g_hwnd;
 GraphicsModule::test m_Obj;
 #if defined(DX11) || defined(OGL)
-std::vector<Model> m_vModels;
+
 std::vector<Tech> m_vTechs;
 std::vector<Effect> m_vEffects;
 
@@ -51,8 +51,8 @@ static float OuterRadius = 0.0f;
 static float kAmbient = 0.0f;
 static float kSpecular = 0.0f;
 static float kDiffuse = 0.0f;
-static float Shininess = 1.0f;
-static float Expossure = 1.0f;
+static float Shininess = 0.1f;
+static float Expossure = 0.1f;
 
 static float AORadius = 0.0f;
 static float AOScale = 0.0f;
@@ -127,23 +127,23 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 	{
 		if (PreviousMouseRelativePosition[0] < xpos)
 		{
-			m_Obj.m_Camera->RotateCamera(-0.01, 0.0f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(-0.01, 0.0f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (PreviousMouseRelativePosition[0] > xpos)
 		{
-			m_Obj.m_Camera->RotateCamera(0.01, 0.0f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(0.01, 0.0f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (PreviousMouseRelativePosition[1] < ypos)
 		{
-			m_Obj.m_Camera->RotateCamera(0.0f, -0.01f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(0.0f, -0.01f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (PreviousMouseRelativePosition[1] > ypos)
 		{
-			m_Obj.m_Camera->RotateCamera(0.0f, 0.01f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(0.0f, 0.01f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 	}
 }
@@ -229,12 +229,12 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
 	{
 		if (m_Obj.m_IsPerspectiveActive)
 		{
-			m_Obj.m_Camera = &m_Obj.m_OrtographicCamera;
+			RM::GetRenderManager().m_Camera = &RM::GetRenderManager().m_OrtographicCamera;
 			m_Obj.m_IsPerspectiveActive = false;
 		}
 		else
 		{
-			m_Obj.m_Camera = &m_Obj.m_PerspectiveCamera;
+			RM::GetRenderManager().m_Camera = &RM::GetRenderManager().m_PerspectiveCamera;
 			m_Obj.m_IsPerspectiveActive = true;
 		}
 	}
@@ -244,48 +244,48 @@ static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, i
 		CameraPosition.m_X = 0.0f;
 		CameraPosition.m_Y = 0.1f;
 		CameraPosition.m_Z = 0.0f;
-		m_Obj.m_Camera->MoveCamera(CameraPosition);
-		m_Obj.m_Camera->UpdateViewMatrix();
+		RM::GetRenderManager().m_Camera->MoveCamera(CameraPosition);
+		RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 	}
 	if (OnA)
 	{
 		CameraPosition.m_X = -0.1f;
 		CameraPosition.m_Y = 0.0f;
 		CameraPosition.m_Z = 0.0f;
-		m_Obj.m_Camera->MoveCamera(CameraPosition);
-		m_Obj.m_Camera->UpdateViewMatrix();
+		RM::GetRenderManager().m_Camera->MoveCamera(CameraPosition);
+		RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 	}
 	if (OnS)
 	{
 		CameraPosition.m_X = 0.0f;
 		CameraPosition.m_Y = -0.1f;
 		CameraPosition.m_Z = 0.0f;
-		m_Obj.m_Camera->MoveCamera(CameraPosition);
-		m_Obj.m_Camera->UpdateViewMatrix();
+		RM::GetRenderManager().m_Camera->MoveCamera(CameraPosition);
+		RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 	}
 	if (OnD)
 	{
 		CameraPosition.m_X = 0.1f;
 		CameraPosition.m_Y = 0.0f;
 		CameraPosition.m_Z = 0.0f;
-		m_Obj.m_Camera->MoveCamera(CameraPosition);
-		m_Obj.m_Camera->UpdateViewMatrix();
+		RM::GetRenderManager().m_Camera->MoveCamera(CameraPosition);
+		RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 	}
 	if (OnQ)
 	{
 		CameraPosition.m_X = 0.0f;
 		CameraPosition.m_Y = 0.0f;
 		CameraPosition.m_Z = 0.1f;
-		m_Obj.m_Camera->MoveCamera(CameraPosition);
-		m_Obj.m_Camera->UpdateViewMatrix();
+		RM::GetRenderManager().m_Camera->MoveCamera(CameraPosition);
+		RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 	}
 	if (OnE)
 	{
 		CameraPosition.m_X = 0.0f;
 		CameraPosition.m_Y = 0.0f;
 		CameraPosition.m_Z = -0.1f;
-		m_Obj.m_Camera->MoveCamera(CameraPosition);
-		m_Obj.m_Camera->UpdateViewMatrix();
+		RM::GetRenderManager().m_Camera->MoveCamera(CameraPosition);
+		RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 	}
 }
 #endif
@@ -382,7 +382,7 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			InitVPStruct.TopLeftX = 0;
 			InitVPStruct.TopLeftY = 0;
 
-			GraphicsModule::UpdateProjectionMatrixStruct PMStruct;
+			RM::UpdateProjectionMatrixStruct PMStruct;
 			PMStruct.AngleY = SIME_PIDIV4;
 			PMStruct.Ratio = width / (FLOAT)height;
 			PMStruct.NearPlane = 0.01f;
@@ -390,8 +390,8 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			PMStruct.Width = width;
 			PMStruct.Height = height;
 
-			m_Obj.m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
-			m_Obj.m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
+			RM::GetRenderManager().m_PerspectiveCamera.UpdatePerspectiveProjectionMatrix(PMStruct);
+			RM::GetRenderManager().m_OrtographicCamera.UpdateOrtographicProjectionMatrix(PMStruct);
 
 			m_Obj.g_SimeViewport.InitViewport(InitVPStruct);
 			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetViewports(1, m_Obj.g_SimeViewport.GetViewportAddress());
@@ -403,7 +403,7 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			UpdateSBStruct.SrcDepthPitch = 0;
 			
 			GraphicsModule::CBChangeOnResize cbChangesOnResize;
-			cbChangesOnResize.mProjection = XMMatrixTranspose(m_Obj.m_Camera->m_ProjectionMatrix);
+			cbChangesOnResize.mProjection = XMMatrixTranspose(RM::GetRenderManager().m_Camera->m_ProjectionMatrix);
 			UpdateSBStruct.pDstResource = m_Obj.g_SimeCBChangeOnResize.GetCBChangesOnResize();
 			UpdateSBStruct.pSrcData = &cbChangesOnResize;
 			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSBStruct);
@@ -419,8 +419,8 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			CamPos.m_Y = 0.1f;
 			CamPos.m_Z = 0.0f;
 			//cam_pos.SetValues(0.0f, 0.1f, 0.0f);
-			m_Obj.m_Camera->MoveCamera(CamPos);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->MoveCamera(CamPos);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'A')
 		{
@@ -429,8 +429,8 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			CamPos.m_Y = 0.0f;
 			CamPos.m_Z = 0.0f;
 
-			m_Obj.m_Camera->MoveCamera(CamPos);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->MoveCamera(CamPos);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'S')
 		{
@@ -438,8 +438,8 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			CamPos.m_X = 0.0f;
 			CamPos.m_Y = -0.1f;
 			CamPos.m_Z = 0.0f;
-			m_Obj.m_Camera->MoveCamera(CamPos);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->MoveCamera(CamPos);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'D')
 		{
@@ -447,8 +447,8 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			CamPos.m_X = 0.1f;
 			CamPos.m_Y = 0.0f;
 			CamPos.m_Z = 0.0f;
-			m_Obj.m_Camera->MoveCamera(CamPos);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->MoveCamera(CamPos);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'Q')
 		{
@@ -456,8 +456,8 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			CamPos.m_X = 0.0f;
 			CamPos.m_Y = 0.0f;
 			CamPos.m_Z = 0.1f;
-			m_Obj.m_Camera->MoveCamera(CamPos);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->MoveCamera(CamPos);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (LOWORD(_wParam) == 'E')
 		{
@@ -465,19 +465,19 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 			CamPos.m_X = 0.0f;
 			CamPos.m_Y = 0.0f;
 			CamPos.m_Z = -0.1f;
-			m_Obj.m_Camera->MoveCamera(CamPos);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->MoveCamera(CamPos);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (_wParam == VK_TAB)
 		{
 			if (m_Obj.m_IsPerspectiveActive)
 			{
-				m_Obj.m_Camera = &m_Obj.m_OrtographicCamera;
+				RM::GetRenderManager().m_Camera = &RM::GetRenderManager().m_OrtographicCamera;
 				m_Obj.m_IsPerspectiveActive = false;
 			}
 			else
 			{
-				m_Obj.m_Camera = &m_Obj.m_PerspectiveCamera;
+				RM::GetRenderManager().m_Camera = &RM::GetRenderManager().m_PerspectiveCamera;
 				m_Obj.m_IsPerspectiveActive = true;
 			}
 		}
@@ -507,23 +507,23 @@ LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam)
 		if (PreviousMouseRelativePosition[0] < xPos)
 		{
 			//std::cout << "Esta avanzando" << std::endl;
-			m_Obj.m_Camera->RotateCamera(-0.01, 0.0f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(-0.01, 0.0f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (PreviousMouseRelativePosition[0] > xPos)
 		{
-			m_Obj.m_Camera->RotateCamera(0.01, 0.0f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(0.01, 0.0f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (PreviousMouseRelativePosition[1] < yPos)
 		{
-			m_Obj.m_Camera->RotateCamera(0.0f, -0.01f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(0.0f, -0.01f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 		if (PreviousMouseRelativePosition[1] > yPos)
 		{
-			m_Obj.m_Camera->RotateCamera(0.0f, 0.01f, 0.0f);
-			m_Obj.m_Camera->UpdateViewMatrix();
+			RM::GetRenderManager().m_Camera->RotateCamera(0.0f, 0.01f, 0.0f);
+			RM::GetRenderManager().m_Camera->UpdateViewMatrix();
 		}
 	#endif
 	}
@@ -617,6 +617,7 @@ Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, const int _Flags[])
 		Vertex vertex;
 
 		vertex.SetPosition(_Mesh->mVertices[i].x, _Mesh->mVertices[i].y, _Mesh->mVertices[i].z);
+
 		if (_Mesh->HasNormals())
 		{
 			vertex.SetNormal(_Mesh->mNormals[i].x, _Mesh->mNormals[i].y, _Mesh->mNormals[i].z);
@@ -671,38 +672,38 @@ Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, const int _Flags[])
 			}
 		}
 	}
-	return Mesh(vMeshVertex, vMeshIndices, vFilename, _Flags, _Mesh->mName.data, m_Obj.programID);
+	return Mesh(vMeshVertex, vMeshIndices, vFilename, _Flags, _Mesh->mName.data);
 }
 
 void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[], const int _PassID)
 {
-	m_vModels.push_back(Model());
-	m_vModels[ModelNum].SetName(_ModelName);
+	RM::GetRenderManager().m_vModels.push_back(Model());
+	RM::GetRenderManager().m_vModels.back().SetName(_ModelName);
+
 	if (_PassID > kVertexBlinnPhong)
 	{
 		for (unsigned int i = kVertexBlinnPhong; i <= kPixelBlinnPhongNMSM; ++i )
 		{
-			m_vModels[ModelNum].SetPassID(i);
+			RM::GetRenderManager().m_vModels.back().SetPassID(i);
 		}
 	}
 	else
 	{
-		m_vModels[ModelNum].SetPassID(_PassID);
+		RM::GetRenderManager().m_vModels.back().SetPassID(_PassID);
 	}
 	
 
 	int NumMeshes = _scene->mNumMeshes;
-	m_vModels[ModelNum].SetMeshNum(NumMeshes);
+	RM::GetRenderManager().m_vModels.back().SetMeshNum(NumMeshes);
 	
 	for (int i = 0; i < NumMeshes; ++i)
 	{
 		aiMesh* ActualMesh = _scene->mMeshes[i];
 
-		m_vModels[ModelNum].AddMesh(LoadMesh(ActualMesh, _scene, _Flags));
+		RM::GetRenderManager().m_vModels.back().AddMesh(LoadMesh(ActualMesh, _scene, _Flags));
 	}
 
-	m_vModels[ModelNum].SetUpModel(g_hwnd);
-	ModelNum++;
+	RM::GetRenderManager().m_vModels.back().SetUpModel(g_hwnd);
 }
 
 void LoadSAQ(const int _Flags[])
@@ -731,16 +732,16 @@ void LoadSAQ(const int _Flags[])
 
 		for (unsigned int i = 0; i < ModelNum; ++i)
 		{
-			if (Filename == m_vModels[i].GetName())
+			if (Filename == RM::GetRenderManager().m_vModels[i].GetName())
 			{
-				if (m_vModels[i].GetPassID(0))
+				if (RM::GetRenderManager().m_vModels[i].GetPassID(0))
 				{
 					std::cout << "Model Already Imported!" << std::endl;
 					return;
 				}
 				else
 				{
-					m_vModels[i].SetPassID(0);
+					RM::GetRenderManager().m_vModels[i].SetPassID(0);
 					return;
 				}
 			}
@@ -776,16 +777,16 @@ void LoadSphere(const int _Flags[])
 
 		for (unsigned int i = 0; i < ModelNum; ++i)
 		{
-			if (Filename == m_vModels[i].GetName())
+			if (Filename == RM::GetRenderManager().m_vModels[i].GetName())
 			{
-				if (m_vModels[i].GetPassID(0))
+				if (RM::GetRenderManager().m_vModels[i].GetPassID(0))
 				{
 					std::cout << "Model Already Imported!" << std::endl;
 					return;
 				}
 				else
 				{
-					m_vModels[i].SetPassID(0);
+					RM::GetRenderManager().m_vModels[i].SetPassID(0);
 					return;
 				}
 			}
@@ -838,16 +839,16 @@ void OpenMeshMenu(const int _Flags[], const int _PassID)
 
 		for (unsigned int i = 0; i < ModelNum; ++i)
 		{
-			if (Filename == m_vModels[i].GetName())
+			if (Filename == RM::GetRenderManager().m_vModels[i].GetName())
 			{
-				if (m_vModels[i].GetPassID(_PassID))
+				if (RM::GetRenderManager().m_vModels[i].GetPassID(_PassID))
 				{
 					std::cout << "Model Already Imported!" << std::endl;
 					return;
 				}
 				else
 				{
-					m_vModels[i].SetPassID(_PassID);
+					RM::GetRenderManager().m_vModels[i].SetPassID(_PassID);
 					return;
 				}
 			}
@@ -898,30 +899,32 @@ void ShowMenuOptions()
 
 void ShowMeshesMenu(const unsigned int _i)
 {
-	for (unsigned int j = 0; j < m_vModels[_i].GetMeshes().size(); ++j)
+	for (unsigned int j = 0; j < RM::GetRenderManager().m_vModels[_i].GetMeshes().size(); ++j)
 	{
-		if (ImGui::CollapsingHeader(m_vModels[_i].GetMeshes()[j].GetName().c_str()))
+		if (ImGui::CollapsingHeader(RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetName().c_str()))
 		{
 			if (ImGui::TreeNode("Textures"))
 			{
 				float TextureWidth = 100.0f;
 				float TextureHeight = 100.0f;
-				#if defined(OGL)
-				ImTextureID TextureID = (void*)m_vModels[_i].GetMeshes()[j].GetTexID();
-				#endif
 
 				ImVec2 Position = ImGui::GetCursorScreenPos();
 				ImVec2 UVMin = ImVec2(0.0f, 0.0f);
 				ImVec2 UVMax = ImVec2(1.0f, 1.0f);
 				ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 				ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
-				#if defined(DX11)
-				for (unsigned int i = 0; i < m_vModels[_i].GetMeshes()[j].GetMaterial()->GetTexNum(); ++i)
+				
+				for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetMaterial()->GetTexNum(); ++i)
 				{
-					ImTextureID TextureID = m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture(i)->GetDXSRV();
+					#if defined(DX11)
+					ImTextureID TextureID = RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture(i)->GetDXSRV();
+					#endif
+					#if defined(OGL)
+					ImTextureID TextureID = (void*)RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetTexID(i);
+					#endif
 					ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
+
 				}
-				#endif
 				ImGui::TreePop();
 			}
 		}
@@ -930,17 +933,23 @@ void ShowMeshesMenu(const unsigned int _i)
 
 void UpdateTransformMenu(const unsigned int _i)
 {
-	if (ImGui::DragFloat3("Position", m_vModels[_i].m_GuiPos, 0.01f))
+	if (ImGui::DragFloat3("Position", RM::GetRenderManager().m_vModels[_i].m_GuiPos, 0.01f))
 	{
-		m_vModels[_i].UpdateTranslationMatrix(m_vModels[_i].GetGuiPos()[0] * 10.0f, m_vModels[_i].GetGuiPos()[1] * 10.0f, m_vModels[_i].GetGuiPos()[2] * 10.0f);
+		RM::GetRenderManager().m_vModels[_i].UpdateTranslationMatrix(RM::GetRenderManager().m_vModels[_i].GetGuiPos()[0] * 10.0f,
+																	 RM::GetRenderManager().m_vModels[_i].GetGuiPos()[1] * 10.0f,
+																	 RM::GetRenderManager().m_vModels[_i].GetGuiPos()[2] * 10.0f);
 	}
-	if (ImGui::DragFloat3("Rotation", m_vModels[_i].GetGuiRot(), 1.0f))
+	if (ImGui::DragFloat3("Rotation", RM::GetRenderManager().m_vModels[_i].GetGuiRot(), 1.0f))
 	{
-		m_vModels[_i].UpdateRotationMatrix(m_vModels[_i].GetGuiRot()[0], m_vModels[_i].GetGuiRot()[1], m_vModels[_i].GetGuiRot()[2]);
+		RM::GetRenderManager().m_vModels[_i].UpdateRotationMatrix(RM::GetRenderManager().m_vModels[_i].GetGuiRot()[0],
+																  RM::GetRenderManager().m_vModels[_i].GetGuiRot()[1],
+																  RM::GetRenderManager().m_vModels[_i].GetGuiRot()[2]);
 	}
-	if (ImGui::DragFloat3("Scale", m_vModels[_i].GetGuiScale(), 0.001f))
+	if (ImGui::DragFloat3("Scale", RM::GetRenderManager().m_vModels[_i].GetGuiScale(), 0.001f))
 	{
-		m_vModels[_i].UpdateScaleMatrix(m_vModels[_i].GetGuiScale()[0], m_vModels[_i].GetGuiScale()[1], m_vModels[_i].GetGuiScale()[2]);
+		RM::GetRenderManager().m_vModels[_i].UpdateScaleMatrix(RM::GetRenderManager().m_vModels[_i].GetGuiScale()[0],
+															   RM::GetRenderManager().m_vModels[_i].GetGuiScale()[1],
+															   RM::GetRenderManager().m_vModels[_i].GetGuiScale()[2]);
 	}
 }
 
@@ -997,10 +1006,10 @@ void UpdateTransformMenu(const unsigned int _i)
 
 void AccessModels()
 {
-	for (unsigned int i = 0; i < m_vModels.size(); ++i)
+	for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 	{
 	
-		if (ImGui::TreeNode(m_vModels[i].GetName().c_str()))
+		if (ImGui::TreeNode(RM::GetRenderManager().m_vModels[i].GetName().c_str()))
 		{
 			ImGui::SameLine();
 			ImGui::TextDisabled("(?)");
@@ -1008,7 +1017,7 @@ void AccessModels()
 			{
 				ImGui::BeginTooltip();
 				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 8);
-				std::string MeshNumText = "Meshes:" + to_string(m_vModels[i].GetMeshNum());
+				std::string MeshNumText = "Meshes:" + to_string(RM::GetRenderManager().m_vModels[i].GetMeshNum());
 				ImGui::TextUnformatted(&MeshNumText[0]);
 				ImGui::PopTextWrapPos();
 				ImGui::EndTooltip();
@@ -1039,7 +1048,7 @@ void AccessModels()
 			{
 				ImGui::BeginTooltip();
 				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20);
-				std::string MeshNumText = "Meshes:" + to_string(m_vModels[i].GetMeshNum());
+				std::string MeshNumText = "Meshes:" + to_string(RM::GetRenderManager().m_vModels[i].GetMeshNum());
 				ImGui::TextUnformatted(&MeshNumText[0]);
 				ImGui::PopTextWrapPos();
 				ImGui::EndTooltip();
@@ -1110,11 +1119,11 @@ void PassesMenu(const int _i)
 
 			if (ImGui::TreeNode("Models"))
 			{
-				for (unsigned int i = 0; i < m_vModels.size(); ++i)
+				for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 				{
-					if (m_vModels[i].GetPassID(m_vEffects[_i].GetPassID(j)))
+					if (RM::GetRenderManager().m_vModels[i].GetPassID(m_vEffects[_i].GetPassID(j)))
 					{
-						ImGui::Text(m_vModels[i].GetName().c_str());
+						ImGui::Text(RM::GetRenderManager().m_vModels[i].GetName().c_str());
 					}
 				}
 
@@ -1153,11 +1162,8 @@ void ForwardMenu(const int _i)
 				TDesc.LightingModel = CurrentLightingModels;
 
 				m_vEffects[_i].ActivateTech(TDesc);
-				//m_vTechs[CurrentLightingModel].Activate();
-				//m_vTechs[CurrentLightingModel].SetModels(&m_vModels, 0);
 			}
 
-			// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
 			if (IsSelected)
 			{
 				ImGui::SetItemDefaultFocus();
@@ -1509,8 +1515,6 @@ void EffectsMenu(const int _i)
 						m_vEffects[_i].DeactivateTech();
 						m_vEffects[_i].SetRenderTech(0);
 
-						RM::GetRenderManager().SetBackBuffer();
-
 						TDesc.Features = 0;
 						TDesc.LightingModel = 0;
 						TDesc.LightingPlace = 0;
@@ -1629,22 +1633,52 @@ void UIRender()
 			{
 				for (unsigned int i = 0; i < 4; ++i)
 				{
+					#if defined(DX11)
 					ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+					#endif
 				}
-				ImGui::ImageButton((void*)RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
-				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[6].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
-				ImGui::ImageButton((void*)RM::GetRenderManager().GBufferSRV[5].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				#if defined(DX11)
+				ImGui::ImageButton((void*)RM::GetRenderManager().SkyboxSRV.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().DefSSAOSRV.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().DefCopySRV.GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+				#endif
+				#if defined(OGL)
+				ImGui::ImageButton((void*)RM::GetRenderManager().PositionTex, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().NormalTex, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().SpecularTex, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().AlbedoTex, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().DefSkyboxTex, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().SSAOTex, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().ToneTex, ImVec2(1920 / 4, 1080 / 4));
+				#endif
 			}
 			else if (m_vEffects[0].GetActiveRenderTech() == 0)
 			{
 				for (unsigned int i = 0; i < 2; ++i)
 				{
+					#if defined(DX11)
 					ImGui::ImageButton((void*)RM::GetRenderManager().ForwardSRV[i].GetDXSRV(), ImVec2(1920 / 4, 1080 / 4));
+					#endif
 				}
+				#if defined(OGL)
+				ImGui::ImageButton((void*)RM::GetRenderManager().SkyboxTexOGL, ImVec2(1920 / 4, 1080 / 4));
+				ImGui::ImageButton((void*)RM::GetRenderManager().LightTexOGL, ImVec2(1920 / 4, 1080 / 4));
+				#endif
 			}
 		}
 	}
 
+	float TextureWidth = 100.0f;
+	float TextureHeight = 100.0f;
+	ImVec2 UVMin = ImVec2(0.0f, 0.0f);
+	ImVec2 UVMax = ImVec2(1.0f, 1.0f);
+	ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+	ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
+
+	#if defined(DX11)
+	ImTextureID TextureID = (void*)RM::GetRenderManager().SkyboxSRVResource.GetDXSRV();
+	ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
+	#endif
 
 	ImGui::End();
 
@@ -1655,33 +1689,49 @@ void UIRender()
 		if (ImGui::DragFloat("kDiffuse", &kDiffuse, 0.01f, 0.0f, 100.0f))
 		{
 			#if defined(DX11)
-			m_Obj.g_Diffuse.kDiffuse = XMFLOAT4(kDiffuse, 0.0f, 0.0f, 0.0f);
+			RM::GetRenderManager().g_Diffuse.kDiffuse = XMFLOAT4(kDiffuse, 0.0f, 0.0f, 0.0f);
 			#endif
 			#if defined(OGL)
+			RM::GetRenderManager().g_Diffuse.kDiffuse[0] = kDiffuse;
+			RM::GetRenderManager().g_Diffuse.kDiffuse[1] = 0.0f;
+			RM::GetRenderManager().g_Diffuse.kDiffuse[2] = 0.0f;
+			RM::GetRenderManager().g_Diffuse.kDiffuse[3] = 0.0f;
 			#endif
 		}
 		if (ImGui::DragFloat("kSpecular", &kSpecular, 0.01f, 0.0f, 100.0f))
 		{
 			#if defined(DX11)
-			m_Obj.g_Specular.kSpecular = XMFLOAT4(kSpecular, 0.0f, 0.0f, 0.0f);
+			RM::GetRenderManager().g_Specular.kSpecular = XMFLOAT4(kSpecular, 0.0f, 0.0f, 0.0f);
 			#endif
 			#if defined(OGL)
+			RM::GetRenderManager().g_Specular.kSpecular[0] = kSpecular;
+			RM::GetRenderManager().g_Specular.kSpecular[1] = 0.0f;
+			RM::GetRenderManager().g_Specular.kSpecular[2] = 0.0f;
+			RM::GetRenderManager().g_Specular.kSpecular[3] = 0.0f;
 			#endif
 		}
-		if (ImGui::DragFloat("Shininess", &Shininess, 0.01f, 1.0f, 100.0f))
+		if (ImGui::DragFloat("Shininess", &Shininess, 0.01f, 0.01f, 100.0f))
 		{
 			#if defined(DX11)
-			m_Obj.g_Specular.Shininess = XMFLOAT4(Shininess, 0.0f, 0.0f, 0.0f);
+			RM::GetRenderManager().g_Specular.Shininess = XMFLOAT4(Shininess, 0.0f, 0.0f, 0.0f);
 			#endif
 			#if defined(OGL)
+			RM::GetRenderManager().g_Specular.Shininess[0] = Shininess;
+			RM::GetRenderManager().g_Specular.Shininess[1] = 0.0f;
+			RM::GetRenderManager().g_Specular.Shininess[2] = 0.0f;
+			RM::GetRenderManager().g_Specular.Shininess[3] = 0.0f;
 			#endif
 		}
-		if (ImGui::DragFloat("Expossure", &Expossure, 0.01f, 1.0f, 100.0f))
+		if (ImGui::DragFloat("Expossure", &Expossure, 0.01f, 0.01f, 100.0f))
 		{
 			#if defined(DX11)
-			m_Obj.g_Expossure.Expo = XMFLOAT4(Expossure, 0.0f, 0.0f, 0.0f);
+			RM::GetRenderManager().g_Expossure.Expo = XMFLOAT4(Expossure, 0.0f, 0.0f, 0.0f);
 			#endif
 			#if defined(OGL)
+			RM::GetRenderManager().g_Expossure.Expo[0] = Expossure;
+			RM::GetRenderManager().g_Expossure.Expo[1] = 0.0f;
+			RM::GetRenderManager().g_Expossure.Expo[2] = 0.0f;
+			RM::GetRenderManager().g_Expossure.Expo[3] = 0.0f;
 			#endif
 		}
 		if (m_vEffects[0].GetActiveRenderTech() == 1)
@@ -1690,47 +1740,27 @@ void UIRender()
 			{
 				if (ImGui::DragFloat("Radius", &AORadius, 0.01f, 0.0f, 1.0f))
 				{
-					#if defined(DX11)
-					m_Obj.g_AO.Radius = AORadius;
-					#endif
-					#if defined(OGL)
-					#endif
+					RM::GetRenderManager().g_AO.Radius = AORadius;
 				}
 
 				if (ImGui::DragFloat("Bias", &AOBias, 0.01f, 0.0f, 1.0f))
 				{
-					#if defined(DX11)
-					m_Obj.g_AO.Bias = AOBias;
-					#endif
-					#if defined(OGL)
-					#endif
+					RM::GetRenderManager().g_AO.Bias = AOBias;
 				}
 
 				if (ImGui::DragFloat("Scale", &AOScale, 0.01f, 0.0f, 1.0f))
 				{
-					#if defined(DX11)
-					m_Obj.g_AO.Scale = AOScale;
-					#endif
-					#if defined(OGL)
-					#endif
+					RM::GetRenderManager().g_AO.Scale = AOScale;
 				}
 
 				if (ImGui::DragFloat("Intensity", &AOIntensity, 0.01f, 0.0f, 10.0f))
 				{
-					#if defined(DX11)
-					m_Obj.g_AO.Intensity = AOIntensity;
-					#endif
-					#if defined(OGL)
-					#endif
+					RM::GetRenderManager().g_AO.Intensity = AOIntensity;
 				}
 
 				if (ImGui::DragInt("Iterations", &AOIterations, 1.0f, 1, 10))
 				{
-					#if defined(DX11)
-					m_Obj.g_AO.Iterations = AOIterations;
-					#endif
-					#if defined(OGL)
-					#endif
+					RM::GetRenderManager().g_AO.Iterations = AOIterations;
 				}
 				ImGui::TreePop();
 			}
@@ -1742,18 +1772,25 @@ void UIRender()
 			if (ImGui::DragFloat("kAmbient", &kAmbient, 0.01f, 0.0f, 100.0f))
 			{
 				#if defined(DX11)
-				m_Obj.g_Ambient.kAmbient = XMFLOAT4(kAmbient, 0.0f, 0.0f, 0.0f);
+				RM::GetRenderManager().g_Ambient.kAmbient = XMFLOAT4(kAmbient, 0.0f, 0.0f, 0.0f);
 				#endif
 				#if defined(OGL)
+				RM::GetRenderManager().g_Ambient.kAmbient[0] = kAmbient;
+				RM::GetRenderManager().g_Ambient.kAmbient[1] = 0.0f;
+				RM::GetRenderManager().g_Ambient.kAmbient[2] = 0.0f;
+				RM::GetRenderManager().g_Ambient.kAmbient[3] = 0.0f;
 				#endif
 			}
 			if (ImGui::ColorPicker4("Ambient Color##4", (float*)&AmbientLightColor, Flags))
 			{
 				#if defined(DX11)
-				m_Obj.g_Ambient.AmbientColor = XMFLOAT4(AmbientLightColor.x, AmbientLightColor.y, AmbientLightColor.z, AmbientLightColor.w);
+				RM::GetRenderManager().g_Ambient.AmbientColor = XMFLOAT4(AmbientLightColor.x, AmbientLightColor.y, AmbientLightColor.z, AmbientLightColor.w);
 				#endif
 				#if defined(OGL)
-
+				RM::GetRenderManager().g_Ambient.AmbientColor[0] = AmbientLightColor.x;
+				RM::GetRenderManager().g_Ambient.AmbientColor[1] = AmbientLightColor.y;
+				RM::GetRenderManager().g_Ambient.AmbientColor[2] = AmbientLightColor.z;
+				RM::GetRenderManager().g_Ambient.AmbientColor[3] = AmbientLightColor.w;
 				#endif
 			}
 			ImGui::TreePop();
@@ -1763,13 +1800,13 @@ void UIRender()
 			if (ImGui::DragFloat3("Direction", DirectionLightDir, 0.001f, -1.0f, 1.0f))
 			{
 			#if defined(DX11)
-				m_Obj.g_DirLightBufferDesc.Dir = XMFLOAT4(DirectionLightDir[0], DirectionLightDir[1], DirectionLightDir[2], 0.0f);
+				RM::GetRenderManager().g_DirLightBufferDesc.Dir = XMFLOAT4(DirectionLightDir[0], DirectionLightDir[1], DirectionLightDir[2], 0.0f);
 			#endif
 			#if defined(OGL)
-				m_Obj.g_DirLightBufferDesc.Dir[0] = DirectionLightDir[0];
-				m_Obj.g_DirLightBufferDesc.Dir[1] = DirectionLightDir[1];
-				m_Obj.g_DirLightBufferDesc.Dir[2] = DirectionLightDir[2];
-				m_Obj.g_DirLightBufferDesc.Dir[3] = 0.0f;
+				RM::GetRenderManager().g_DirLightBufferDesc.Dir[0] = DirectionLightDir[0];
+				RM::GetRenderManager().g_DirLightBufferDesc.Dir[1] = DirectionLightDir[1];
+				RM::GetRenderManager().g_DirLightBufferDesc.Dir[2] = DirectionLightDir[2];
+				RM::GetRenderManager().g_DirLightBufferDesc.Dir[3] = 0.0f;
 
 			#endif
 			}
@@ -1777,13 +1814,13 @@ void UIRender()
 			if (ImGui::ColorPicker4("Color##4", (float*)&DirLightColor, Flags))
 			{
 			#if defined(DX11)
-				m_Obj.g_DirLightBufferDesc.Color = XMFLOAT4(DirLightColor.x, DirLightColor.y, DirLightColor.z, DirLightColor.w);
+				RM::GetRenderManager().g_DirLightBufferDesc.Color = XMFLOAT4(DirLightColor.x, DirLightColor.y, DirLightColor.z, DirLightColor.w);
 			#endif
 			#if defined(OGL)
-				m_Obj.g_DirLightBufferDesc.Color[0] = DirLightColor.x;
-				m_Obj.g_DirLightBufferDesc.Color[1] = DirLightColor.y;
-				m_Obj.g_DirLightBufferDesc.Color[2] = DirLightColor.z;
-				m_Obj.g_DirLightBufferDesc.Color[3] = DirLightColor.w;
+				RM::GetRenderManager().g_DirLightBufferDesc.Color[0] = DirLightColor.x;
+				RM::GetRenderManager().g_DirLightBufferDesc.Color[1] = DirLightColor.y;
+				RM::GetRenderManager().g_DirLightBufferDesc.Color[2] = DirLightColor.z;
+				RM::GetRenderManager().g_DirLightBufferDesc.Color[3] = DirLightColor.w;
 			#endif
 			}
 			ImGui::TreePop();
@@ -1793,38 +1830,38 @@ void UIRender()
 			if (ImGui::DragFloat3("Position", PointLightPos, 0.1f))
 			{
 				#if defined(DX11)
-				m_Obj.g_PointLightBufferDesc.Position = XMFLOAT4(PointLightPos[0], PointLightPos[1], PointLightPos[2], 1.0f);
+				RM::GetRenderManager().g_PointLightBufferDesc.Position = XMFLOAT4(PointLightPos[0], PointLightPos[1], PointLightPos[2], 1.0f);
 				#endif
 				#if defined(OGL)
-				m_Obj.g_PointLightBufferDesc.Position[0] = PointLightPos[0];
-				m_Obj.g_PointLightBufferDesc.Position[1] = PointLightPos[1];
-				m_Obj.g_PointLightBufferDesc.Position[2] = PointLightPos[2];
-				m_Obj.g_PointLightBufferDesc.Position[3] = 1.0f;
+				RM::GetRenderManager().g_PointLightBufferDesc.Position[0] = PointLightPos[0];
+				RM::GetRenderManager().g_PointLightBufferDesc.Position[1] = PointLightPos[1];
+				RM::GetRenderManager().g_PointLightBufferDesc.Position[2] = PointLightPos[2];
+				RM::GetRenderManager().g_PointLightBufferDesc.Position[3] = 1.0f;
 				#endif
 			}
 			if (ImGui::DragFloat("Attenuation", &PointLightAttenuation, 0.1f, 0.0f, 100.0f))
 			{
 				#if defined(DX11)
-				m_Obj.g_PointLightBufferDesc.Attenuation = XMFLOAT4(PointLightAttenuation, 0.0f, 0.0f, 0.0f);
+				RM::GetRenderManager().g_PointLightBufferDesc.Attenuation = XMFLOAT4(PointLightAttenuation, 0.0f, 0.0f, 0.0f);
 				#endif
 				#if defined(OGL)
-				m_Obj.g_PointLightBufferDesc.Attenuation[0] = PointLightAttenuation;
-				m_Obj.g_PointLightBufferDesc.Attenuation[1] = 0.0f;
-				m_Obj.g_PointLightBufferDesc.Attenuation[2] = 0.0f;
-				m_Obj.g_PointLightBufferDesc.Attenuation[3] = 0.0f;
+				RM::GetRenderManager().g_PointLightBufferDesc.Attenuation[0] = PointLightAttenuation;
+				RM::GetRenderManager().g_PointLightBufferDesc.Attenuation[1] = 0.0f;
+				RM::GetRenderManager().g_PointLightBufferDesc.Attenuation[2] = 0.0f;
+				RM::GetRenderManager().g_PointLightBufferDesc.Attenuation[3] = 0.0f;
 				#endif
 			}
 
 			if (ImGui::ColorPicker4("Color##4", (float*)&PointLightColor, Flags))
 			{
 			#if defined(DX11)
-				m_Obj.g_PointLightBufferDesc.Color = XMFLOAT4(PointLightColor.x, PointLightColor.y, PointLightColor.z, PointLightColor.w);
+				RM::GetRenderManager().g_PointLightBufferDesc.Color = XMFLOAT4(PointLightColor.x, PointLightColor.y, PointLightColor.z, PointLightColor.w);
 			#endif
 			#if defined(OGL)
-				m_Obj.g_PointLightBufferDesc.Color[0] = PointLightColor.x;
-				m_Obj.g_PointLightBufferDesc.Color[1] = PointLightColor.y;
-				m_Obj.g_PointLightBufferDesc.Color[2] = PointLightColor.z;
-				m_Obj.g_PointLightBufferDesc.Color[3] = PointLightColor.w;
+				RM::GetRenderManager().g_PointLightBufferDesc.Color[0] = PointLightColor.x;
+				RM::GetRenderManager().g_PointLightBufferDesc.Color[1] = PointLightColor.y;
+				RM::GetRenderManager().g_PointLightBufferDesc.Color[2] = PointLightColor.z;
+				RM::GetRenderManager().g_PointLightBufferDesc.Color[3] = PointLightColor.w;
 			#endif
 			}
 				ImGui::TreePop();
@@ -1835,54 +1872,54 @@ void UIRender()
 			if (ImGui::DragFloat3("Direction", SpotLightDir, 0.001f, -1.0f, 1.0f))
 			{
 				#if defined(DX11)
-				m_Obj.g_SpotLightBufferDesc.Dir = XMFLOAT4(SpotLightDir[0], SpotLightDir[1], SpotLightDir[2], 0.0f);
+				RM::GetRenderManager().g_SpotLightBufferDesc.Dir = XMFLOAT4(SpotLightDir[0], SpotLightDir[1], SpotLightDir[2], 0.0f);
 				#endif
 				#if defined(OGL)
-				m_Obj.g_SpotLightBufferDesc.Dir[0] = SpotLightDir[0];
-				m_Obj.g_SpotLightBufferDesc.Dir[1] = SpotLightDir[1];
-				m_Obj.g_SpotLightBufferDesc.Dir[2] = SpotLightDir[2];
-				m_Obj.g_SpotLightBufferDesc.Dir[3] = 0.0f;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Dir[0] = SpotLightDir[0];
+				RM::GetRenderManager().g_SpotLightBufferDesc.Dir[1] = SpotLightDir[1];
+				RM::GetRenderManager().g_SpotLightBufferDesc.Dir[2] = SpotLightDir[2];
+				RM::GetRenderManager().g_SpotLightBufferDesc.Dir[3] = 0.0f;
 				#endif
 			}
 
 			if (ImGui::DragFloat3("Position", SpotLightPos, 0.1f))
 			{
 				#if defined(DX11)
-				m_Obj.g_SpotLightBufferDesc.Pos = XMFLOAT4(SpotLightPos[0], SpotLightPos[1], SpotLightPos[2], 1.0f);
+				RM::GetRenderManager().g_SpotLightBufferDesc.Pos = XMFLOAT4(SpotLightPos[0], SpotLightPos[1], SpotLightPos[2], 1.0f);
 				#endif
 				#if defined(OGL)
-				m_Obj.g_SpotLightBufferDesc.Pos[0] = SpotLightPos[0];
-				m_Obj.g_SpotLightBufferDesc.Pos[1] = SpotLightPos[1];
-				m_Obj.g_SpotLightBufferDesc.Pos[2] = SpotLightPos[2];
-				m_Obj.g_SpotLightBufferDesc.Pos[3] = 1.0f;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Pos[0] = SpotLightPos[0];
+				RM::GetRenderManager().g_SpotLightBufferDesc.Pos[1] = SpotLightPos[1];
+				RM::GetRenderManager().g_SpotLightBufferDesc.Pos[2] = SpotLightPos[2];
+				RM::GetRenderManager().g_SpotLightBufferDesc.Pos[3] = 1.0f;
 				#endif
 			}
 
 			if (ImGui::DragFloat("Attenuation", &SpotLightAttenuation, 0.1f, 0.0f, 100.0f))
 			{
-				m_Obj.g_SpotLightBufferDesc.Attenuation = SpotLightAttenuation;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Attenuation = SpotLightAttenuation;
 			}
 
 			if (ImGui::DragFloat("Inner Radius", &InnerRadius, 0.1f))
 			{
-				m_Obj.g_SpotLightBufferDesc.InnerRadius = InnerRadius;
+				RM::GetRenderManager().g_SpotLightBufferDesc.InnerRadius = InnerRadius;
 			}
 
 			if (ImGui::DragFloat("Outer Radius", &OuterRadius, 0.1f))
 			{
-				m_Obj.g_SpotLightBufferDesc.OuterRadius = OuterRadius;
+				RM::GetRenderManager().g_SpotLightBufferDesc.OuterRadius = OuterRadius;
 			}
 
 			if (ImGui::ColorPicker4("Color##4", (float*)&SpotLightColor, Flags))
 			{
 				#if defined(DX11)
-				m_Obj.g_SpotLightBufferDesc.Color = XMFLOAT4(SpotLightColor.x, SpotLightColor.y, SpotLightColor.z, SpotLightColor.w);
+				RM::GetRenderManager().g_SpotLightBufferDesc.Color = XMFLOAT4(SpotLightColor.x, SpotLightColor.y, SpotLightColor.z, SpotLightColor.w);
 				#endif
 				#if defined(OGL)
-				m_Obj.g_SpotLightBufferDesc.Color[0] = SpotLightColor.x;
-				m_Obj.g_SpotLightBufferDesc.Color[1] = SpotLightColor.y;
-				m_Obj.g_SpotLightBufferDesc.Color[2] = SpotLightColor.z;
-				m_Obj.g_SpotLightBufferDesc.Color[3] = SpotLightColor.w;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Color[0] = SpotLightColor.x;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Color[1] = SpotLightColor.y;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Color[2] = SpotLightColor.z;
+				RM::GetRenderManager().g_SpotLightBufferDesc.Color[3] = SpotLightColor.w;
 				#endif
 			}
 			ImGui::TreePop();
@@ -2035,17 +2072,18 @@ void Update()
 	#endif
 	}
 	#if defined(DX11)
-	for (int i = 0; i < m_vModels.size(); ++i)
+	for (int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 	{
-		m_vModels[i].Update();
+		RM::GetRenderManager().m_vModels[i].Update();
 	}
 	m_Obj.Update();
 	#endif
 	#if defined(OGL)
-	for (int i = 0; i < m_vModels.size(); ++i)
+	for (int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 	{
-		m_vModels[i].Update(m_Obj, g_hwnd);
+		RM::GetRenderManager().m_vModels[i].Update();
 	}
+
 	m_Obj.UpdateOGL(m_OGLWindow);
 	#endif
 }
@@ -2053,17 +2091,11 @@ void Update()
 void Render()
 {
 #if defined(DX11)
-
 	for (int i = 0; i < m_vEffects.size(); ++i)
 	{
-		m_vEffects[i].Render(g_hwnd, m_vModels);
+		m_vEffects[i].Render();
 	}
 	m_Obj.Render();
-	//for (int i = 0; i < m_vEffects.size(); ++i)
-	//{
-	//	m_vEffects[i].Render(g_hwnd, m_vModels);
-	//}
-	//m_Obj.Render();
 
 	UIRender();
 
@@ -2071,12 +2103,14 @@ void Render()
 	GraphicsModule::GetManagerObj(g_hwnd).GetSwapChain().CPresent(0, 0);
 #endif
 #if defined(OGL)
-	for (int i = 0; i < m_vModels.size(); ++i)
+	for (int i = 0; i < m_vEffects.size(); ++i)
 	{
-		m_vModels[i].Render(g_hwnd);
+		m_vEffects[i].Render();
 	}
 	m_Obj.Render();
+
 	UIRender();
+	RM::GetRenderManager().SetBackBufferCleaned(false);
 	glfwSwapBuffers(m_OGLWindow);
 	glfwPollEvents();
 #endif
@@ -2282,9 +2316,9 @@ int main()
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-	for (int i = 0; i < m_vModels.size(); ++i)
+	for (int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 	{
-		m_vModels[i].CleanUpDXResources();
+		RM::GetRenderManager().m_vModels[i].CleanUpDXResources();
 	}
 	m_Obj.CleanupDevice();
 	DestroyWindow(g_hwnd);
@@ -2303,7 +2337,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //No queremos el viejo OpenGL 
 
 	//Crear una ventana y su contexto OpenGL
-	m_OGLWindow = glfwCreateWindow(1024, 768, "GRAFICAS SIME1", NULL, NULL);
+	m_OGLWindow = glfwCreateWindow(1920, 1080, "GRAFICAS SIME1", NULL, NULL);
 	if (m_OGLWindow == NULL) {
 		fprintf(stderr, "Falla al abrir una ventana GLFW. Si usted tiene una GPU Intel, está no es compatible con 3.3. Intente con la versión 2.1 de los tutoriales.\n");
 		glfwTerminate();
@@ -2336,7 +2370,7 @@ int main()
 		return 0;
 	}
 
-	glViewport(0, 0, 1024, 768);
+	glViewport(0, 0, 1920, 1080);
 	glfwSetFramebufferSizeCallback(m_OGLWindow, framebuffer_size_callback);
 	glfwSetMouseButtonCallback(m_OGLWindow, mouse_button_callback);
 	glfwSetCursorPosCallback(m_OGLWindow, cursor_position_callback);
@@ -2346,6 +2380,113 @@ int main()
 	std::cout << "FreeImage" << FreeImage_GetVersion() << "\n";
 	std::cout << FreeImage_GetCopyrightMessage() << "\n\n";
 	
+	int Flags[2] = { 0, 3 };
+
+	LoadSAQ(Flags);
+	LoadSphere(Flags);
+
+	//Effects
+	for (unsigned int k = 0; k < 2; k++)
+	{
+		TechDesc TDesc;
+		TDesc.EffectNum = 2;
+		TDesc.ActualEffect = k;
+		TDesc.hwnd = g_hwnd;
+		TDesc.ColorCorr = 0;
+
+		int Counter = 0;
+		int CounterLoop = 0;
+
+		if (k == 0)
+		{
+			TDesc.PassNum = 4;
+
+			for (unsigned int j = 0; j < 30; ++j)
+			{
+				if (j < 12)
+				{
+					TDesc.DefLightFlags = 0;
+				}
+				else if (j >= 12 && j < 24)
+				{
+					TDesc.DefLightFlags = 1;
+				}
+				else if (j >= 24)
+				{
+					TDesc.DefLightFlags = 2;
+				}
+
+				TDesc.DeferredFlags = j;
+
+				m_vTechs.push_back(TDesc);
+
+				if (j >= 24)
+				{
+					if (Counter == 1)
+					{
+						TDesc.ColorCorr++;
+						if (TDesc.ColorCorr >= 3)
+						{
+							TDesc.ColorCorr = 2;
+						}
+						Counter = 0;
+					}
+					else
+					{
+						Counter++;
+					}
+				}
+
+				else
+				{
+					if (Counter == 3)
+					{
+						TDesc.ColorCorr++;
+						if (TDesc.ColorCorr >= 3)
+						{
+							TDesc.ColorCorr = 2;
+						}
+						Counter = 0;
+					}
+					else
+					{
+						Counter++;
+					}
+				}
+				if (CounterLoop == 11 || CounterLoop == 23)
+				{
+					CounterLoop = 0;
+					Counter = 0;
+					TDesc.ColorCorr = 0;
+				}
+				else
+				{
+					CounterLoop++;
+				}
+			}
+		}
+		else if (k == 1)
+		{
+			TDesc.PassNum = 3;
+			for (unsigned int i = 30; i < 63; ++i)
+			{
+				TDesc.TechTypesFlag = i;
+
+				m_vTechs.push_back(TDesc);
+
+				if (Counter == 10)
+				{
+					TDesc.ColorCorr++;
+					Counter = 0;
+				}
+				else
+				{
+					Counter++;
+				}
+			}
+		}
+	}
+
 	do 
 	{
 		Update();

@@ -77,23 +77,11 @@ void Model::Update()
 
 	SR = m_ScaleMatrix * m_RotationMatrix;
 	m_ModelMatrix = SR * m_TraslationMatrix;
-	#if defined(OGL)
-	Matrix MV;
-	Matrix MVP;
-	MV = m_ModelMatrix * _obj.m_Camera->m_ViewMatrix;
-	MVP = MV * _obj.m_Camera->m_ProjectionMatrix;
-	for (int i = 0; i < m_MeshesNum; i++)
-	{
-		m_vMeshes[i].SetModelMatrix(m_ModelMatrix);
-		m_vMeshes[i].SetMVPMatrix(MVP);
-	}
-	#endif
-	#if defined(DX11)
+
 	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
 		m_vMeshes[i].SetModelMatrix(m_ModelMatrix);
 	}
-	#endif
 
 	for (unsigned int i = 0; i < m_MeshesNum; ++i)
 	{
@@ -109,10 +97,11 @@ void Model::Render(HWND _hwnd)
 	}
 }
 
-#if defined(DX11)
+
 
 bool Model::GetPassID(const int _PassID)
 {
+	#if defined(DX11)
 	for (unsigned int i = 0; i < m_vPassID.size(); ++i)
 	{
 		if (m_vPassID[i] == _PassID)
@@ -121,8 +110,10 @@ bool Model::GetPassID(const int _PassID)
 		}
 	}
 	return false;
+	#endif
+	return false;
 }
-
+#if defined(DX11)
 void Model::CleanUpDXResources()
 {
 	for (unsigned int i = 0; i < m_MeshesNum; ++i)

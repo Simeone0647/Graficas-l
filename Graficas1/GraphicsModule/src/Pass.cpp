@@ -10,46 +10,15 @@ Pass::Pass()
 Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name)
 {	
 	m_ID = 0;
-	HRESULT hr;
+
 	m_Name = _Name;
+
 	if (m_Name == "GBuffer")
 	{
 		m_ShaderFilename = "GBuffer";
-		D3D11_RASTERIZER_DESC dr;
-		dr.CullMode = D3D11_CULL_BACK;
-		dr.FillMode = D3D11_FILL_SOLID;
-		dr.FrontCounterClockwise = false;
-		dr.DepthBiasClamp = 0;
-		dr.SlopeScaledDepthBias = 0;
-		dr.DepthClipEnable = FALSE;
-		dr.MultisampleEnable = TRUE;
-		dr.ScissorEnable = FALSE;
-		dr.AntialiasedLineEnable = FALSE;
-
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateRasterizerState(&dr, m_Rasterizer.GetRSAddress());
-		if (FAILED(hr))
-		{
-			cout << "Fallo en crear el RasterizerLight" << endl;
-		}
 	}
 	else if (m_Name == "GBufferLight")
 	{
-		D3D11_RASTERIZER_DESC dr;
-		dr.CullMode = D3D11_CULL_NONE;
-		dr.FillMode = D3D11_FILL_SOLID;
-		dr.FrontCounterClockwise = false;
-		dr.DepthBiasClamp = 0;
-		dr.SlopeScaledDepthBias = 0;
-		dr.DepthClipEnable = FALSE;
-		dr.MultisampleEnable = TRUE;
-		dr.ScissorEnable = FALSE;
-		dr.AntialiasedLineEnable = FALSE;
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateRasterizerState(&dr, m_Rasterizer.GetRSAddress());
-		if (FAILED(hr))
-		{
-
-		}
-
 		m_ShaderFilename = "GBufferLight";
 	}
 	else if (m_Name == "ToneMap")
@@ -66,7 +35,7 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 	}
 	else if (m_Name == "Light")
 	{
-		m_ShaderFilename = "Tutorial07.fx";
+		m_ShaderFilename = "Light";
 	}
 	else if (m_Name == "SSAO")
 	{
@@ -78,87 +47,386 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 	}
 
 	m_Shader.SetMacros(_Macros);
-	m_Shader.CompileShaders(_hwnd, m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader, m_ShaderFilename);
+	#if defined(OGL)
+	m_Shader.CompileShaders(m_ShaderFilename);
+	#endif
+	#if defined(DX11)
+	m_Shader.CompileShaders(m_VertexShader, m_InputLayout, m_ShaderReflection, m_PixelShader, m_ShaderFilename);
+	#endif
 }
 
 Pass::~Pass()
 {
 }
 
-void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ, bool _ReadSkybox)
+void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 {
-	//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(m_Rasterizer.GetRS());
+	HWND hwnd = NULL;
 
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CVSSetShader(m_VertexShader.GetDXVertexShader(), NULL, 0);
+	#if defined(DX11)
+	GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CVSSetShader(m_VertexShader.GetDXVertexShader(), NULL, 0);
 
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShader(m_PixelShader.GetDXPixelShader(), NULL, 0);
+	GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShader(m_PixelShader.GetDXPixelShader(), NULL, 0);
 
-	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CIASetInputLayout(m_InputLayout.GetDXInputLayout());
-	
+	GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CIASetInputLayout(m_InputLayout.GetDXInputLayout());
+	#endif
+
+	#if defined(OGL)
+	if (m_Name == "Skybox")
+	{
+	//	glDepthMask(GL_FALSE);
+	}
+	glUseProgram(m_Shader.GetShaderID());
+	#endif
 
 	if (_ReadSAQ)
 	{
-		if (_Models.size() > 2)
+		if (RM::GetRenderManager().m_vModels.size() > 2)
 		{ 
+			#if defined(DX11)
 			if (m_Name == "GBufferLight")
 			{ 
 				for (unsigned int i = 0; i < 4; ++i)
 				{
-					GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
+					GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
 				}
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 4, RM::GetRenderManager().vGBufferSamplers.GetDXSamplerStateAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, 4, RM::GetRenderManager().GBufferSamplers.GetDXSamplerStateAddress());
 
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(4, 1, RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(4, 1, RM::GetRenderManager().DefSkyboxSam.GetSamplerAddress(1));
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(4, 1, RM::GetRenderManager().DiffSkyBoxSRVResource.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(4, 1, RM::GetRenderManager().SkyboxSam.GetSamplerAddress(1));
 			}
 			else if (m_Name == "ToneMap")
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().DefSkyboxSRVOutput.GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(4));
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(1, 1, RM::GetRenderManager().GBufferSRV[6].GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(1, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(6));
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().SkyboxSRV.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().DefToneMapSamplers.GetSamplerAddress(0));
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(1, 1, RM::GetRenderManager().DefSSAOSRV.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(1, 1, RM::GetRenderManager().DefToneMapSamplers.GetSamplerAddress(1));
 			}
 			else if (m_Name == "Copy")
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().GBufferSRV[5].GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().vGBufferSamplers.GetSamplerAddress(5));
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().DefCopySRV.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().DefCopySamplers.GetSamplerAddress(0));
 			}
 			else if (m_Name == "ForwardToneMap")
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[0].GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(0));
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[0].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(0));
 			}
 			else if (m_Name == "ForwardCopy")
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[1].GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(1));
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().ForwardSRV[1].GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().ForwardSamplers.GetSamplerAddress(1));
 			}
 			else if (m_Name == "SSAO")
 			{
 				for (unsigned int i = 0; i < 2; ++i)
 				{
-					GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
+					GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, RM::GetRenderManager().GBufferSRV[i].GetDXSRVAddress());
 				}
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, RM::GetRenderManager().DefSSAOSampler.GetSamplerNum(),
-																					   RM::GetRenderManager().DefSSAOSampler.GetDXSamplerStateAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, RM::GetRenderManager().DefSSAOSamplers.GetSamplerNum(),
+																					   RM::GetRenderManager().DefSSAOSamplers.GetDXSamplerStateAddress());
+			}
+			#endif
+			#if defined(OGL)
+			if (m_Name == "ForwardToneMap")
+			{
+				// Render to our framebuffer
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().FrameBuffer2);
+				// Set "renderedTexture" as our colour attachement #0
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().LightTexOGL, 0);
+				
+				int ShaderID;
+				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+				
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+				
+				RM::GetRenderManager().SetExpossure();
+				
+				glUniform1i(glGetUniformLocation(ShaderID, "RTLight"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SkyboxTexOGL);
+				
+				// Set the list of draw buffers.
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+				
+				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+				//glEnable(GL_DEPTH_TEST);
+				glViewport(0, 0, 1920, 1080); // Render on the whole framebuffer, complete from the lower left corner to the upper right
 			}
 
-			_Models[0].Render(_hwnd);
+			else if (m_Name == "ForwardCopy")
+			{	
+				int ShaderID;
+				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+				
+				glUniform1i(glGetUniformLocation(ShaderID, "RTFinal"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().LightTexOGL);
+				
+				if (!RM::GetRenderManager().IsBackBufferCleaned())
+				{
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+					glEnable(GL_DEPTH_TEST);
+
+					glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+					
+					glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+					glViewport(0, 0, 1920, 1080);
+					RM::GetRenderManager().SetBackBufferCleaned(true);
+				}
+			}
+			else if (m_Name == "GBufferLight")
+			{
+				// Render to our framebuffer
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().DefSkyboxFB);
+				// Set "renderedTexture" as our colour attachement #0
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().DefSkyboxTex, 0);
+
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+
+
+				const int nameSize = 50;
+				unsigned int type, index;
+				int UniformsNum, size;
+				char name[nameSize];
+
+				glGetProgramiv(m_Shader.GetShaderID(), GL_ACTIVE_UNIFORMS, &UniformsNum);
+
+				for (unsigned int i = 0; i < UniformsNum; ++i)
+				{
+					glGetActiveUniform(m_Shader.GetShaderID(), i, nameSize, nullptr, &size, &type, &name[0]);
+					index = glGetUniformLocation(m_Shader.GetShaderID(), &name[0]);
+				}
+
+				RM::GetRenderManager().SetLights();
+				RM::GetRenderManager().SetViewPos();
+
+				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTAlbedo"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().AlbedoTex);
+
+				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTNormal"), 1);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().NormalTex);
+
+				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTSpecular"), 2);
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SpecularTex);
+
+				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTPosition"), 3);
+				glActiveTexture(GL_TEXTURE3);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().PositionTex);
+
+				// Set the list of draw buffers.
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+				//glEnable(GL_DEPTH_TEST);
+				glViewport(0, 0, 1920, 1080); // Render on the whole framebuffer, complete from the 
+			}
+			else if (m_Name == "SSAO")
+			{
+				// Render to our framebuffer
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().SSAOFB);
+				// Set "renderedTexture" as our colour attachement #0
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().SSAOTex, 0);
+
+				int ShaderID;
+				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+
+				RM::GetRenderManager().SetSSAOValues();
+
+				glUniform1i(glGetUniformLocation(ShaderID, "RTNormal"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().NormalTex);
+
+				glUniform1i(glGetUniformLocation(ShaderID, "RTPosition"), 1);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().PositionTex);
+
+				// Set the list of draw buffers.
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+				//glEnable(GL_DEPTH_TEST);
+				glViewport(0, 0, 1920, 1080); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+			}
+			else if (m_Name == "ToneMap")
+			{
+				// Render to our framebuffer
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().ToneFB);
+				// Set "renderedTexture" as our colour attachement #0
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().ToneTex, 0);
+
+				int ShaderID;
+				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+
+				RM::GetRenderManager().SetExpossure();
+
+				glUniform1i(glGetUniformLocation(ShaderID, "RTLight"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().DefSkyboxTex);
+
+				glUniform1i(glGetUniformLocation(ShaderID, "RTSSAO"), 1);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SSAOTex);
+
+				// Set the list of draw buffers.
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+				//glEnable(GL_DEPTH_TEST);
+				glViewport(0, 0, 1920, 1080); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+			}
+			else if (m_Name == "Copy")
+			{
+				int ShaderID;
+				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+
+				glUniform1i(glGetUniformLocation(ShaderID, "RTFinal"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().ToneTex);
+
+				if (!RM::GetRenderManager().IsBackBufferCleaned())
+				{
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+					glEnable(GL_DEPTH_TEST);
+
+					glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+					glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+					glViewport(0, 0, 1920, 1080);
+					RM::GetRenderManager().SetBackBufferCleaned(true);
+				}
+			}
+			#endif
+			RM::GetRenderManager().m_vModels[0].Render(hwnd);
 		}
 	}
 	else
 	{ 
 		if (_ReadSkybox)
 		{
-			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().DefSkyboxSRV.GetDXSRVAddress());
-			GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().DefSkyboxSam.GetSamplerAddress(0));
-			_Models[1].Render(_hwnd);
+			#if defined(DX11)
+			GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, RM::GetRenderManager().SkyboxSRVResource.GetDXSRVAddress());
+			GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(0, 1, RM::GetRenderManager().SkyboxSam.GetSamplerAddress(0));
+			#endif
+			#if defined(OGL)
+			if (_IsDef)
+			{
+				//glDisable(GL_CULL_FACE);
+			}
+			else
+			{
+				// Render to our framebuffer
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().FrameBuffer1);
+
+				// Set "renderedTexture" as our colour attachement #0
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().SkyboxTexOGL, 0);
+
+				int ShaderID;
+				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+
+				glEnable(GL_CULL_FACE);
+				glCullFace(GL_BACK);
+				glFrontFace(GL_CW);
+
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+
+				RM::GetRenderManager().SetVP();
+
+				glUniform1i(glGetUniformLocation(ShaderID, "SkyboxMap"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, RM::GetRenderManager().SkyboxTexResourceOGL);
+
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+				glDrawBuffers(1, DrawBuffers);
+
+				glClear(SIME_DEPTH_BUFFER_BIT);
+				glViewport(0, 0, 1920, 1080);
+			}
+			#endif
+			RM::GetRenderManager().m_vModels[1].Render(hwnd);
 		}
 		else
 		{ 
-			for (unsigned int i = 2; i < _Models.size(); ++i)
+			#if defined(OGL)
+			if (_IsDef)
 			{
-				_Models[i].Render(_hwnd);
+				//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				//glEnable(GL_CULL_FACE);
+				//glFrontFace(GL_CW);
+
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().PositionFB);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().PositionTex, 0);
+
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, RM::GetRenderManager().NormalTex, 0);
+
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, RM::GetRenderManager().SpecularTex, 0);
+
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, RM::GetRenderManager().AlbedoTex, 0);
+
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+
+				RM::GetRenderManager().SetVP();
+
+				GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+				glDrawBuffers(4, DrawBuffers);
+
+				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+				glViewport(0, 0, 1920, 1080);
+			}
+			else
+			{
+				//glCullFace(GL_FRONT);
+				glDisable(GL_CULL_FACE);
+
+				RM::GetRenderManager().SetVP();
+				RM::GetRenderManager().SetLights();
+				RM::GetRenderManager().SetViewPos();
+			}
+			#endif
+			for (unsigned int i = 2; i < RM::GetRenderManager().m_vModels.size(); ++i)
+			{
+				RM::GetRenderManager().m_vModels[i].Render(hwnd);
 			}
 		}
 	}
@@ -166,7 +434,9 @@ void Pass::Render(HWND _hwnd, vector<Model>& _Models, bool _ReadSAQ, bool _ReadS
 
 void Pass::CleanUpShaders()
 {
+	#if defined(DX11)
 	if (m_InputLayout.GetDXInputLayout()) m_InputLayout.GetDXInputLayout()->Release();
 	if (m_VertexShader.GetDXVertexShader()) m_VertexShader.GetDXVertexShader()->Release();
 	if (m_PixelShader.GetDXPixelShader()) m_PixelShader.GetDXPixelShader()->Release();
+	#endif
 }

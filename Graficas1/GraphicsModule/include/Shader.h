@@ -23,16 +23,29 @@ public:
 	~Shader();
 	
 	#if defined(DX11)
-	HRESULT CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
-	void CreateInputLayout(HRESULT& _hr, ID3DBlob* pVSBlob, HWND _hwnd, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection);
-	void CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelShader, string _Filename);
-	void SetMacros(const vector<tuple<string, string>> _Macros);
+	void CompileShaders(VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader, string _Filename);
 	#endif
+	#if defined(OGL)
+	void CompileShaders(const string _ShaderFilepath);
+	inline int GetShaderID() { return m_ShaderID; }
+	#endif
+	void SetMacros(const vector<tuple<string, string>> _Macros);
 
-	void CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader, string _Filename);
 private:
 	#if defined(DX11)
+	HRESULT CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+
+	void CreateInputLayout(HRESULT& _hr, ID3DBlob* pVSBlob, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection);
+
+	void CompilePixelShader(HRESULT& _hr, PixelShader& _PixelShader, string _Filename);
+
 	vector<D3D10_SHADER_MACRO> m_vMacros;
+	#endif
+	#if defined(OGL)
+	unsigned int LoadShaders(const char* _VertexFilepath, const char* _FragmentFilepath);
+	unsigned int m_ShaderID;
+	
+	vector<string> m_vMacros;
 	#endif
 };
 

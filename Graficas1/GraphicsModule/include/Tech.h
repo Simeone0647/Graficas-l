@@ -86,8 +86,7 @@ public:
 
 	inline void SetDesc(const int _Flags) { m_Desc.TechTypesFlag = _Flags; } 
 
-	void Render(HWND _hwnd, vector<Model>& _Models);
-	//void CleanUpResources();
+	void Render();
 	inline vector<Pass> GetPasses() { return m_vPasses; }
 	inline string GetName() { return m_Name; }
 	inline int GetLightingTech() { return m_Desc.TechTypesFlag; }

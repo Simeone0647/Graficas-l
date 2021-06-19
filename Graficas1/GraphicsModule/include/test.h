@@ -399,107 +399,7 @@ namespace GraphicsModule
 		SIME11_FILL_SOLID = 3
 	};
 //---------------------------STRUCTS------------------------------------
-	struct AmbientOcclusion
-	{
-		#if defined(DX11)
-		float Radius;
-		float Scale;
-		float Bias;
-		float Intensity;
-		int Iterations;
-		int Unused1 = 0;
-		int Unused2 = 0;
-		int Unused3 = 0;
-		#endif
-	};
-	struct SimpleVertex
-	{
-	#if defined(DX11)
-		XMFLOAT3 Pos;
-		XMFLOAT2 Tex;
-		XMFLOAT3 Normal;
-	#endif
-	};
-
-	struct Ambient
-	{
-	#if defined(DX11)
-		XMFLOAT4 kAmbient;
-		XMFLOAT4 AmbientColor;
-	#endif
-	#if defined(OGL)
-		float Ambient[4];
-		float AmbientColor[4];
-	#endif
-	};
-
-	struct Specular
-	{
-	#if defined(DX11)
-		XMFLOAT4 kSpecular;
-		XMFLOAT4 Shininess;
-	#endif
-	#if defined(OGL)
-		float kSpecular[4];
-		float Shininess[4];
-	#endif
-	};
-
-	struct Diffuse
-	{
-		#if defined(DX11)
-		XMFLOAT4 kDiffuse;
-		#endif
-		#if defined(OGL)
-		float Diffuse[4];
-		#endif
-	};
-
-	struct DirLight
-	{
-	#if defined(DX11)
-		XMFLOAT4 Dir;
-		XMFLOAT4 Color;
-	#endif
-	#if defined(OGL)
-		float Dir[4];
-		float Color[4];
-	#endif
-	};
-
-	struct PointLight
-	{
-	#if defined(DX11)
-		XMFLOAT4 Position;
-		XMFLOAT4 Color;
-		XMFLOAT4 Attenuation;
-	#endif
-	#if defined(OGL)
-		float Position[4];
-		float Color[4];
-		float Attenuation[4];
-	#endif
-		
-	};
-
-	struct SpotLight
-	{
-		#if defined(DX11)
-		XMFLOAT4 Dir;
-		XMFLOAT4 Pos;
-		XMFLOAT4 Color;
-		#endif
-		#if defined(OGL)
-		float Dir[4];
-		float Pos[4];
-		float Color[4];
-		#endif
-		float Attenuation;
-		float InnerRadius;
-		float OuterRadius;
-		float Unused;
-	};
-
+	
 	struct CBNeverChanges
 	{
 	#if defined(DX11)
@@ -516,23 +416,7 @@ namespace GraphicsModule
 	#endif
 	};
 
-	struct CameraFront
-	{
-		#if defined(DX11)
-		XMFLOAT4 Front;
-		#endif
-		#if defined(OGL)
-		#endif
-	};
 
-	struct Expossure
-	{
-		#if defined(DX11)
-		XMFLOAT4 Expo;
-		#endif
-		#if defined(OGL)
-		#endif
-	};
 	//struct CBChangesEveryFrame
 	//{
 	//#if defined(DX11)
@@ -644,16 +528,6 @@ namespace GraphicsModule
 		UINT BindFlags;
 	};
 
-	struct UpdateProjectionMatrixStruct
-	{
-		float AngleY;
-		float Ratio;
-		float NearPlane;
-		float FarPlane;
-		float Width;
-		float Height;
-	};
-
 	struct UpdateSubResourceStruct
 	{
 	#if defined(DX11)
@@ -690,31 +564,12 @@ namespace GraphicsModule
 	class test
 	{
 	public:
-
-		unsigned int programID = 0;
-		AmbientOcclusion					g_AO;
-		Buffer								g_AOBuffer;
-		Buffer								g_ExpossureBuffer;
-		Expossure							g_Expossure;
-		CameraFront							g_Front;
-		Buffer								g_CameraFrontBuffer;
-		Buffer								g_AmbientBuffer;
-		Buffer								g_SpecularBuffer;
-		Buffer								g_DiffuseBuffer;
-		Ambient								g_Ambient;
-		Specular							g_Specular;
-		Diffuse								g_Diffuse;
+		
 		CreateDepthDesc						g_DepthDesc;
 		HWND                                g_hWnd = NULL;
 		ShaderResourceView					g_SimeTextureRV;
-		
 		SamplerState						g_SimeSamplerState;
-		DirLight							g_DirLightBufferDesc;
-		Buffer								g_DirLightBuffer;
-		PointLight							g_PointLightBufferDesc;
-		Buffer								g_PointLightBuffer;
-		SpotLight							g_SpotLightBufferDesc;
-		Buffer								g_SpotLightBuffer;
+	
 		VertexBuffer						g_SimeVertexBuffer;
 		IndexBuffer							g_SimeIndexBuffer;
 		ConstantBuffer						g_SimeCBNeverChanges;
@@ -733,9 +588,7 @@ namespace GraphicsModule
 		CreateDevAndSCDesc					g_DeviceAndSwapChainDesc;
 
 		SIME_DRIVER_TYPE                    g_driverType = SIME_DRIVER_TYPE_NULL;
-		Camera                              m_PerspectiveCamera;
-		Camera                              m_OrtographicCamera;
-		Camera*								m_Camera;
+
 		LPPOINT                             MouseInitPos = new POINT;
 		LPPOINT                             MouseFinalPos = new POINT;
 		LPPOINT                             MouseDirection = new POINT;
@@ -745,13 +598,6 @@ namespace GraphicsModule
 		bool                                m_IsFirstPosStored = false;
 		bool								m_ShowingTexture = false;
 
-	#if defined(DX11)
-		HRESULT CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
-	#endif
-
-	#if defined(OGL)
-		GLuint LoadShaders(const char* vertex_file_path, const char* fragment_file_path);
-	#endif
 	public:
 		HRESULT InitDevice(HWND hdwn);
 	

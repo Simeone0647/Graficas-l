@@ -45,8 +45,10 @@ HRESULT Shader::CompileShaderFromFile(const char* szFileName, LPCSTR szEntryPoin
 	return S_OK;
 }
 
-void Shader::CreateInputLayout(HRESULT& _hr, ID3DBlob* _pVSBlob, HWND _hwnd, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection)
+void Shader::CreateInputLayout(HRESULT& _hr, ID3DBlob* _pVSBlob, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection)
 {
+	HWND hwnd = NULL;
+
 	_hr = _ShaderReflection.DoReflect(_pVSBlob);
 	if (FAILED(_hr))
 	{
@@ -65,7 +67,7 @@ void Shader::CreateInputLayout(HRESULT& _hr, ID3DBlob* _pVSBlob, HWND _hwnd, Inp
 	ILStruct.BytecodeLength = _pVSBlob->GetBufferSize();
 	ILStruct.ppInputLayout = _InputLayout.GetDXInputLayoutAddress();
 
-	_hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateInputLayout(ILStruct);
+	_hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateInputLayout(ILStruct);
 	_pVSBlob->Release();
 	if (FAILED(_hr))
 	{
@@ -76,26 +78,15 @@ void Shader::CreateInputLayout(HRESULT& _hr, ID3DBlob* _pVSBlob, HWND _hwnd, Inp
 	_ShaderReflection.GetDXShaderReflection()->Release();
 }
 
-void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelShader, string _Filename)
+void Shader::CompilePixelShader(HRESULT& _hr, PixelShader& _PixelShader, string _Filename)
 {
+	HWND hwnd = NULL;
+
 	ID3DBlob* pPSBlob = NULL;
 
-	//const D3D10_SHADER_MACRO Defines[] =
-	//{
-	//	m_MacroName.c_str(), m_MacroValue.c_str(),
-	//	NULL, NULL
-	//};
+	string Filename = _Filename + "PS.hlsl";
+	_hr = CompileShaderFromFile(&Filename[0], "PS", "ps_4_0", &pPSBlob);
 
-	if (_Filename == "GBuffer" || _Filename == "GBufferLight" || _Filename == "ToneMap" || _Filename == "Copy" || _Filename == "SSAO" || _Filename == "ForwardToneMap"
-		|| _Filename == "Skybox")
-	{
-		string Filename = _Filename + "PS.hlsl";
-		_hr = CompileShaderFromFile(&Filename[0], "PS", "ps_4_0", &pPSBlob);
-	}
-	else if (_Filename == "Tutorial07.fx")
-	{
-		_hr = CompileShaderFromFile(&_Filename[0], "PS", "ps_4_0", &pPSBlob);
-	}
 	if (FAILED(_hr))
 	{
 		MessageBox(NULL,
@@ -109,51 +100,164 @@ void Shader::CompilePixelShader(HRESULT& _hr, HWND _hwnd, PixelShader& _PixelSha
 	PSStruct.ppPixelShader = _PixelShader.GetDXPixelShaderAddress();
 
 	// Create the pixel shader
-	_hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreatePixelShader(PSStruct);
+	_hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreatePixelShader(PSStruct);
 	pPSBlob->Release();
 	if (FAILED(_hr))
 	{
 		std::cout << "Fallo hr en crear el piksel cheider" << std::endl;
 	}
 }
-void Shader::SetMacros(const vector<tuple<string, string>> _Macros)
+#endif
+
+#if defined(OGL)
+unsigned int Shader::LoadShaders(const char* _VertexFilepath, const char* _FragmentFilepath)
 {
-	//tuple<string, string> tup;
-	//tup = {"as", "asa"};
-	for (unsigned int i = 0; i < _Macros.size(); ++i)
+	// Crear los shaders
+	unsigned int VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	unsigned int FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
+	// Leer el Vertex Shader desde archivo
+	std::string VertexShaderCode = "#version 330 core\n";
+	VertexShaderCode += "#extension GL_ARB_separate_shader_objects : enable\n";
+	for (unsigned int i = 0; i < m_vMacros.size(); ++i)
 	{
-		//tuple<string, string> tup = _Macros[i];
-		m_vMacros.push_back( { _strdup(std::get<0>(_Macros[i]).c_str()), _strdup(std::get<1>(_Macros[i]).c_str()) } );
-		//m_vMacros[i].Name = std::get<0>(_Macros[i]).c_str();
-		//m_vMacros[i].Definition = std::get<1>(_Macros[i]).c_str();
+		VertexShaderCode += m_vMacros[i];
 	}
 
-	m_vMacros.push_back( { NULL, NULL } );
+	std::ifstream VertexShaderStream(_VertexFilepath, std::ios::in);
+	if (VertexShaderStream.is_open()) {
+		std::stringstream sstr;
+		sstr << VertexShaderStream.rdbuf();
+		VertexShaderCode += sstr.str();
+		VertexShaderStream.close();
+	}
+	else {
+		printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", _VertexFilepath);
+		getchar();
+		return 0;
+	}
+
+	// Leer el Fragment Shader desde archivo
+	std::string FragmentShaderCode = "#version 330 core\n";
+	FragmentShaderCode += "#extension GL_ARB_separate_shader_objects : enable\n";
+	for (unsigned int i = 0; i < m_vMacros.size(); ++i)
+	{
+		FragmentShaderCode += m_vMacros[i];
+	}
+
+	std::ifstream FragmentShaderStream(_FragmentFilepath, std::ios::in);
+	if (FragmentShaderStream.is_open()) {
+		std::stringstream sstr;
+		sstr << FragmentShaderStream.rdbuf();
+		FragmentShaderCode += sstr.str();
+		FragmentShaderStream.close();
+	}
+
+	int Result = GL_FALSE;
+	int InfoLogLength;
+
+
+	// Compilar Vertex Shader
+	printf("Compiling shader : %s\n", _VertexFilepath);
+	char const* VertexSourcePointer = VertexShaderCode.c_str();
+	glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
+	glCompileShader(VertexShaderID);
+
+	// Revisar Vertex Shader
+	glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
+	glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+	if (InfoLogLength > 0) {
+		std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
+		glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
+		printf("%s\n", &VertexShaderErrorMessage[0]);
+	}
+
+	// Compilar Fragment Shader
+	printf("Compiling shader : %s\n", _FragmentFilepath);
+	char const* FragmentSourcePointer = FragmentShaderCode.c_str();
+	glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
+	glCompileShader(FragmentShaderID);
+
+	// Revisar Fragment Shader
+	glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
+	glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+	if (InfoLogLength > 0) {
+		std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
+		glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
+		printf("%s\n", &FragmentShaderErrorMessage[0]);
+	}
+
+	// Vincular el programa por medio del ID
+	printf("Linking program\n");
+	unsigned int ProgramID = glCreateProgram();
+	glAttachShader(ProgramID, VertexShaderID);
+	glAttachShader(ProgramID, FragmentShaderID);
+	glLinkProgram(ProgramID);
+
+	// Revisar el programa
+	glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
+	glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
+	if (InfoLogLength > 0) {
+		std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
+		glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
+		printf("%s\n", &ProgramErrorMessage[0]);
+	}
+
+
+	glDetachShader(ProgramID, VertexShaderID);
+	glDetachShader(ProgramID, FragmentShaderID);
+
+	glDeleteShader(VertexShaderID);
+	glDeleteShader(FragmentShaderID);
+
+	return ProgramID;
+}
+
+void Shader::CompileShaders(const string _ShaderFilepath)
+{
+	string VertexFilepath = _ShaderFilepath + "VS.glsl";
+	string FragmentFilepath = _ShaderFilepath + "PS.glsl";
+
+	m_ShaderID = LoadShaders(VertexFilepath.c_str(), FragmentFilepath.c_str());
+
 }
 #endif
 
-void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader, string _Filename)
+void Shader::SetMacros(const vector<tuple<string, string>> _Macros)
 {
+	#if defined(DX11)
+	for (unsigned int i = 0; i < _Macros.size(); ++i)
+	{
+		m_vMacros.push_back({ _strdup(std::get<0>(_Macros[i]).c_str()), _strdup(std::get<1>(_Macros[i]).c_str()) });
+	}
+
+	m_vMacros.push_back({ NULL, NULL });
+	#endif
+	#if defined(OGL)
+	//m_vMacros.push_back("#pragma optimize (off)\n");
+	for (unsigned int i = 0; i < _Macros.size(); ++i)
+	{
+		if(std::get<0>(_Macros[i]) != "" && std::get<1>(_Macros[i]) != "")
+		{
+			m_vMacros.push_back("#define " + std::get<0>(_Macros[i]) + "\n");
+		}
+	}
+	#endif
+}
+
 #if defined(DX11)
+void Shader::CompileShaders(VertexShader& _VertexShader, InputLayout& _InputLayout, ShaderReflection& _ShaderReflection, PixelShader& _PixelShader, string _Filename)
+{
+
+	HWND hwnd = NULL;
+
 	HRESULT hr = S_OK;
+
 	ID3DBlob* pVSBlob = NULL;
 
-	//const D3D10_SHADER_MACRO Defines[] =
-	//{
-	//	m_MacroName.c_str(), m_MacroValue.c_str(),
-	//	NULL, NULL
-	//};
+	string Filename = _Filename + "VS.hlsl";
+	hr = CompileShaderFromFile(&Filename[0], "VS", "vs_4_0", &pVSBlob);
 
-	if (_Filename == "GBuffer" || _Filename == "GBufferLight" || _Filename == "ToneMap" || _Filename == "Copy" || _Filename == "SSAO" || _Filename == "ForwardToneMap"
-		|| _Filename == "Skybox")
-	{ 
-		string Filename = _Filename + "VS.hlsl";
-		hr = CompileShaderFromFile(&Filename[0], "VS", "vs_4_0", &pVSBlob);
-	}
-	else if (_Filename == "Tutorial07.fx")
-	{
-		hr = CompileShaderFromFile(&_Filename[0], "VS", "vs_4_0", &pVSBlob);
-	}
 	if (FAILED(hr))
 	{
 		MessageBox(NULL,
@@ -167,14 +271,14 @@ void Shader::CompileShaders(HWND _hwnd, VertexShader& _VertexShader, InputLayout
 	VSStruct.ppVertexShader = _VertexShader.GetDXVertexShaderAddress();
 
 	// Create the vertex shader
-	hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateVertexShader(VSStruct);
+	hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateVertexShader(VSStruct);
 	if (FAILED(hr))
 	{
 		pVSBlob->Release();
 		std::cout << "Falló el blob en vertex shader" << std::endl;
 	}
 
-	CreateInputLayout(hr, pVSBlob, _hwnd, _InputLayout, _ShaderReflection);
-	CompilePixelShader(hr, _hwnd, _PixelShader, _Filename);
-#endif
+	CreateInputLayout(hr, pVSBlob, _InputLayout, _ShaderReflection);
+	CompilePixelShader(hr, _PixelShader, _Filename);
 }
+#endif

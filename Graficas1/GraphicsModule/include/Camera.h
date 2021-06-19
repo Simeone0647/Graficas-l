@@ -7,7 +7,7 @@
 #include <math.h>
 using namespace std;
 
-namespace GraphicsModule
+namespace RM
 {
 	struct UpdateProjectionMatrixStruct;
 }
@@ -27,7 +27,8 @@ public:
 		* @param...#float: Eye's Z value.
 		* @bug.....No known bugs.
 	*/
-	inline void SetEye(float _X, float _Y, float _Z) { m_Eye.m_X = _X; m_Eye.m_Y = _Y; m_Eye.m_Z = _Z;; }
+	inline void SetEye(float _X, float _Y, float _Z) { m_Eye.m_X = _X; m_Eye.m_Y = _Y; m_Eye.m_Z = _Z; m_FakeEye[0] = m_Eye.m_X;
+														m_FakeEye[1] = m_Eye.m_Y; m_FakeEye[2] = m_Eye.m_Z; }
 
 	/*
 		* @Function Name: GetEye
@@ -109,7 +110,7 @@ public:
 		* @param...#float: Camera's far plane.
 		* @bug.....No known bugs.
 	*/
-	void UpdatePerspectiveProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct);
+	void UpdatePerspectiveProjectionMatrix(RM::UpdateProjectionMatrixStruct _PMStruct);
 
 
 	/*
@@ -121,7 +122,7 @@ public:
 		* @param...#float: Camera's far plane.
 		* @bug.....No known bugs.
 	*/
-	void UpdateOrtographicProjectionMatrix(GraphicsModule::UpdateProjectionMatrixStruct _PMStruct);
+	void UpdateOrtographicProjectionMatrix(RM::UpdateProjectionMatrixStruct _PMStruct);
 
 	/*
 		* @Function Name: MoveCamera
@@ -146,7 +147,7 @@ public:
 		* @brief...This variable will represent the camera's Eye, that's it, the camera's position.
 	*/
 	Vector3 m_Eye;
-
+	float m_FakeEye[4];
 	/*
 		* @Variable Name: m_At
 		* @Type....#CVector3

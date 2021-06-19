@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name, unsigned int _ShaderID)
+Mesh::Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name)
 {
 	m_vVertex = _Vertex;
 	m_vVertexIndex = _Indices;
@@ -36,46 +36,18 @@ Mesh::Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std:
 	m_MeshColor[0] = 0.0f;
 	m_MeshColor[1] = 0.0f;
 	m_MeshColor[2] = 0.0f;
-	m_Material = new Material;
 	#endif
 	
 	#if defined(OGL)
 	m_ModelMatrix = new float[16];
 	m_MVP = new float[16];
-
-	m_ShaderID = _ShaderID;
 	#endif
+
+	m_Material = new Material;
 }
 
 Mesh::~Mesh()
 {
-	#if defined(OGL)
-	//if (m_ModelMatrix != nullptr)
-	//{
-	//	delete[] m_ModelMatrix;
-	//	m_ModelMatrix = nullptr;
-	//}
-	//if (m_RotationMatrix != nullptr)
-	//{
-	//	delete[] m_RotationMatrix;
-	//	m_RotationMatrix = nullptr;
-	//}
-	//if (m_TraslationMatrix != nullptr)
-	//{
-	//	delete[] m_TraslationMatrix;
-	//	m_TraslationMatrix = nullptr;
-	//}
-	//if (m_ScaleMatrix != nullptr)
-	//{
-	//	delete[] m_ScaleMatrix;
-	//	m_ScaleMatrix = nullptr;
-	//}
-	//if (m_MVP != nullptr)
-	//{
-	//	delete[] m_MVP;
-	//	m_MVP = nullptr;
-	//}
-	#endif
 }
 
 
@@ -84,9 +56,6 @@ void Mesh::Update()
 {
 #if defined(DX11)
 	m_CBChangesEveryFrame.mWorld = Matrix::Transpose(m_ModelMatrix);
-#endif
-#if defined(OGL)
-
 #endif
 }
 
@@ -118,39 +87,47 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CVSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetConstantBuffers(2, 1, m_MeshCB.GetCBChangesEveryFrameAddress());
-	//for (unsigned int i = 0; i < m_vSamplers.size(); ++i)
-	//{
+
 	if (m_Material->GetTexNum() > 0)
 	{
 		GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetSamplers(0, m_Samplers.GetSamplerNum(), m_Samplers.GetDXSamplerStateAddress());
 	}
-	//}
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CDrawIndexed(m_VertexIndexNum, 0, 0);
 
 #endif
 #if defined(OGL)
-	const char* UniformName;
-	int UniformMVP;
-	UniformName = "mvp";
-	UniformMVP = glGetUniformLocation(m_ShaderID, UniformName);
-	if (UniformMVP == -1)
-	{
-		fprintf(stderr, "Could not bind uniform %s\n", UniformName);
-	}
-	glm::mat4 a = glm::make_mat4(m_MVP);
-	glUniformMatrix4fv(UniformMVP, 1, 0, glm::value_ptr(glm::make_mat4(m_MVP)));
+	int ShaderID;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
 
 	const char* UniformNameModel;
 	int UniformModel;
-	UniformNameModel = "world";
-	UniformModel = glGetUniformLocation(m_ShaderID, UniformNameModel);
+	UniformNameModel = "World";
+	UniformModel = glGetUniformLocation(ShaderID, UniformNameModel);
 	if (UniformModel == -1)
 	{
 		fprintf(stderr, "Could not bind uniform %s\n", UniformNameModel);
 	}
 	glUniformMatrix4fv(UniformModel, 1, 0, glm::value_ptr(glm::make_mat4(m_ModelMatrix)));
 
-	glBindTexture(GL_TEXTURE_2D, m_TexID);
+	for (unsigned int i = 0; i < m_vTexID.size(); ++i)
+	{
+		if (i == 0)
+		{
+			glUniform1i(glGetUniformLocation(ShaderID, "AlbedoMap"), 0);
+			glActiveTexture(GL_TEXTURE0);
+		}
+		else if (i == 1)
+		{
+			glUniform1i(glGetUniformLocation(ShaderID, "SpecularMap"), 1);
+			glActiveTexture(GL_TEXTURE1);
+		}
+		else if (i == 2)
+		{
+			glUniform1i(glGetUniformLocation(ShaderID, "NormalMap"), 2);
+			glActiveTexture(GL_TEXTURE2);
+		}
+		glBindTexture(GL_TEXTURE_2D, m_vTexID[i]);
+	}
 	glBindVertexArray(_VB.GetVAO());
 	if (m_LoadTypes[0])
 	{
@@ -214,8 +191,6 @@ void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	LoadTexture(_Hwnd);
 #endif
 #if defined(OGL)
-	float MV[16];
-	float MVP[16];
 	glGenVertexArrays(1, _VB.GetVAOAddress());
 	glGenBuffers(1, _VB.GetVBOAddress());
 	glGenBuffers(1, _IB.GetEBOAddress());
@@ -233,9 +208,15 @@ void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	// vertex normals
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)16);
-	// vertex texture coords
+	//binormals
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)32);
+	glVertexAttribPointer(2, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)32);
+	//tangents
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)48);
+	// vertex texture coords
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)64);
 
 	glBindVertexArray(0);
 
@@ -258,8 +239,6 @@ void Mesh::LoadTexture(HWND _hwnd)
 
 	const unsigned char* Bits(0);
 	char* Char_Arr;
-	
-	
 
 	for (unsigned int i = 0; i < m_vTexturesNames.size(); ++i)
 	{
@@ -292,9 +271,10 @@ void Mesh::LoadTexture(HWND _hwnd)
 		//m_vSamplers[i].SetDesc();
 
 		m_Samplers.AddSampler();
-		m_Samplers.SetDesc(false);
+		m_Samplers.AddDesc();
+		m_Samplers.SetDesc(false, i);
 
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(), m_Samplers.GetLastElementAddress());
+		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(i), m_Samplers.GetLastElementAddress());
 
 		if (FAILED(hr))
 		{
@@ -360,11 +340,12 @@ void Mesh::LoadTexture(HWND _hwnd)
 		}
 
 		m_Material->OneMoreTex();
-	}
+	
 	#endif
 	#if defined(OGL)
-		glGenTextures(1, &m_TexID);
-		glBindTexture(GL_TEXTURE_2D, m_TexID);
+		m_vTexID.push_back(i);
+		glGenTextures(1, &m_vTexID[i]);
+		glBindTexture(GL_TEXTURE_2D, m_vTexID[i]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -378,10 +359,14 @@ void Mesh::LoadTexture(HWND _hwnd)
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Width, Height, 0, GL_BGRA, GL_UNSIGNED_BYTE, Bits);
 		}
 		glGenerateMipmap(GL_TEXTURE_2D);
-	#endif
+
 
 		FreeImage_Unload(SecondDib);
 		FreeImage_Unload(FirstDib);
+
+		m_Material->OneMoreTex();
+	#endif
+		}
 	}
 }
 #endif

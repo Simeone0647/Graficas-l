@@ -7,8 +7,6 @@ Tech::Tech(const TechDesc _Desc)
 	m_Active = false;
 	m_Desc = _Desc;
 
-//for (unsigned int j = 0; j < _Desc.PassNum; ++j)
-//{
 	vector<tuple<string, string>> Defines;
 	vector<tuple<string, string>> vSecondPassDefines;
 	vector<tuple<string, string>> vThirdPassDefines;
@@ -1060,82 +1058,117 @@ Tech::~Tech()
 {
 }
 
-void Tech::Render(HWND _hwnd, vector<Model>& _Models)
+void Tech::Render()
 {
+	HWND hwnd = NULL;
+
 	for (unsigned int i = 0; i < m_PassNum; ++i)
 	{
 		if (m_IsDef)
 		{
 			if (i == 0)
 			{
-				RM::GetRenderManager().SetGBufferRTV();
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().GBufferRasterState.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, false, false);
+				float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+				RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().GBufferRTV, RM::GetRenderManager().DSView);
+
+				#if defined(DX11)
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().GBufferRasterState.GetRS());
+				#endif
+				m_vPasses[i].Render(false, false, m_IsDef);
 			}
 			else if (i == 1)
 			{
-				RM::GetRenderManager().SetDefSkyboxRTV();
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().DefSkyboxRaster.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, false, true);
+				RM::GetRenderManager().SetRenderTarget(NULL, RM::GetRenderManager().SkyboxRTV, RM::GetRenderManager().DSView);
+				#if defined(DX11)
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().SkyboxRaster.GetRS());
+				#endif
+				m_vPasses[i].Render(false, true, m_IsDef);
 			}
 			else if (i == 2)
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().GBufferLightRasterState.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, true, false);
+				#if defined(DX11)
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().GBufferLightRasterState.GetRS());
+				#endif
+				m_vPasses[i].Render(true, false, m_IsDef);
 			}
 			else  if (i == 3)
 			{
-				RM::GetRenderManager().SetDefSSAORTV();
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, true, false);
+				float ClearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+				RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().DefSSAORTV, RM::GetRenderManager().DSView);
+
+				#if defined(DX11)
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
+				#endif
+				m_vPasses[i].Render(true, false, m_IsDef);
 			}
 			else if (i == 4)
 			{
-				RM::GetRenderManager().SetGBufferCopyRTV();
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, true, false);
+				float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+				RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().DefCopyRTV, RM::GetRenderManager().DSView);
+
+				#if defined(DX11)
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
+				#endif
+				m_vPasses[i].Render(true, false, m_IsDef);
 			}
 			else if (i == m_PassNum - 1)
 			{
+
+				#if defined(DX11)
 				if (!RM::GetRenderManager().IsBackBufferCleaned())
-				{ 
-					RM::GetRenderManager().SetBackBuffer();
+				{
+					float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+					RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().BackBufferRTV, RM::GetRenderManager().DSView);
 					RM::GetRenderManager().SetBackBufferCleaned(true);
 				}
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().CopyRasterizer.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, true, false);
+
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().CopyRasterizer.GetRS());
+				#endif
+				m_vPasses[i].Render(true, false, m_IsDef);
 			}
 		}
 		else
 		{ 
 			if (i == 0)
 			{
+				#if defined(DX11)
+				RM::GetRenderManager().SetRenderTarget(NULL, RM::GetRenderManager().ForwardLightRTV, RM::GetRenderManager().DSView);
 				
-				RM::GetRenderManager().SetForwardLightRTV();
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().DefSkyboxRaster.GetRS());
-				m_vPasses[i].Render(_hwnd, _Models, false, true);
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().SkyboxRaster.GetRS());
+				#endif
+				m_vPasses[i].Render(false, true, m_IsDef);
 			}
 			else if (i == 1)
 			{
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
+				#if defined(DX11)
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CRSSetState(RM::GetRenderManager().ToneRasterizer.GetRS());
 
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(3, 1, RM::GetRenderManager().DiffuseSkyBoxSRV.GetDXSRVAddress());
-				GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(3, 1, RM::GetRenderManager().DefSkyboxSam.GetSamplerAddress(1));
-				m_vPasses[i].Render(_hwnd, _Models, false, false);
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetShaderResources(3, 1, RM::GetRenderManager().DiffSkyBoxSRVResource.GetDXSRVAddress());
+				GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CPSSetSamplers(3, 1, RM::GetRenderManager().SkyboxSam.GetSamplerAddress(1));
+				#endif
+
+				m_vPasses[i].Render(false, false, m_IsDef);
 			}
 			else if (i == 2)
 			{
-				RM::GetRenderManager().SetForwardToneMapRTV();
-				m_vPasses[i].Render(_hwnd, _Models, true, false);
+				#if defined(DX11)
+				float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+				RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().ForwardToneMapRTV, RM::GetRenderManager().DSView);
+				#endif
+
+				m_vPasses[i].Render(true, false, m_IsDef);
 			}
 			else if (i == m_PassNum - 1)
 			{
 				if (!RM::GetRenderManager().IsBackBufferCleaned())
 				{
-					RM::GetRenderManager().SetBackBuffer();
+					#if defined(DX11)
+					float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+					RM::GetRenderManager().SetRenderTarget(ClearColor, RM::GetRenderManager().BackBufferRTV, RM::GetRenderManager().DSView);
 					RM::GetRenderManager().SetBackBufferCleaned(true);
+					#endif
 				}
-				m_vPasses[i].Render(_hwnd, _Models, true, false);
+				m_vPasses[i].Render(true, false, m_IsDef);
 			}
 		}
 	}
