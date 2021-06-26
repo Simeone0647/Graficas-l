@@ -52,7 +52,7 @@ namespace RM
 		#endif
 		#if defined(OGL)
 		float kSpecular[4];
-		float Shininess[4];
+		float Shininess[4] = { 0.01f, 0.0f, 0.0f, 0.0f };
 		#endif
 	};
 

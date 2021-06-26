@@ -148,7 +148,7 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				glUniform1i(glGetUniformLocation(ShaderID, "RTLight"), 0);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SkyboxTexOGL);
-				
+
 				// Set the list of draw buffers.
 				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
@@ -184,58 +184,42 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 			}
 			else if (m_Name == "GBufferLight")
 			{
-				// Render to our framebuffer
-				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().DefSkyboxFB);
-				// Set "renderedTexture" as our colour attachement #0
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().DefSkyboxTex, 0);
-
-				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-				{
-					cout << "Error en el framebuffer" << endl;
-				}
-
-
+				//glFrontFace(GL_CCW);
+				//glCullFace(GL_FRONT);
+				//glDisable(GL_CULL_FACE);
 				const int nameSize = 50;
 				unsigned int type, index;
 				int UniformsNum, size;
 				char name[nameSize];
-
+				
 				glGetProgramiv(m_Shader.GetShaderID(), GL_ACTIVE_UNIFORMS, &UniformsNum);
-
+				
 				for (unsigned int i = 0; i < UniformsNum; ++i)
 				{
 					glGetActiveUniform(m_Shader.GetShaderID(), i, nameSize, nullptr, &size, &type, &name[0]);
 					index = glGetUniformLocation(m_Shader.GetShaderID(), &name[0]);
 				}
-
+				
 				RM::GetRenderManager().SetLights();
 				RM::GetRenderManager().SetViewPos();
-
+				
 				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTAlbedo"), 0);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().AlbedoTex);
-
+				
 				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTNormal"), 1);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().NormalTex);
-
+				
 				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTSpecular"), 2);
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SpecularTex);
-
+				
 				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "RTPosition"), 3);
 				glActiveTexture(GL_TEXTURE3);
 				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().PositionTex);
-
-				// Set the list of draw buffers.
-				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
-
-				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
-				//glEnable(GL_DEPTH_TEST);
-				glViewport(0, 0, 1920, 1080); // Render on the whole framebuffer, complete from the 
+				
+				glClear(SIME_DEPTH_BUFFER_BIT);
 			}
 			else if (m_Name == "SSAO")
 			{
@@ -301,7 +285,7 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
 				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
 
-				glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
 				//glEnable(GL_DEPTH_TEST);
@@ -344,7 +328,31 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 			#if defined(OGL)
 			if (_IsDef)
 			{
-				//glDisable(GL_CULL_FACE);
+				//glFrontFace(GL_CW);
+				//glCullFace(GL_BACK);
+
+				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().DefSkyboxFB);
+				// Set "renderedTexture" as our colour attachement #0
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().DefSkyboxTex, 0);
+
+				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					cout << "Error en el framebuffer" << endl;
+				}
+
+				RM::GetRenderManager().SetVP();
+
+				glUniform1i(glGetUniformLocation(m_Shader.GetShaderID(), "SkyboxMap"), 0);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SkyboxTexResourceOGL);
+
+				// Set the list of draw buffers.
+				GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+				glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+				glClear(SIME_DEPTH_BUFFER_BIT);
+				//glEnable(GL_DEPTH_TEST);
+				glViewport(0, 0, 1920, 1080);
 			}
 			else
 			{
@@ -357,9 +365,9 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				int ShaderID;
 				glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
 
-				glEnable(GL_CULL_FACE);
-				glCullFace(GL_BACK);
-				glFrontFace(GL_CW);
+				//glEnable(GL_CULL_FACE);
+				//glCullFace(GL_BACK);
+				//glFrontFace(GL_CW);
 
 				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 				{
@@ -386,9 +394,10 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 			#if defined(OGL)
 			if (_IsDef)
 			{
-				//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				//glPolygonMode(GL_BACK, GL_FILL);
 				//glEnable(GL_CULL_FACE);
-				//glFrontFace(GL_CW);
+				//glFrontFace(GL_CCW);
+				//glCullFace(GL_BACK);
 
 				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().PositionFB);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().PositionTex, 0);
@@ -412,12 +421,13 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+				//glClear(SIME_COLOR_BUFFER_BIT);
 				glViewport(0, 0, 1920, 1080);
 			}
 			else
 			{
 				//glCullFace(GL_FRONT);
-				glDisable(GL_CULL_FACE);
+				//glDisable(GL_CULL_FACE);
 
 				RM::GetRenderManager().SetVP();
 				RM::GetRenderManager().SetLights();

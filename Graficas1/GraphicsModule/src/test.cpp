@@ -128,7 +128,7 @@ namespace GraphicsModule
 	glGenTextures(1, &RM::GetRenderManager().PositionTex);
 	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().PositionTex);
 	// Give an empty image to OpenGL ( the last "0" )
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1920, 1080, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
 	// Poor filtering. Needed !
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -205,12 +205,12 @@ namespace GraphicsModule
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().ToneDepth);
 	//LOAD THE SKYBOX
 	vector <string> Faces;
-	Faces.push_back("right.jpg");
 	Faces.push_back("left.jpg");
-	Faces.push_back("top.jpg");
+	Faces.push_back("right.jpg");
 	Faces.push_back("bottom.jpg");
-	Faces.push_back("front.jpg");
+	Faces.push_back("top.jpg");
 	Faces.push_back("back.jpg");
+	Faces.push_back("front.jpg");
 
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -229,11 +229,15 @@ namespace GraphicsModule
 		FIF = FreeImage_GetFileType(Faces[i].c_str(), 0);
 		FirstDib = FreeImage_Load(FIF, Faces[i].c_str());
 
-		FIBITMAP* SecondDib;
-		SecondDib = FreeImage_ConvertTo32Bits(FirstDib);
-		Bits = FreeImage_GetBits(SecondDib);
-		Height = FreeImage_GetHeight(SecondDib);
-		Width = FreeImage_GetWidth(SecondDib);
+		if (Faces[i] == "top.jpg" || Faces[i] == "bottom.jpg")
+		{
+			FreeImage_FlipVertical(FirstDib);
+			FreeImage_FlipHorizontal(FirstDib);
+		}
+
+		Bits = FreeImage_GetBits(FirstDib);
+		Height = FreeImage_GetHeight(FirstDib);
+		Width = FreeImage_GetWidth(FirstDib);
 
 		if (!FirstDib)
 		{
@@ -242,9 +246,9 @@ namespace GraphicsModule
 		else
 		{
 
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Bits);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, Width, Height, 0, GL_BGR, GL_UNSIGNED_BYTE, Bits);
 
-			FreeImage_Unload(SecondDib);
+			//FreeImage_Unload(SecondDib);
 			FreeImage_Unload(FirstDib);
 		}
 	}

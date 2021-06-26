@@ -117,6 +117,12 @@
     <ClInclude Include="include\RasterizerState.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="include\SkeletalMesh.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Bone.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\test.cpp">
@@ -216,6 +222,12 @@
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="src\RasterizerState.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SkeletalMesh.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Bone.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>

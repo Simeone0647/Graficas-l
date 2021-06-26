@@ -527,6 +527,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Bone.h" />
     <ClInclude Include="include\Buffer.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\ConstantBuffer.h" />
@@ -552,6 +553,7 @@
     <ClInclude Include="include\Shader.h" />
     <ClInclude Include="include\ShaderReflection.h" />
     <ClInclude Include="include\ShaderResourceView.h" />
+    <ClInclude Include="include\SkeletalMesh.h" />
     <ClInclude Include="include\SwapChain.h" />
     <ClInclude Include="include\Tech.h" />
     <ClInclude Include="include\test.h" />
@@ -563,6 +565,7 @@
     <ClInclude Include="include\Viewport.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Bone.cpp" />
     <ClCompile Include="src\Buffer.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\ConstantBuffer.cpp" />
@@ -587,6 +590,7 @@
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\ShaderReflection.cpp" />
     <ClCompile Include="src\ShaderResourceView.cpp" />
+    <ClCompile Include="src\SkeletalMesh.cpp" />
     <ClCompile Include="src\SwapChain.cpp" />
     <ClCompile Include="src\Tech.cpp" />
     <ClCompile Include="src\test.cpp" />

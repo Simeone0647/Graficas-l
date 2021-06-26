@@ -74,7 +74,9 @@ private:
 	*/
 	float m_Texture[2];
 
-
+	//float m_BoneIndex[4];
+	//
+	//float m_BoneWeight[4];
 
 	//float m_UV[3];
 };

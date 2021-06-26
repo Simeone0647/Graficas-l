@@ -1734,35 +1734,38 @@ void UIRender()
 			RM::GetRenderManager().g_Expossure.Expo[3] = 0.0f;
 			#endif
 		}
-		if (m_vEffects[0].GetActiveRenderTech() == 1)
+		if (m_vEffects.size() != 0)
 		{
-			if (ImGui::TreeNode("SSAO"))
+			if (m_vEffects[0].GetActiveRenderTech() == 1)
 			{
-				if (ImGui::DragFloat("Radius", &AORadius, 0.01f, 0.0f, 1.0f))
+				if (ImGui::TreeNode("SSAO"))
 				{
-					RM::GetRenderManager().g_AO.Radius = AORadius;
-				}
+					if (ImGui::DragFloat("Radius", &AORadius, 0.01f, 0.0f, 1.0f))
+					{
+						RM::GetRenderManager().g_AO.Radius = AORadius;
+					}
 
-				if (ImGui::DragFloat("Bias", &AOBias, 0.01f, 0.0f, 1.0f))
-				{
-					RM::GetRenderManager().g_AO.Bias = AOBias;
-				}
+					if (ImGui::DragFloat("Bias", &AOBias, 0.01f, 0.0f, 1.0f))
+					{
+						RM::GetRenderManager().g_AO.Bias = AOBias;
+					}
 
-				if (ImGui::DragFloat("Scale", &AOScale, 0.01f, 0.0f, 1.0f))
-				{
-					RM::GetRenderManager().g_AO.Scale = AOScale;
-				}
+					if (ImGui::DragFloat("Scale", &AOScale, 0.01f, 0.0f, 1.0f))
+					{
+						RM::GetRenderManager().g_AO.Scale = AOScale;
+					}
 
-				if (ImGui::DragFloat("Intensity", &AOIntensity, 0.01f, 0.0f, 10.0f))
-				{
-					RM::GetRenderManager().g_AO.Intensity = AOIntensity;
-				}
+					if (ImGui::DragFloat("Intensity", &AOIntensity, 0.01f, 0.0f, 10.0f))
+					{
+						RM::GetRenderManager().g_AO.Intensity = AOIntensity;
+					}
 
-				if (ImGui::DragInt("Iterations", &AOIterations, 1.0f, 1, 10))
-				{
-					RM::GetRenderManager().g_AO.Iterations = AOIterations;
+					if (ImGui::DragInt("Iterations", &AOIterations, 1.0f, 1, 10))
+					{
+						RM::GetRenderManager().g_AO.Iterations = AOIterations;
+					}
+					ImGui::TreePop();
 				}
-				ImGui::TreePop();
 			}
 		}
 		ImGui::Separator();

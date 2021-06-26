@@ -249,7 +249,7 @@ namespace RM
 		{
 			fprintf(stderr, "Could not bind uniform %s\n", UniformNamekAmbient);
 		}
-		glUniform1f(UniformAmbientColor, g_Ambient.kAmbient[0]);
+		glUniform4fv(UniformkAmbient, 1, glm::value_ptr(glm::make_vec4(g_Ambient.kAmbient)));
 		#endif
 	}
 
