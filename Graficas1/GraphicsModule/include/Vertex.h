@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 class Vertex
 {
 public:
@@ -46,8 +47,16 @@ public:
 
 	inline void SetBinormal(const float _x, const float _y, const float _z) { m_Binormal[0] = _x; m_Binormal[1] = _y; m_Binormal[2] = _z; }
 
-	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture) + sizeof(m_Normal) + sizeof(m_Tangents) + sizeof(m_Binormal); }
+	bool SetBoneIndex(const int _ID);
 
+	bool SetBoneWeight(const float _Weight, const int _ID);
+
+	inline int GetSize() { return sizeof(m_Position) + sizeof(m_Texture) + sizeof(m_Normal) + sizeof(m_Tangents) + sizeof(m_Binormal)
+						   + sizeof(m_BoneIndex) + sizeof(m_BoneWeight); }
+
+	void CheckWeights();
+
+	void CheckIDs();
 private:
 	/*
 		* @Variable Name: m_Position
@@ -67,16 +76,16 @@ private:
 
 	float m_Tangents[4];
 
+	int m_BoneIndex[4];
+	
+	float m_BoneWeight[4];
+
 	/*
 		* @Variable Name: m_Texture
 		* @Type....#float
 		* @brief...The x and y values that represent the vertex texture.
 	*/
 	float m_Texture[2];
-
-	//float m_BoneIndex[4];
-	//
-	//float m_BoneWeight[4];
 
 	//float m_UV[3];
 };

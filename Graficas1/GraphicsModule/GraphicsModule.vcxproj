@@ -274,7 +274,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -296,7 +296,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -345,7 +345,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -370,7 +370,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -415,7 +415,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -437,7 +437,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -486,7 +486,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DEVLIBS)OpenGL\GLFW\include\GLFW\;$(DEVLIBS)GLM\glm\;$(DEVLIBS)OpenGL\glad\include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -511,7 +511,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)GraphicsModule\include\;$(DXSDK_DIR)Include\;$(DEVLIBS)FreeImage\;$(DEVLIBS)Assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>

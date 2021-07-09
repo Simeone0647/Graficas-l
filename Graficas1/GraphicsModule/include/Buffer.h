@@ -39,16 +39,16 @@ public:
 	inline ID3D11Buffer* BGetBuffer() { return m_pBuffer; }
 
 	/*
-	* @Function Name: UpdateBD
-	* @brief...This function will update the Buffer Descriptor.
-	* @param...#D3D11_USAGE. The usage that the VertexBuffer will have.
-	* @param...#UINT: Size in bytes.
-	* @param...#UINT: Bind flags.
-	* @param...#UINT: Cpu access flags.
-	* @param...#UINT: Miscellaneous flags
-	* @param...#UINT:
-	* @bug.....No known bugs.
-*/
+		* @Function Name: UpdateBD
+		* @brief...This function will update the Buffer Descriptor.
+		* @param...#D3D11_USAGE. The usage that the VertexBuffer will have.
+		* @param...#UINT: Size in bytes.
+		* @param...#UINT: Bind flags.
+		* @param...#UINT: Cpu access flags.
+		* @param...#UINT: Miscellaneous flags
+		* @param...#UINT:
+		* @bug.....No known bugs.
+	*/
 	void BUpdateBD(GraphicsModule::UpdateBDStruct _BDStruct);
 
 	/*

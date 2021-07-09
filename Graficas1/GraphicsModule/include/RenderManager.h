@@ -5,8 +5,11 @@
 #include "RasterizerState.h"
 #include "SamplerState.h"
 #include "Model.h"
+#include <memory>
 
 using std::vector;
+using std::unique_ptr;
+using std::make_unique;
 
 namespace RM
 { 
@@ -145,6 +148,9 @@ namespace RM
 		void SetViewPos();
 		void SetExpossure();
 		void SetSSAOValues();
+
+		void LoadModel(const string _Filename);
+		void Update(const float _Time);
 		//------------------ General --------------------------------
 		RenderTargetView BackBufferRTV;
 		
@@ -198,7 +204,7 @@ namespace RM
 
 		SamplerState ForwardSamplers;
 
-		std::vector<Model> m_vModels;
+		vector<unique_ptr<Model>> m_vModels;
 
 		#if defined(OGL)
 		unsigned int SkyboxTexResourceOGL;
@@ -271,6 +277,7 @@ namespace RM
 		Camera              m_PerspectiveCamera;
 		Camera              m_OrtographicCamera;
 		Camera*				m_Camera;
+
 	private:
 		bool m_BackBufferCleaned;
 	};

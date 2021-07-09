@@ -347,6 +347,21 @@ namespace RM
 		#endif
 	}
 
+	void RenderManager::LoadModel(const string _Filename)
+	{
+		m_vModels.push_back(make_unique<Model>());
+		
+		m_vModels.back()->Load(_Filename);
+	}
+
+	void RenderManager::Update(const float _Time)
+	{
+		for (unsigned int i = 0; i < m_vModels.size(); ++i)
+		{
+			m_vModels[i]->Update(_Time);
+		}
+	}
+
 	void RenderManager::SetVP()
 	{
 		#if defined(OGL)

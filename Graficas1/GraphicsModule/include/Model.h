@@ -1,27 +1,32 @@
 #pragma once
 #include <vector>
-#include "Mesh.h"
-#include "Quaternion.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "Mesh.h"
+#include <map>
+
+using std::map;
+
 
 class Model
 {
 public:
 	Model();
 	~Model();
+	//Model(Model&&) {}
+	//Model(Model&);
 
 	inline void AddMesh(Mesh _Mesh) { m_vMeshes.push_back(_Mesh); }
 
-	void SetUpModel(HWND _hwnd);
+	void SetUpModel();
 
 	inline void SetMeshNum(const unsigned int _Num) { m_MeshesNum = _Num; }
 
 	inline unsigned int GetMeshNum() { return m_MeshesNum; }
 
-	inline void SetName(std::string _Name) { m_Name = _Name; }
+	inline void SetName(string _Name) { m_Name = _Name; }
 
-	inline std::string GetName() { return m_Name; }
+	inline string GetName() { return m_Name; }
 
 	inline Matrix GetModelMatrix() { return m_ModelMatrix; }
 
@@ -43,14 +48,34 @@ public:
 
 	void UpdateScaleMatrix(const float _x, const float _y, const float _z);
 
-	void Update();
+	void Update(const float _Time);
 
 	void Render(HWND _hwnd);
 
-	std::vector<Mesh> GetMeshes() { return m_vMeshes; }
+	void Load(const string _Filename);
+
+	Mesh LoadMesh(aiMesh* _CurrentMesh, const unsigned int _i);
+
+	vector<Mesh> GetMeshes() { return m_vMeshes; }
 
 	inline void SetPassID(int _ID) { m_vPassID.push_back(_ID); }
 	bool GetPassID(const int _PassID);
+
+	void ReadNodeHeirarchy(const float _AnimationTime, const aiScene* _pScene, const aiNode* _pNode, Matrix& _ParentTransform);
+
+	const aiNodeAnim* FindNodeAnim(const aiAnimation* _pAnimation, const string _NodeName);
+
+	void CalcInterpolatedScaling(aiVector3D& _Out, const float _AnimationTime, const aiNodeAnim* _pNodeAnim);
+
+	void CalcInterpolatedRotation(aiQuaternion& _Out, const float _AnimationTime, const aiNodeAnim* _pNodeAnim);
+
+	void CalcInterpolatedPosition(aiVector3D& _Out, const float _AnimationTime, const aiNodeAnim* _pNodeAnim);
+
+	unsigned int FindScaling(const float _AnimationTime, const aiNodeAnim* _pNodeAnim);
+
+	unsigned int FindRotation(const float _AnimationTime, const aiNodeAnim* _pNodeAnim);
+
+	unsigned int FindPosition(const float _AnimationTime, const aiNodeAnim* pNodeAnim);
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
@@ -62,11 +87,11 @@ public:
 	float m_GuiScale[3]{ 1.0f, 1.0f, 1.0f };
 private:
 
-	std::vector<VertexBuffer> m_vModelVBs;
+	vector<VertexBuffer> m_vModelVBs;
 
-	std::vector<IndexBuffer> m_vModelIBs;
+	vector<IndexBuffer> m_vModelIBs;
 
-	std::vector<Mesh> m_vMeshes;
+	vector<Mesh> m_vMeshes;
 
 	int m_MeshesNum;
 
@@ -84,8 +109,34 @@ private:
 
 	Matrix m_ScaleMatrix;
 
-	std::string m_Name;
+	Matrix m_GlobalInverseTransform;
 
-	std::vector<int> m_vPassID;
+	string m_Name;
+
+	vector<int> m_vPassID;
+
+	Assimp::Importer m_Importer;
+
+	const aiScene* m_pScene = new aiScene;
+
+	unsigned int m_NumBones;
+
+	SkeletalMesh m_SkeletalMesh;
+
+	#if defined(OGL)
+	bool m_HasAnim;
+	#endif
+
+	#if defined(DX11)
+	int m_HasAnimDX[4];
+
+	Buffer m_BBonesTransforms;
+
+	Buffer m_BHasAnim;
+	#endif
+
+	vector<Matrix> m_BonesTransforms;
+
+	unsigned int m_BoneLocation[100];
 };
 

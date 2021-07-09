@@ -17,6 +17,8 @@ Vertex::Vertex()
 		m_Normal[i] = 0.0f;
 		m_Tangents[i] = 0.0f;
 		m_Binormal[i] = 0.0f;
+		m_BoneIndex[i] = 0;
+		m_BoneWeight[i] = 0.0f;
 	}
 	for (int i = 0; i < 2; i++)
 	{
@@ -41,5 +43,57 @@ Vertex::Vertex(float posx, float posy, float posz, float normalx, float normaly,
 Vertex::~Vertex()
 {
 
+}
+
+bool Vertex::SetBoneIndex(const int _ID)
+{
+	//for (unsigned int i = 0; i < 4; ++i)
+	//{
+	//	if (m_BoneIndex[i] < -1)
+	//	{
+	//		m_BoneIndex[i] = _ID;
+	//
+	//		return true;
+	//	}
+	//}
+
+	return false;
+}
+
+bool Vertex::SetBoneWeight(const float _Weight, const int _ID)
+{
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_BoneWeight[i] == 0.0f)
+		{
+			m_BoneWeight[i] = _Weight;
+			m_BoneIndex[i] = _ID;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void Vertex::CheckWeights()
+{
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_BoneWeight[i] < 0.0f)
+		{
+			m_BoneWeight[i] = 0.0f;
+		}
+	}
+}
+
+void Vertex::CheckIDs()
+{
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_BoneIndex[i] < -1)
+		{
+			m_BoneIndex[i] = -1;
+		}
+	}
 }
 

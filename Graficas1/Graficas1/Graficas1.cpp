@@ -25,6 +25,9 @@
 #include <assimp/postprocess.h>
 #include "imgui_impl_dx11.h"
 #endif
+
+using namespace RM;
+
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
@@ -35,7 +38,7 @@ GraphicsModule::test m_Obj;
 std::vector<Tech> m_vTechs;
 std::vector<Effect> m_vEffects;
 
-int ModelNum = 0;
+float StartTime = GetTickCount64();
 //------------------------- LIGHTS -------------------------------------------------------
 static float DirectionLightDir[3] { 0.0f, 0.0f, 0.0f };
 
@@ -52,7 +55,7 @@ static float kAmbient = 0.0f;
 static float kSpecular = 0.0f;
 static float kDiffuse = 0.0f;
 static float Shininess = 0.1f;
-static float Expossure = 0.1f;
+static float ExpossureGui = 0.1f;
 
 static float AORadius = 0.0f;
 static float AOScale = 0.0f;
@@ -119,6 +122,17 @@ bool OnE = false;
 GLFWwindow* m_OGLWindow; // (En el código que viene aqui, está variable es global)
 #endif
 //-----------------------------------------------------------------------------------------
+
+float GetCurrentTimeMillis()
+{
+	return GetTickCount64();
+}
+
+float GetRunningTime()
+{
+	float RunningTime = (float)((double)GetCurrentTimeMillis() - (double)StartTime) / 1000.0f;
+	return RunningTime;
+}
 
 #if defined(OGL)
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
@@ -602,203 +616,11 @@ HRESULT InitImgUI()
 	style.FrameRounding = 7.0f;
 	return S_OK;
 }
+
 #if defined(DX11) || defined(OGL)
-Mesh LoadMesh(aiMesh* _Mesh, const aiScene* _Scene, const int _Flags[])
-{
-	std::vector<Vertex> vMeshVertex;
-	std::vector<unsigned int> vMeshIndices;
-
-	aiString Path;
-	std::vector<std::string> vFilename;
-	unsigned int NumVertex = _Mesh->mNumVertices;
-
-	for (int i = 0; i < NumVertex; ++i)
-	{
-		Vertex vertex;
-
-		vertex.SetPosition(_Mesh->mVertices[i].x, _Mesh->mVertices[i].y, _Mesh->mVertices[i].z);
-
-		if (_Mesh->HasNormals())
-		{
-			vertex.SetNormal(_Mesh->mNormals[i].x, _Mesh->mNormals[i].y, _Mesh->mNormals[i].z);
-		}
-		if (_Mesh->HasTextureCoords(0))
-		{
-		#if defined(DX11)
-			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, _Mesh->mTextureCoords[0][i].y);
-		#endif
-		#if defined(OGL)
-			vertex.SetTexture(_Mesh->mTextureCoords[0][i].x, 1 - _Mesh->mTextureCoords[0][i].y);
-		#endif
-		}
-		if (_Mesh->HasTangentsAndBitangents())
-		{
-			vertex.SetTangent(_Mesh->mTangents[i].x, _Mesh->mTangents[i].y, _Mesh->mTangents[i].z);
-			vertex.SetBinormal(_Mesh->mBitangents[i].x, _Mesh->mBitangents[i].y, _Mesh->mBitangents[i].z);
-		}
-		vMeshVertex.push_back(vertex);
-	}
-
-	for (unsigned int i = 0; i < _Mesh->mNumFaces ; i++)
-	{
-		aiFace& Face = _Mesh->mFaces[i];
-		for (unsigned int j = 0; j < Face.mNumIndices; j++)
-		{
-			vMeshIndices.push_back(Face.mIndices[j]);
-		}
-	}
-
-	aiString tmpMatName;
-	const aiMaterial* pMaterial = _Scene->mMaterials[_Mesh->mMaterialIndex];
-	pMaterial->Get(AI_MATKEY_NAME, tmpMatName);
-	for (unsigned int j = 1; j < aiTextureType_UNKNOWN; j++)
-	{
-		if (pMaterial->GetTextureCount(aiTextureType(j)) > 0)
-		{
-			if (pMaterial->GetTexture(aiTextureType(j), 0, &Path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
-			{
-				char Drive[_MAX_DRIVE];
-				char Dir[_MAX_DIR];
-				char Fname[_MAX_FNAME];
-				char Ext[_MAX_EXT];
-
-				std::string Filename = "";
-
-				_splitpath_s(Path.data, Drive, _MAX_DRIVE, Dir, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
-
-				Filename = Fname;
-				Filename += Ext;
-				vFilename.push_back(Filename);
-			}
-		}
-	}
-	return Mesh(vMeshVertex, vMeshIndices, vFilename, _Flags, _Mesh->mName.data);
-}
-
-void LoadModel(const aiScene* _scene, std::string _ModelName, const int _Flags[], const int _PassID)
-{
-	RM::GetRenderManager().m_vModels.push_back(Model());
-	RM::GetRenderManager().m_vModels.back().SetName(_ModelName);
-
-	if (_PassID > kVertexBlinnPhong)
-	{
-		for (unsigned int i = kVertexBlinnPhong; i <= kPixelBlinnPhongNMSM; ++i )
-		{
-			RM::GetRenderManager().m_vModels.back().SetPassID(i);
-		}
-	}
-	else
-	{
-		RM::GetRenderManager().m_vModels.back().SetPassID(_PassID);
-	}
-	
-
-	int NumMeshes = _scene->mNumMeshes;
-	RM::GetRenderManager().m_vModels.back().SetMeshNum(NumMeshes);
-	
-	for (int i = 0; i < NumMeshes; ++i)
-	{
-		aiMesh* ActualMesh = _scene->mMeshes[i];
-
-		RM::GetRenderManager().m_vModels.back().AddMesh(LoadMesh(ActualMesh, _scene, _Flags));
-	}
-
-	RM::GetRenderManager().m_vModels.back().SetUpModel(g_hwnd);
-}
-
-void LoadSAQ(const int _Flags[])
-{
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\SAQ.obj", aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_CalcTangentSpace);
-	if (!scene)
-	{
-		std::cout << "Error importing the model" << std::endl;
-	}
-	else
-	{
-
-		//Usar string
-		char Drive[_MAX_DRIVE];
-		char Directory[_MAX_DIR];
-		char Fname[_MAX_FNAME];
-		char Ext[_MAX_EXT];
-
-		std::string Filename = "";
-
-		_splitpath_s("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\SAQ.obj", Drive, _MAX_DRIVE, Directory, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
-
-		Filename = Fname;
-		Filename += Ext;
-
-		for (unsigned int i = 0; i < ModelNum; ++i)
-		{
-			if (Filename == RM::GetRenderManager().m_vModels[i].GetName())
-			{
-				if (RM::GetRenderManager().m_vModels[i].GetPassID(0))
-				{
-					std::cout << "Model Already Imported!" << std::endl;
-					return;
-				}
-				else
-				{
-					RM::GetRenderManager().m_vModels[i].SetPassID(0);
-					return;
-				}
-			}
-		}
-
-		std::cout << "Archivo importado correctamente" << std::endl;
-		LoadModel(scene, Filename, _Flags, 0);
-	}
-}
-void LoadSphere(const int _Flags[])
-{
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\Sphere.3ds", aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_CalcTangentSpace);
-	if (!scene)
-	{
-		std::cout << "Error importing the model" << std::endl;
-	}
-	else
-	{
-
-		//Usar string
-		char Drive[_MAX_DRIVE];
-		char Directory[_MAX_DIR];
-		char Fname[_MAX_FNAME];
-		char Ext[_MAX_EXT];
-
-		std::string Filename = "";
-
-		_splitpath_s("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\Sphere.3ds", Drive, _MAX_DRIVE, Directory, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
-
-		Filename = Fname;
-		Filename += Ext;
-
-		for (unsigned int i = 0; i < ModelNum; ++i)
-		{
-			if (Filename == RM::GetRenderManager().m_vModels[i].GetName())
-			{
-				if (RM::GetRenderManager().m_vModels[i].GetPassID(0))
-				{
-					std::cout << "Model Already Imported!" << std::endl;
-					return;
-				}
-				else
-				{
-					RM::GetRenderManager().m_vModels[i].SetPassID(0);
-					return;
-				}
-			}
-		}
-
-		std::cout << "Archivo importado correctamente" << std::endl;
-		LoadModel(scene, Filename, _Flags, 0);
-	}
-}
 void OpenMeshMenu(const int _Flags[], const int _PassID)
 {
-	std::string wideStringBuffer = "";
+	string wideStringBuffer = "";
 	wideStringBuffer.resize(MAX_PATH);
 
 	OPENFILENAME ofn;
@@ -812,50 +634,9 @@ void OpenMeshMenu(const int _Flags[], const int _PassID)
 	ofn.Flags = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 	if (GetOpenFileName(&ofn))
 	{
-		std::cout << "Filename to load: " << wideStringBuffer << std::endl;
-	}
-
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(wideStringBuffer, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_CalcTangentSpace);
-	if (!scene)
-	{
-		std::cout << "Error importing the model" << std::endl;
-	}
-	else
-	{
-
-		//Usar string
-		char Drive[_MAX_DRIVE];
-		char Directory[_MAX_DIR];
-		char Fname[_MAX_FNAME];
-		char Ext[_MAX_EXT];
-
-		std::string Filename = "";
-
-		_splitpath_s(wideStringBuffer.c_str(), Drive, _MAX_DRIVE, Directory, _MAX_DIR, Fname, _MAX_FNAME, Ext, _MAX_EXT);
-
-		Filename = Fname;
-		Filename += Ext;
-
-		for (unsigned int i = 0; i < ModelNum; ++i)
-		{
-			if (Filename == RM::GetRenderManager().m_vModels[i].GetName())
-			{
-				if (RM::GetRenderManager().m_vModels[i].GetPassID(_PassID))
-				{
-					std::cout << "Model Already Imported!" << std::endl;
-					return;
-				}
-				else
-				{
-					RM::GetRenderManager().m_vModels[i].SetPassID(_PassID);
-					return;
-				}
-			}
-		}
-
-		std::cout << "Archivo importado correctamente" << std::endl;
-		LoadModel(scene, Filename, _Flags, _PassID);
+		cout << "Filename to load: " << wideStringBuffer << endl;
+		
+		GetRenderManager().LoadModel(wideStringBuffer);
 	}
 }
 
@@ -899,9 +680,9 @@ void ShowMenuOptions()
 
 void ShowMeshesMenu(const unsigned int _i)
 {
-	for (unsigned int j = 0; j < RM::GetRenderManager().m_vModels[_i].GetMeshes().size(); ++j)
+	for (unsigned int j = 0; j < RM::GetRenderManager().m_vModels[_i]->GetMeshes().size(); ++j)
 	{
-		if (ImGui::CollapsingHeader(RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetName().c_str()))
+		if (ImGui::CollapsingHeader(RM::GetRenderManager().m_vModels[_i]->GetMeshes()[j].GetName().c_str()))
 		{
 			if (ImGui::TreeNode("Textures"))
 			{
@@ -914,13 +695,13 @@ void ShowMeshesMenu(const unsigned int _i)
 				ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 				ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
 				
-				for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetMaterial()->GetTexNum(); ++i)
+				for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels[_i]->GetMeshes()[j].GetMaterial()->GetTexNum(); ++i)
 				{
 					#if defined(DX11)
-					ImTextureID TextureID = RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetMaterial()->GetSRVTexture(i)->GetDXSRV();
+					ImTextureID TextureID = RM::GetRenderManager().m_vModels[_i]->GetMeshes()[j].GetMaterial()->GetSRVTexture(i)->GetDXSRV();
 					#endif
 					#if defined(OGL)
-					ImTextureID TextureID = (void*)RM::GetRenderManager().m_vModels[_i].GetMeshes()[j].GetTexID(i);
+					ImTextureID TextureID = (void*)RM::GetRenderManager().m_vModels[_i]->GetMeshes()[j].GetTexID(i);
 					#endif
 					ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
 
@@ -933,23 +714,23 @@ void ShowMeshesMenu(const unsigned int _i)
 
 void UpdateTransformMenu(const unsigned int _i)
 {
-	if (ImGui::DragFloat3("Position", RM::GetRenderManager().m_vModels[_i].m_GuiPos, 0.01f))
+	if (ImGui::DragFloat3("Position", RM::GetRenderManager().m_vModels[_i]->m_GuiPos, 0.01f))
 	{
-		RM::GetRenderManager().m_vModels[_i].UpdateTranslationMatrix(RM::GetRenderManager().m_vModels[_i].GetGuiPos()[0] * 10.0f,
-																	 RM::GetRenderManager().m_vModels[_i].GetGuiPos()[1] * 10.0f,
-																	 RM::GetRenderManager().m_vModels[_i].GetGuiPos()[2] * 10.0f);
+		RM::GetRenderManager().m_vModels[_i]->UpdateTranslationMatrix(RM::GetRenderManager().m_vModels[_i]->GetGuiPos()[0] * 10.0f,
+																	  RM::GetRenderManager().m_vModels[_i]->GetGuiPos()[1] * 10.0f,
+																	  RM::GetRenderManager().m_vModels[_i]->GetGuiPos()[2] * 10.0f);
 	}
-	if (ImGui::DragFloat3("Rotation", RM::GetRenderManager().m_vModels[_i].GetGuiRot(), 1.0f))
+	if (ImGui::DragFloat3("Rotation", RM::GetRenderManager().m_vModels[_i]->GetGuiRot(), 1.0f))
 	{
-		RM::GetRenderManager().m_vModels[_i].UpdateRotationMatrix(RM::GetRenderManager().m_vModels[_i].GetGuiRot()[0],
-																  RM::GetRenderManager().m_vModels[_i].GetGuiRot()[1],
-																  RM::GetRenderManager().m_vModels[_i].GetGuiRot()[2]);
+		RM::GetRenderManager().m_vModels[_i]->UpdateRotationMatrix(RM::GetRenderManager().m_vModels[_i]->GetGuiRot()[0],
+																   RM::GetRenderManager().m_vModels[_i]->GetGuiRot()[1],
+																   RM::GetRenderManager().m_vModels[_i]->GetGuiRot()[2]);
 	}
-	if (ImGui::DragFloat3("Scale", RM::GetRenderManager().m_vModels[_i].GetGuiScale(), 0.001f))
+	if (ImGui::DragFloat3("Scale", RM::GetRenderManager().m_vModels[_i]->GetGuiScale(), 0.001f))
 	{
-		RM::GetRenderManager().m_vModels[_i].UpdateScaleMatrix(RM::GetRenderManager().m_vModels[_i].GetGuiScale()[0],
-															   RM::GetRenderManager().m_vModels[_i].GetGuiScale()[1],
-															   RM::GetRenderManager().m_vModels[_i].GetGuiScale()[2]);
+		RM::GetRenderManager().m_vModels[_i]->UpdateScaleMatrix(RM::GetRenderManager().m_vModels[_i]->GetGuiScale()[0],
+			RM::GetRenderManager().m_vModels[_i]->GetGuiScale()[1],
+			RM::GetRenderManager().m_vModels[_i]->GetGuiScale()[2]);
 	}
 }
 
@@ -1009,7 +790,7 @@ void AccessModels()
 	for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 	{
 	
-		if (ImGui::TreeNode(RM::GetRenderManager().m_vModels[i].GetName().c_str()))
+		if (ImGui::TreeNode(RM::GetRenderManager().m_vModels[i]->GetName().c_str()))
 		{
 			ImGui::SameLine();
 			ImGui::TextDisabled("(?)");
@@ -1017,7 +798,7 @@ void AccessModels()
 			{
 				ImGui::BeginTooltip();
 				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 8);
-				std::string MeshNumText = "Meshes:" + to_string(RM::GetRenderManager().m_vModels[i].GetMeshNum());
+				std::string MeshNumText = "Meshes:" + to_string(RM::GetRenderManager().m_vModels[i]->GetMeshNum());
 				ImGui::TextUnformatted(&MeshNumText[0]);
 				ImGui::PopTextWrapPos();
 				ImGui::EndTooltip();
@@ -1048,7 +829,7 @@ void AccessModels()
 			{
 				ImGui::BeginTooltip();
 				ImGui::PushTextWrapPos(ImGui::GetFontSize() * 20);
-				std::string MeshNumText = "Meshes:" + to_string(RM::GetRenderManager().m_vModels[i].GetMeshNum());
+				std::string MeshNumText = "Meshes:" + to_string(RM::GetRenderManager().m_vModels[i]->GetMeshNum());
 				ImGui::TextUnformatted(&MeshNumText[0]);
 				ImGui::PopTextWrapPos();
 				ImGui::EndTooltip();
@@ -1121,9 +902,9 @@ void PassesMenu(const int _i)
 			{
 				for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 				{
-					if (RM::GetRenderManager().m_vModels[i].GetPassID(m_vEffects[_i].GetPassID(j)))
+					if (RM::GetRenderManager().m_vModels[i]->GetPassID(m_vEffects[_i].GetPassID(j)))
 					{
-						ImGui::Text(RM::GetRenderManager().m_vModels[i].GetName().c_str());
+						ImGui::Text(RM::GetRenderManager().m_vModels[i]->GetName().c_str());
 					}
 				}
 
@@ -1675,11 +1456,6 @@ void UIRender()
 	ImVec4 Tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	ImVec4 Border = ImVec4(1.0f, 1.0f, 1.0f, 0.5f);
 
-	#if defined(DX11)
-	ImTextureID TextureID = (void*)RM::GetRenderManager().SkyboxSRVResource.GetDXSRV();
-	ImGui::Image(TextureID, ImVec2(TextureWidth, TextureHeight), UVMin, UVMax, Tint, Border);
-	#endif
-
 	ImGui::End();
 
 	ImGui::Begin("Enviroment", NULL, 0);
@@ -1722,13 +1498,13 @@ void UIRender()
 			RM::GetRenderManager().g_Specular.Shininess[3] = 0.0f;
 			#endif
 		}
-		if (ImGui::DragFloat("Expossure", &Expossure, 0.01f, 0.01f, 100.0f))
+		if (ImGui::DragFloat("Expossure", &ExpossureGui, 0.01f, 0.01f, 100.0f))
 		{
 			#if defined(DX11)
-			RM::GetRenderManager().g_Expossure.Expo = XMFLOAT4(Expossure, 0.0f, 0.0f, 0.0f);
+			RM::GetRenderManager().g_Expossure.Expo = XMFLOAT4(ExpossureGui, 0.0f, 0.0f, 0.0f);
 			#endif
 			#if defined(OGL)
-			RM::GetRenderManager().g_Expossure.Expo[0] = Expossure;
+			RM::GetRenderManager().g_Expossure.Expo[0] = ExpossureGui;
 			RM::GetRenderManager().g_Expossure.Expo[1] = 0.0f;
 			RM::GetRenderManager().g_Expossure.Expo[2] = 0.0f;
 			RM::GetRenderManager().g_Expossure.Expo[3] = 0.0f;
@@ -2061,6 +1837,8 @@ void UIRender()
 #endif
 void Update()
 {
+	float RunningTime = GetRunningTime();
+
 	if(LeftClick)
 	{
 	#if defined(OGL)
@@ -2075,17 +1853,11 @@ void Update()
 	#endif
 	}
 	#if defined(DX11)
-	for (int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
-	{
-		RM::GetRenderManager().m_vModels[i].Update();
-	}
+	RM::GetRenderManager().Update(RunningTime);
 	m_Obj.Update();
 	#endif
 	#if defined(OGL)
-	for (int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
-	{
-		RM::GetRenderManager().m_vModels[i].Update();
-	}
+	GetRenderManager().Update(RunningTime);
 
 	m_Obj.UpdateOGL(m_OGLWindow);
 	#endif
@@ -2196,8 +1968,8 @@ int main()
 
 	int Flags[2] = { 0, 3 };
 
-	LoadSAQ(Flags);
-	LoadSphere(Flags);
+	GetRenderManager().LoadModel("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\SAQ.obj");
+	GetRenderManager().LoadModel("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\Sphere.3ds");
 
 	//Effects
 	for (unsigned int k = 0; k < 2; k++)
@@ -2321,7 +2093,7 @@ int main()
 	ImGui::DestroyContext();
 	for (int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
 	{
-		RM::GetRenderManager().m_vModels[i].CleanUpDXResources();
+		GetRenderManager().m_vModels[i]->CleanUpDXResources();
 	}
 	m_Obj.CleanupDevice();
 	DestroyWindow(g_hwnd);
@@ -2382,11 +2154,9 @@ int main()
 	FreeImage_Initialise();
 	std::cout << "FreeImage" << FreeImage_GetVersion() << "\n";
 	std::cout << FreeImage_GetCopyrightMessage() << "\n\n";
-	
-	int Flags[2] = { 0, 3 };
 
-	LoadSAQ(Flags);
-	LoadSphere(Flags);
+	GetRenderManager().LoadModel("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\SAQ.obj");
+	GetRenderManager().LoadModel("C:\\Users\\simam\\source\\repos\\Graficas1\\Resources\\Sphere.3ds");
 
 	//Effects
 	for (unsigned int k = 0; k < 2; k++)

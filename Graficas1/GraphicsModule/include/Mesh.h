@@ -8,6 +8,11 @@
 #include <vector>
 #include <cstring>
 #include "SamplerState.h"
+#include "SkeletalMesh.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <stdio.h>
 
 using std::vector;
 
@@ -31,7 +36,8 @@ class Mesh
 {
 public:
 
-	Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name);
+	Mesh(vector<Vertex> _Vertex, vector<unsigned int> _Indices, vector<std::string> _TexturesNames, const int _Flags[], string _Name,
+		 vector<Bone> _Bones, const Matrix _GlobalInverseTransform);
 	~Mesh();
 
 	/*
@@ -50,18 +56,18 @@ public:
 	*/
 	inline std::vector<unsigned int> GetVertexIndex() {return m_vVertexIndex;}
 
-	void Update();
+	void Update(const aiMesh* _CurrentMesh, const aiScene* _Scene, const float _Time);
 
 	void Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd);
 
-	void SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, const HWND _Hwnd);
+	void SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB);
 
 	std::string GetName() { return m_Name; }
 
 	void SetModelMatrix(const Matrix _Matrix);
 
 	#if defined(DX11) || defined(OGL)
-	void LoadTexture(HWND _Hwnd);
+	void LoadTexture();
 
 	Material* GetMaterial() { return m_Material; }
 	#endif
@@ -115,6 +121,15 @@ private:
 
 	bool m_LoadTypes[4] = {false, false, false, false};
 
+	SkeletalMesh m_SkeletalMesh;
+
+	//vector<Matrix> m_Transforms;
+
+	Matrix m_GlobalInverseTransform;
+
+	bool m_HasAnim;
+
+	unsigned int m_BoneLocation[100];
 	#if defined(DX11)
 	/*
 		* @Variable Name: m_ModelMatrix.

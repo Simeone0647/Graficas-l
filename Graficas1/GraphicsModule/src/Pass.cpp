@@ -314,7 +314,7 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				}
 			}
 			#endif
-			RM::GetRenderManager().m_vModels[0].Render(hwnd);
+			RM::GetRenderManager().m_vModels[0]->Render(hwnd);
 		}
 	}
 	else
@@ -387,7 +387,7 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				glViewport(0, 0, 1920, 1080);
 			}
 			#endif
-			RM::GetRenderManager().m_vModels[1].Render(hwnd);
+			RM::GetRenderManager().m_vModels[1]->Render(hwnd);
 		}
 		else
 		{ 
@@ -436,7 +436,7 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 			#endif
 			for (unsigned int i = 2; i < RM::GetRenderManager().m_vModels.size(); ++i)
 			{
-				RM::GetRenderManager().m_vModels[i].Render(hwnd);
+				RM::GetRenderManager().m_vModels[i]->Render(hwnd);
 			}
 		}
 	}

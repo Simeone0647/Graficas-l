@@ -27,7 +27,7 @@ public:
 	#endif
 	#if defined(OGL)
 	void CompileShaders(const string _ShaderFilepath);
-	inline int GetShaderID() { return m_ShaderID; }
+	inline unsigned int GetShaderID() { return m_ShaderID; }
 	#endif
 	void SetMacros(const vector<tuple<string, string>> _Macros);
 

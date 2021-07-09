@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std::vector<std::string> _TexturesNames, const int _Flags[], std::string _Name)
+Mesh::Mesh(vector<Vertex> _Vertex, vector<unsigned int> _Indices, vector<string> _TexturesNames, const int _Flags[], string _Name,
+		   vector<Bone> _Bones, const Matrix _GlobalInverseTransform)
 {
 	m_vVertex = _Vertex;
 	m_vVertexIndex = _Indices;
@@ -8,6 +9,10 @@ Mesh::Mesh(std::vector<Vertex> _Vertex, std::vector<unsigned int> _Indices, std:
 	m_VertexIndexNum = m_vVertexIndex.size();
 	m_vTexturesNames = _TexturesNames;
 	m_Name = _Name;
+	m_GlobalInverseTransform = _GlobalInverseTransform;
+
+	m_SkeletalMesh.Init(_Bones);
+	m_HasAnim = false;
 
 	for (unsigned int i = 0; i < 2; ++i)
 	{
@@ -50,12 +55,13 @@ Mesh::~Mesh()
 {
 }
 
-
-
-void Mesh::Update()
+void Mesh::Update(const aiMesh* _CurrentMesh, const aiScene* _pScene, const float _Time)
 {
 #if defined(DX11)
 	m_CBChangesEveryFrame.mWorld = Matrix::Transpose(m_ModelMatrix);
+#endif
+#if defined(OGL)
+
 #endif
 }
 
@@ -129,6 +135,7 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 		glBindTexture(GL_TEXTURE_2D, m_vTexID[i]);
 	}
 	glBindVertexArray(_VB.GetVAO());
+
 	if (m_LoadTypes[0])
 	{
 		glDrawElements(SIME_TRIANGLES, m_VertexIndexNum, SIME_UNSIGNED_INT, 0);
@@ -142,10 +149,11 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 #endif
 }
 
-void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
+void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB)
 {
 #if defined(DX11)
 	HRESULT hr;
+	HWND hwnd = NULL;
 
 	GraphicsModule::UpdateBDStruct BDStruct;
 	BDStruct.Usage = GraphicsModule::SIME_USAGE_DEFAULT;
@@ -157,7 +165,7 @@ void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	BDStruct.ByteWidth = sizeof(CBChangesEveryFrame);
 
 	m_MeshCB.UpdateBD(BDStruct);
-	hr = GraphicsModule::GetManagerObj(_Hwnd).GetDevice().CCreateBuffer(m_MeshCB.GetBDAddress(), NULL, m_MeshCB.GetCBChangesEveryFrameAddress());
+	hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateBuffer(m_MeshCB.GetBDAddress(), NULL, m_MeshCB.GetCBChangesEveryFrameAddress());
 	if (FAILED(hr))
 		std::cout << "Error hr de cb" << std::endl;
 
@@ -171,7 +179,7 @@ void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 
 	_VB.UpdateBD(UpdateBDS);
 	_VB.UpdateInitData(m_vVertex.data());
-	hr = GraphicsModule::GetManagerObj(_Hwnd).GetDevice().CCreateBuffer(_VB.GetBDAddress(), _VB.GetInitDataAddress(), _VB.GetVertexBufferAddress());
+	hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateBuffer(_VB.GetBDAddress(), _VB.GetInitDataAddress(), _VB.GetVertexBufferAddress());
 	if (FAILED(hr))
 	{
 		std::cout << "error hr 1" << std::endl;
@@ -182,19 +190,19 @@ void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 
 	_IB.UpdateBD(UpdateBDS);
 	_IB.UpdateInitData(m_vVertexIndex.data());
-	hr = GraphicsModule::GetManagerObj(_Hwnd).GetDevice().CCreateBuffer(_IB.GetBDAddress(), _IB.GetInitDataAdress(), _IB.GetIndexBufferAddress());
+	hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateBuffer(_IB.GetBDAddress(), _IB.GetInitDataAdress(), _IB.GetIndexBufferAddress());
 	if (FAILED(hr))
 	{
 		std::cout << "error hr 2" << std::endl;
 	}
-
-	LoadTexture(_Hwnd);
 #endif
 #if defined(OGL)
+	//glGenVertexArrays(1, _VAOBones.GetVAOAddress());
 	glGenVertexArrays(1, _VB.GetVAOAddress());
 	glGenBuffers(1, _VB.GetVBOAddress());
 	glGenBuffers(1, _IB.GetEBOAddress());
 
+	//glBindVertexArray(_VAOBones.GetVAO());
 	glBindVertexArray(_VB.GetVAO());
 	glBindBuffer(SIME_ARRAY_BUFFER, _VB.GetVBO());
 
@@ -203,30 +211,44 @@ void Mesh::SetUpMesh(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	glBindBuffer(SIME_ELEMENT_ARRAY_BUFFER, _IB.GetEBO());
 	glBufferData(SIME_ELEMENT_ARRAY_BUFFER, m_VertexIndexNum * sizeof(unsigned int), m_vVertexIndex.data(), SIME_STATIC_DRAW);
 
+
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)0);
-	// vertex normals
+
+	//vertex normals
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)16);
+
 	//binormals
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)32);
+
 	//tangents
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)48);
-	// vertex texture coords
+
+	//Bones Index
 	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)64);
+	glVertexAttribIPointer(4, 4, GL_INT, sizeof(Vertex), (void*)64);
+	
+	//Bones Weight
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, SIME_FLOAT, 0, sizeof(Vertex), (void*)80);
+
+	// vertex texture coords
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(6, 2, SIME_FLOAT, 0, sizeof(Vertex), (void*)96);
 
 	glBindVertexArray(0);
-
-	LoadTexture(_Hwnd);
 #endif
+	LoadTexture();
 }
 
 #if defined(DX11) || defined(OGL)
-void Mesh::LoadTexture(HWND _hwnd)
+void Mesh::LoadTexture()
 {
+	HWND hwnd = NULL;
+
 	if (m_vTexturesNames.empty())
 	{
 		return;
@@ -274,7 +296,7 @@ void Mesh::LoadTexture(HWND _hwnd)
 		m_Samplers.AddDesc();
 		m_Samplers.SetDesc(false, i);
 
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(i), m_Samplers.GetLastElementAddress());
+		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(i), m_Samplers.GetLastElementAddress());
 
 		if (FAILED(hr))
 		{
@@ -310,7 +332,7 @@ void Mesh::LoadTexture(HWND _hwnd)
 		
 		EntryTexture.SetDescRT(TextureDesc);
 
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateTexture2D(EntryTexture.GetDescDepthAddress(), NULL, EntryTexture.GetTextureAddress());
+		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateTexture2D(EntryTexture.GetDescDepthAddress(), NULL, EntryTexture.GetTextureAddress());
 		if (FAILED(hr))
 		{
 			std::cout << "Error en la textura dx" << std::endl;
@@ -322,7 +344,7 @@ void Mesh::LoadTexture(HWND _hwnd)
 		UpdateSRStruct.pSrcData = Bits;
 		UpdateSRStruct.SrcRowPitch = RowPitch;
 		UpdateSRStruct.SrcDepthPitch = 0;
-		GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
+		GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 
 		if (m_LoadTypes[2])
 		{
@@ -332,7 +354,7 @@ void Mesh::LoadTexture(HWND _hwnd)
 		{
 			m_Material->GetSRVTexture(i)->SetDesc(GraphicsModule::SIME_FORMAT_R8G8B8A8_UNORM, GraphicsModule::SIME_SRV_DIMENSION_TEXTURE2D, 1);
 		}
-		hr = GraphicsModule::GetManagerObj(_hwnd).GetDevice().CCreateShaderResourceView(EntryTexture.GetTexture(), m_Material->GetSRVTexture(i)->GetDXSRVDescAddress(),
+		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateShaderResourceView(EntryTexture.GetTexture(), m_Material->GetSRVTexture(i)->GetDXSRVDescAddress(),
 		m_Material->GetSRVTexture(i)->GetDXSRVAddress());
 		if (FAILED(hr))
 		{
