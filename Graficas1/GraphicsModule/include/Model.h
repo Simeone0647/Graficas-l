@@ -52,6 +52,8 @@ public:
 
 	void Render(HWND _hwnd);
 
+	void RenderSkeletalMesh();
+
 	void Load(const string _Filename);
 
 	Mesh LoadMesh(aiMesh* _CurrentMesh, const unsigned int _i);
@@ -76,6 +78,18 @@ public:
 	unsigned int FindRotation(const float _AnimationTime, const aiNodeAnim* _pNodeAnim);
 
 	unsigned int FindPosition(const float _AnimationTime, const aiNodeAnim* pNodeAnim);
+
+	aiNode* SearchBoneNode(const aiNode* _pNode, const string _NodeName);
+
+	unsigned int GetAnimationNum() { return m_vAnimationsNames.size(); }
+
+	string GetAnimationName(const unsigned int _i) { return m_vAnimationsNames[_i]; }
+
+	void SetAnimation(const int _AnimIndex) { m_SelectedAnimation = _AnimIndex; }
+
+	inline void ShowSkeleton(const bool _Value) { m_ShowSkeleton = _Value; }
+
+	inline bool GetShowSkeleton() { return m_ShowSkeleton; }
 	#if defined(DX11)
 	void CleanUpDXResources();
 	#endif
@@ -86,6 +100,11 @@ public:
 	float m_GuiRot[3]{ 0.0f, 0.0f, 0.0f };
 	float m_GuiScale[3]{ 1.0f, 1.0f, 1.0f };
 private:
+	void SetAnimationsNames();
+	
+	void HeirarchyWithAnim(const float _AnimationTime, const aiScene* _pScene, const aiNode* _pNode, Matrix& _ParentTransform);
+
+	void HeirarchyWithoutAnim(const float _AnimationTime, const aiScene* _pScene, const aiNode* _pNode, Matrix& _ParentTransform);
 
 	vector<VertexBuffer> m_vModelVBs;
 
@@ -133,10 +152,21 @@ private:
 	Buffer m_BBonesTransforms;
 
 	Buffer m_BHasAnim;
+
+	Buffer m_BModelMatrix;
 	#endif
 
-	vector<Matrix> m_BonesTransforms;
+	vector<Matrix> m_vBonesTransforms;
+	vector<Matrix> m_vLinesTransforms;
+
+	int m_IndexNum = -1;
 
 	unsigned int m_BoneLocation[100];
+
+	vector<string> m_vAnimationsNames;
+
+	int m_SelectedAnimation;
+
+	bool m_ShowSkeleton;
 };
 

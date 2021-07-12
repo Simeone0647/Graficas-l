@@ -69,6 +69,24 @@ namespace RM
 		#endif
 	}
 
+	void RenderManager::ClearDepthStencil(DepthStencilView& _DepthStencil)
+	{
+		#if defined(DX11)
+		HWND hwnd = NULL;
+
+		if (_DepthStencil.GetDSV() != NULL)
+		{
+			GraphicsModule::ClearDepthStencilViewStruct ClearDSVStruct;
+			ClearDSVStruct.pDepthStencilView = _DepthStencil.GetDSV();
+			ClearDSVStruct.ClearFlags = GraphicsModule::SIME_CLEAR_DEPTH;
+			ClearDSVStruct.Depth = 1.0f;
+			ClearDSVStruct.Stencil = 0;
+
+			GraphicsModule::GetManagerObj(hwnd).GetDeviceContext().CClearDepthStencilView(ClearDSVStruct);
+		}
+		#endif
+	}
+
 	void RenderManager::SetLights()
 	{
 		#if defined(OGL)

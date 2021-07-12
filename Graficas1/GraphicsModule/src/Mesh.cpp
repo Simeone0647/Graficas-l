@@ -100,6 +100,10 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 	}
 	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CDrawIndexed(m_VertexIndexNum, 0, 0);
 
+	ShaderResourceView NullSRV[3];
+	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetShaderResources(0, 1, NullSRV[0].GetDXSRVAddress());
+	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetShaderResources(1, 1, NullSRV[0].GetDXSRVAddress());
+	GraphicsModule::GetManagerObj(_Hwnd).GetDeviceContext().CPSSetShaderResources(2, 1, NullSRV[0].GetDXSRVAddress());
 #endif
 #if defined(OGL)
 	int ShaderID;
@@ -138,7 +142,7 @@ void Mesh::Render(VertexBuffer& _VB, IndexBuffer& _IB, HWND _Hwnd)
 
 	if (m_LoadTypes[0])
 	{
-		glDrawElements(SIME_TRIANGLES, m_VertexIndexNum, SIME_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, m_VertexIndexNum, SIME_UNSIGNED_INT, 0);
 	}
 	else if (m_LoadTypes[1])
 	{
@@ -295,6 +299,8 @@ void Mesh::LoadTexture()
 		m_Samplers.AddSampler();
 		m_Samplers.AddDesc();
 		m_Samplers.SetDesc(false, i);
+
+		m_Material->AddSRV();
 
 		hr = GraphicsModule::GetManagerObj(hwnd).GetDevice().CCreateSamplerState(m_Samplers.GetDXSamplerDescAddress(i), m_Samplers.GetLastElementAddress());
 

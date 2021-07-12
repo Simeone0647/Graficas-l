@@ -5,10 +5,10 @@ Material::Material()
 {
 	//m_TextureID = 0;
 	#if defined(DX11)
-	for (unsigned int i = 0; i < 3; ++i)
-	{ 
-		m_SRVTexture[i] = new ShaderResourceView;
-	}
+	//for (unsigned int i = 0; i < 3; ++i)
+	//{ 
+	//	m_SRVTexture[i] = new ShaderResourceView;
+	//}
 	#endif
 	m_TexturesNum = 0;
 }
@@ -37,7 +37,7 @@ void Material::Render(HWND _hwnd , CBChangesEveryFrame& cb, ConstantBuffer& _Mes
 	GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CUpdateSubresource(UpdateSRStruct);
 	for (unsigned int i = 0; i < m_TexturesNum; ++i)
 	{
-		GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, m_SRVTexture[i]->GetDXSRVAddress());
+		GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetShaderResources(i, 1, m_vSRVTextures[i]->GetDXSRVAddress());
 	}
 	//GraphicsModule::GetManagerObj(_hwnd).GetDeviceContext().CPSSetSamplers(0, 1, _obj.g_SimeSamplerState.GetDXSamplerStateAddress());
 #endif

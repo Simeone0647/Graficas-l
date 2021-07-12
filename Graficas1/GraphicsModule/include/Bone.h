@@ -18,7 +18,11 @@ public:
 
 	inline void SetFinalTransform(Matrix _FinalTransform) { m_FinalTransform = _FinalTransform; }
 
+	inline void SetFinalLineTransform(Matrix _FinalTransform) { m_FinalLineTransfom = _FinalTransform; }
+
 	inline Matrix GetFinalTransform() { return m_FinalTransform; }
+
+	inline Matrix GetLineFinalTransform() { return m_FinalLineTransfom; }
 
 	inline Matrix GetOffsetMatrix() { return m_Offset; }
 private:
@@ -26,5 +30,6 @@ private:
 	unsigned int m_ID;
 	Matrix m_Offset;
 	Matrix m_FinalTransform;
+	Matrix m_FinalLineTransfom;
 };
 

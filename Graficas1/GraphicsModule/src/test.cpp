@@ -203,6 +203,29 @@ namespace GraphicsModule
 	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().ToneDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().ToneDepth);
+
+
+	//SKELETON
+	RM::GetRenderManager().SkeletonFB = 0;
+	glGenFramebuffers(1, &RM::GetRenderManager().SkeletonFB);
+	glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().SkeletonFB);
+
+	// The texture we're going to render to
+	glGenTextures(1, &RM::GetRenderManager().SkeletonTex);
+	glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().SkeletonTex);
+	// Give an empty image to OpenGL ( the last "0" )
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1920, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	// Poor filtering. Needed !
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+
+	// The depth buffer
+	glGenRenderbuffers(1, &RM::GetRenderManager().SkeletonDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, RM::GetRenderManager().SkeletonDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1920, 1080);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, RM::GetRenderManager().SkeletonDepth);
 	//LOAD THE SKYBOX
 	vector <string> Faces;
 	Faces.push_back("left.jpg");
@@ -691,7 +714,7 @@ namespace GraphicsModule
 		}
 		
 		// --------------------------- FORWARD RENDER --------------------------------------------------
-		for (unsigned int i = 0; i < 2; ++i)
+		for (unsigned int i = 0; i < 3; ++i)
 		{
 			RM::GetRenderManager().ForwardTextures[i].SetDescRT(RTDescStruct);
 
@@ -726,6 +749,7 @@ namespace GraphicsModule
 
 		RM::GetRenderManager().ForwardLightRTV.AddRTV();
 		RM::GetRenderManager().ForwardToneMapRTV.AddRTV();
+		RM::GetRenderManager().ForwardSkeletonRTV.AddRTV();
 
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().ForwardTextures[0].GetTexture(), NULL,
 			RM::GetRenderManager().ForwardLightRTV.GetLastElementAddress());
@@ -735,6 +759,13 @@ namespace GraphicsModule
 		}
 		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().ForwardTextures[1].GetTexture(), NULL,
 			RM::GetRenderManager().ForwardToneMapRTV.GetLastElementAddress());
+		if (FAILED(hr))
+		{
+			cout << "Error Render Target" << endl;
+		}
+
+		hr = GetManagerObj(m_hwnd).GetDevice().CCreateRenderTargetView(RM::GetRenderManager().ForwardTextures[2].GetTexture(), NULL,
+			RM::GetRenderManager().ForwardSkeletonRTV.GetLastElementAddress());
 		if (FAILED(hr))
 		{
 			cout << "Error Render Target" << endl;

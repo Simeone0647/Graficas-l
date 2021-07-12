@@ -140,6 +140,7 @@ namespace RM
 		~RenderManager();
 
 		void SetRenderTarget(const float _ClearColor[], RenderTargetView& _RenderTarget, DepthStencilView& _DepthStencil);
+		void ClearDepthStencil(DepthStencilView& _DepthStencil);
 
 		inline void SetBackBufferCleaned(bool _Value) { m_BackBufferCleaned = _Value; }
 		inline bool IsBackBufferCleaned() { return m_BackBufferCleaned; }
@@ -199,8 +200,10 @@ namespace RM
 		//------------ FORWARD --------------
 		RenderTargetView ForwardLightRTV;
 		RenderTargetView ForwardToneMapRTV;
-		Texture2D ForwardTextures[2];
-		ShaderResourceView ForwardSRV[2];
+		RenderTargetView ForwardSkeletonRTV;
+
+		Texture2D ForwardTextures[3];
+		ShaderResourceView ForwardSRV[3];
 
 		SamplerState ForwardSamplers;
 
@@ -253,6 +256,10 @@ namespace RM
 		unsigned int CopyFB;
 		unsigned int CopyDepth;
 		unsigned int CopyTex;
+
+		unsigned int SkeletonFB;
+		unsigned int SkeletonDepth;
+		unsigned int SkeletonTex;
 		#endif
 
 		AmbientOcclusion	g_AO;

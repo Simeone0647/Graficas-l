@@ -45,7 +45,10 @@ Pass::Pass(const vector<tuple<string, string>> _Macros, HWND _hwnd, string _Name
 	{
 		m_ShaderFilename = "Skybox";
 	}
-
+	else if (m_Name == "Skeleton")
+	{
+		m_ShaderFilename = "Skeleton";
+	}
 	m_Shader.SetMacros(_Macros);
 	#if defined(OGL)
 	m_Shader.CompileShaders(m_ShaderFilename);
@@ -59,7 +62,7 @@ Pass::~Pass()
 {
 }
 
-void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
+void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef, bool _ReadSkeleton)
 {
 	HWND hwnd = NULL;
 
@@ -398,45 +401,94 @@ void Pass::Render(bool _ReadSAQ, bool _ReadSkybox, bool _IsDef)
 				//glEnable(GL_CULL_FACE);
 				//glFrontFace(GL_CCW);
 				//glCullFace(GL_BACK);
-
-				glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().PositionFB);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().PositionTex, 0);
-
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, RM::GetRenderManager().NormalTex, 0);
-
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, RM::GetRenderManager().SpecularTex, 0);
-
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, RM::GetRenderManager().AlbedoTex, 0);
-
-				if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				if (_ReadSkeleton)
 				{
-					cout << "Error en el framebuffer" << endl;
+					glClear(SIME_DEPTH_BUFFER_BIT);
 				}
+				else
+				{
+					glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().PositionFB);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().PositionTex, 0);
 
-				RM::GetRenderManager().SetVP();
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, RM::GetRenderManager().NormalTex, 0);
 
-				GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-				glDrawBuffers(4, DrawBuffers);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, RM::GetRenderManager().SpecularTex, 0);
 
-				glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, RM::GetRenderManager().AlbedoTex, 0);
 
-				glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
-				//glClear(SIME_COLOR_BUFFER_BIT);
-				glViewport(0, 0, 1920, 1080);
+					if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+					{
+						cout << "Error en el framebuffer" << endl;
+					}
+
+					RM::GetRenderManager().SetVP();
+
+					GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+					glDrawBuffers(4, DrawBuffers);
+
+					glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+					glClear(SIME_COLOR_BUFFER_BIT | SIME_DEPTH_BUFFER_BIT);
+					//glClear(SIME_COLOR_BUFFER_BIT);
+					glViewport(0, 0, 1920, 1080);
+				}
 			}
 			else
 			{
 				//glCullFace(GL_FRONT);
 				//glDisable(GL_CULL_FACE);
+				if (!_ReadSkeleton)
+				{
+					RM::GetRenderManager().SetVP();
+					RM::GetRenderManager().SetLights();
+					RM::GetRenderManager().SetViewPos();
+				}
+				else
+				{
+					//glDisable(GL_DEPTH_TEST);
+					// Render to our framebuffer
+					//glBindFramebuffer(GL_FRAMEBUFFER, RM::GetRenderManager().SkeletonFB);
+					// Set "renderedTexture" as our colour attachement #0
+					//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RM::GetRenderManager().SkeletonTex, 0);
 
-				RM::GetRenderManager().SetVP();
-				RM::GetRenderManager().SetLights();
-				RM::GetRenderManager().SetViewPos();
+					//int ShaderID;
+					//glGetIntegerv(GL_CURRENT_PROGRAM, &ShaderID);
+					//
+					//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+					//{
+					//	cout << "Error en el framebuffer" << endl;
+					//}
+
+					//glUniform1i(glGetUniformLocation(ShaderID, "RTFinal"), 0);
+					//glActiveTexture(GL_TEXTURE0);
+					//glBindTexture(GL_TEXTURE_2D, RM::GetRenderManager().LightTexOGL);
+
+					// Set the list of draw buffers.
+					//GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+					//glDrawBuffers(1, DrawBuffers); // "1" is the size of DrawBuffers
+
+					//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+					glClear(SIME_DEPTH_BUFFER_BIT);
+					
+					//glEnable(GL_DEPTH_TEST);
+					//glViewport(0, 0, 1920, 1080); // Render on the whole framebuffer, complete from the lower left corner to the upper right
+				}
 			}
 			#endif
 			for (unsigned int i = 2; i < RM::GetRenderManager().m_vModels.size(); ++i)
 			{
-				RM::GetRenderManager().m_vModels[i]->Render(hwnd);
+				if (_ReadSkeleton)
+				{
+					if (RM::GetRenderManager().m_vModels[i]->GetShowSkeleton())
+					{
+						RM::GetRenderManager().m_vModels[i]->RenderSkeletalMesh();
+					}
+				}
+				else
+				{
+					RM::GetRenderManager().m_vModels[i]->Render(hwnd);
+				}
 			}
 		}
 	}

@@ -27,6 +27,17 @@ void SkeletalMesh::SetBoneFinalTransform(const unsigned int _ID, const Matrix _F
 	}
 }
 
+void SkeletalMesh::SetLineFinalTransform(const unsigned int _ID, const Matrix _FinalTransform)
+{
+	for (unsigned int i = 0; i < m_BonesNum; ++i)
+	{
+		if (m_vBones[i].GetID() == _ID)
+		{
+			m_vBones[i].SetFinalLineTransform(_FinalTransform);
+		}
+	}
+}
+
 Matrix SkeletalMesh::GetBoneOffsetMatrix(const unsigned int _ID)
 {
 	for (unsigned int i = 0; i < m_BonesNum; ++i)

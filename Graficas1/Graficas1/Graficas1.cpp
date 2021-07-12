@@ -62,7 +62,7 @@ static float AOScale = 0.0f;
 static float AOBias = 0.0f;
 static float AOIntensity = 0.0f;
 static int AOIterations = 1;
-
+static int SelectedAnimation = -1;
 static ImVec4 DirLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 PointLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 static ImVec4 SpotLightColor = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
@@ -74,6 +74,7 @@ static double MouseRelativePosition[2]{};
 static double PreviousMouseRelativePosition[2]{};
 static bool OverImGuiWindow = false;
 static bool NormalMap = false;
+static bool ShowSkeleton = false;
 
 bool g_NewEffect;
 bool g_NewPass;
@@ -785,6 +786,23 @@ void UpdateTransformMenu(const unsigned int _i)
 //	ImGui::Separator();
 //}
 
+void AnimationMenu(const unsigned int _i)
+{
+	if (ImGui::Checkbox("Show Skeleton", &ShowSkeleton))
+	{
+		GetRenderManager().m_vModels[_i]->ShowSkeleton(ShowSkeleton);
+	}
+
+	for (auto i = 0; i < GetRenderManager().m_vModels[_i]->GetAnimationNum(); ++i)
+	{
+		if (ImGui::Selectable(GetRenderManager().m_vModels[_i]->GetAnimationName(i).c_str(), SelectedAnimation == i))
+		{
+			GetRenderManager().m_vModels[_i]->SetAnimation(i - 1);
+			SelectedAnimation = i;
+		}
+	}
+}
+
 void AccessModels()
 {
 	for (unsigned int i = 0; i < RM::GetRenderManager().m_vModels.size(); ++i)
@@ -814,6 +832,11 @@ void AccessModels()
 				if (ImGui::BeginTabItem("Meshes"))
 				{
 					ShowMeshesMenu(i);
+					ImGui::EndTabItem();
+				}
+				if (ImGui::BeginTabItem("Animations"))
+				{
+					AnimationMenu(i);
 					ImGui::EndTabItem();
 				}
 				ImGui::EndTabBar();

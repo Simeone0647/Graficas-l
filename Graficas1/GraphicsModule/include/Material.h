@@ -29,7 +29,8 @@ public:
 	#endif
 
 	#if defined(DX11)
-	inline ShaderResourceView* GetSRVTexture(const unsigned int _i) { return m_SRVTexture[_i]; }
+	inline ShaderResourceView* GetSRVTexture(const unsigned int _i) { return m_vSRVTextures[_i]; }
+	inline void AddSRV() { m_vSRVTextures.push_back(new ShaderResourceView()); }
 	#endif
 private:
 
@@ -41,7 +42,8 @@ private:
 	#endif
 
 	#if defined(DX11)
-	ShaderResourceView* m_SRVTexture[3];
+	//ShaderResourceView* m_SRVTexture[3];
+	vector<ShaderResourceView*> m_vSRVTextures;
 	#endif
 };
 

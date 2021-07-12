@@ -146,7 +146,8 @@ unsigned int Shader::LoadShaders(const char* _VertexFilepath, const char* _Fragm
 	}
 
 	std::ifstream FragmentShaderStream(_FragmentFilepath, std::ios::in);
-	if (FragmentShaderStream.is_open()) {
+	if (FragmentShaderStream.is_open())
+	{
 		std::stringstream sstr;
 		sstr << FragmentShaderStream.rdbuf();
 		FragmentShaderCode += sstr.str();
